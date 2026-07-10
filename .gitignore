@@ -1,15 +1,18 @@
+# macOS
+.DS_Store
+
 # Python
 __pycache__/
 *.py[cod]
 
-# Virtual environment
+# Virtual environments
 .venv/
+venv/
 
-# macOS
-.DS_Store
+# Generated charts and reports
+output/
+reports/
 
-# VS Code
+# IDE files
 .vscode/
-
-# Generated charts
-*.png
+.idea/
