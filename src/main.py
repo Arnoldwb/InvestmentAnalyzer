@@ -1,3 +1,4 @@
+from report import save_report
 from loader import load_fund
 from returns import monthly_returns
 from statistics import (
@@ -89,3 +90,4 @@ for symbol, data in results.items():
         f"{data['Worst Year']:>10.2%}"
     )
 growth_chart(fund_returns)
+save_report(results)
