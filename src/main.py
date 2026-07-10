@@ -1,3 +1,19 @@
+from statistics import (
+    fund_statistics,
+    cagr,
+    max_drawdown,
+    best_year,
+    worst_year,
+    positive_years,
+    negative_years,
+    sharpe_ratio,
+)
+from report import save_report
+from ranking import (
+    print_rankings,
+    print_executive_summary,
+    print_recommendation,
+)
 from report import save_report
 from loader import load_fund
 from returns import monthly_returns
@@ -93,14 +109,6 @@ growth_chart(fund_returns)
 save_report(results)
 print()
 print("=" * 80)
-print("FUND RANKINGS (by CAGR)")
-print("=" * 80)
-
-ranking = sorted(
-    results.items(),
-    key=lambda item: item[1]["CAGR"],
-    reverse=True
-)
-
-for rank, (symbol, stats) in enumerate(ranking, start=1):
-    print(f"{rank:>2}. {symbol:<8} {stats['CAGR']:.2%}")
+print_rankings(results)
+print_executive_summary(results)
+print_recommendation(results)

@@ -85,3 +85,18 @@ def fund_statistics(monthly_returns):
     stats["Negative Months"] = (monthly_returns < 0).sum()
 
     return stats
+import numpy as np
+
+
+def sharpe_ratio(monthly_returns, risk_free_rate=0.02):
+    """
+    Annualized Sharpe Ratio.
+    Assumes monthly returns.
+    """
+
+    excess = monthly_returns - (risk_free_rate / 12)
+
+    if excess.std() == 0:
+        return 0
+
+    return np.sqrt(12) * excess.mean() / excess.std()
