@@ -1,0 +1,1 @@
+# Market cycle detection
