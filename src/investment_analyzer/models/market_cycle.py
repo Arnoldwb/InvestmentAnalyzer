@@ -37,4 +37,4 @@ class MarketCycle:
             "End": self.end_date.date(),
             "Days": self.days,
             "Return %": round(self.percent_change, 2),
-        }# Market cycle detection
+        }

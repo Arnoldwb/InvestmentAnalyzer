@@ -14,10 +14,19 @@ class MarketCycleAnalyzer:
     percentage reversal threshold.
     """
 
-    def __init__(self, fund, threshold=0.10):
-        self.fund = fund
-        self.threshold = threshold
+def __init__(self, fund, threshold=0.10, min_days=30):
+    """
+    Parameters
+    ----------
+    threshold : float
+        Minimum percentage reversal required.
 
+    min_days : int
+        Minimum duration of a market cycle.
+    """
+    self.fund = fund
+    self.threshold = threshold
+    self.min_days = min_days
     def detect_major_cycles(self):
         prices = self.fund.data
 
@@ -96,17 +105,17 @@ class MarketCycleAnalyzer:
         final_price = prices.iloc[-1]["Adj Close"]
         final_date = prices.iloc[-1]["Date"]
 
-        cycles.append(
-            MarketCycle(
-                cycle_type=state,
-                start_date=cycle_start_date,
-                end_date=final_date,
-                start_price=cycle_start_price,
-                end_price=final_price,
-            )
-        )
+cycle = MarketCycle(
+    cycle_type="Bull",
+    start_date=cycle_start_date,
+    end_date=extreme_date,
+    start_price=cycle_start_price,
+    end_price=extreme_price,
+)
 
-        return cycles
+if cycle.days >= self.min_days:
+    cycles.append(cycle)
+         return cycles
 
     # Backward compatibility
     def build_cycles(self):
