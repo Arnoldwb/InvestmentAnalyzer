@@ -14,7 +14,11 @@ class Fund:
             raise FileNotFoundError(csv_file)
         self.data=pd.read_csv(csv_file)
         self.data.columns=[c.strip() for c in self.data.columns]
-        self.data['Date']=pd.to_datetime(self.data['Date'],errors='coerce')
+        self.data['Date'] = pd.to_datetime(
+    self.data['Date'],
+    format="%d-%b-%y",
+    errors="coerce"
+)
         self.data['Adj Close']=pd.to_numeric(self.data['Adj Close'],errors='coerce')
         self.data=self.data.dropna(subset=['Date','Adj Close']).sort_values('Date').reset_index(drop=True)
         return self
