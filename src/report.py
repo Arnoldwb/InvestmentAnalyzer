@@ -1,9 +1,17 @@
 from datetime import datetime
 from pathlib import Path
 
-def save_report(results, filename="../reports/Fund_Report.txt"):
+OUTPUT_DIR = Path(__file__).resolve().parent.parent / "output"
+OUTPUT_DIR.mkdir(exist_ok=True)
+
+
+def save_report(results, filename=None):
+
+    if filename is None:
+        filename = OUTPUT_DIR / "Fund_Report.txt"
 
     with open(filename, "w") as f:
+        
 
         f.write("=" * 70 + "\n")
         f.write("Investment Analyzer\n")
