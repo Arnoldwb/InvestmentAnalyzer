@@ -43,5 +43,5 @@ def growth_chart(funds):
 
     print(f"\nChart saved to: {filename}")
 
-    # Display chart
-    plt.show()
+    # Close the figure so the console can return to its menu immediately.
+    plt.close()

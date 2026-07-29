@@ -33,15 +33,16 @@ def display_menu():
         print("1. Analyze all funds")
         print("2. Generate Excel market-cycle report")
         print("3. Analyze one fund")
-        print("4. Exit")
+        print("4. Compare selected funds")
+        print("5. Exit")
         print()
 
         choice = input("Selection: ").strip()
 
-        if choice in {"1", "2", "3", "4"}:
+        if choice in {"1", "2", "3", "4", "5"}:
             return choice
 
-        print("\nInvalid selection. Please enter 1, 2, 3, or 4.\n")
+        print("\nInvalid selection. Please enter a number from 1 to 5.\n")
 
 
 def select_fund(funds):
@@ -65,6 +66,42 @@ def select_fund(funds):
                 return funds[index]
 
         print("\nPlease enter a fund number or B to return to the menu.\n")
+
+
+def select_funds_for_comparison(funds):
+    """Return two or more selected funds, or None to return to the menu."""
+    print("\nChoose two or more funds to compare:\n")
+
+    for number, symbol in enumerate(funds, start=1):
+        print(f"{number}. {symbol}")
+
+    print("B. Back to menu\n")
+    print("Enter numbers separated by commas, such as: 1,3,6\n")
+
+    while True:
+        selection = input("Selection: ").strip()
+
+        if selection.lower() == "b":
+            return None
+
+        try:
+            numbers = [int(value.strip()) for value in selection.split(",")]
+        except ValueError:
+            numbers = []
+
+        selected_funds = []
+        for number in numbers:
+            index = number - 1
+            if 0 <= index < len(funds) and funds[index] not in selected_funds:
+                selected_funds.append(funds[index])
+
+        if len(selected_funds) >= 2 and len(selected_funds) == len(numbers):
+            return selected_funds
+
+        print(
+            "\nPlease enter at least two valid, different fund numbers "
+            "separated by commas.\n"
+        )
 
 
 def analyze_funds(funds):
@@ -180,6 +217,11 @@ def main():
             selected_fund = select_fund(funds)
             if selected_fund:
                 analyze_funds([selected_fund])
+        elif choice == "4":
+            selected_funds = select_funds_for_comparison(funds)
+            if selected_funds:
+                print(f"\nComparing: {', '.join(selected_funds)}")
+                analyze_funds(selected_funds)
         else:
             print("\nGoodbye.")
             break
