@@ -32,15 +32,39 @@ def display_menu():
         print("-" * 30)
         print("1. Analyze all funds")
         print("2. Generate Excel market-cycle report")
-        print("3. Exit")
+        print("3. Analyze one fund")
+        print("4. Exit")
         print()
 
         choice = input("Selection: ").strip()
 
-        if choice in {"1", "2", "3"}:
+        if choice in {"1", "2", "3", "4"}:
             return choice
 
-        print("\nInvalid selection. Please enter 1, 2, or 3.\n")
+        print("\nInvalid selection. Please enter 1, 2, 3, or 4.\n")
+
+
+def select_fund(funds):
+    """Let the user select one discovered fund, or return to the menu."""
+    print("\nChoose a fund to analyze:\n")
+
+    for number, symbol in enumerate(funds, start=1):
+        print(f"{number}. {symbol}")
+
+    print("B. Back to menu\n")
+
+    while True:
+        selection = input("Selection: ").strip()
+
+        if selection.lower() == "b":
+            return None
+
+        if selection.isdigit():
+            index = int(selection) - 1
+            if 0 <= index < len(funds):
+                return funds[index]
+
+        print("\nPlease enter a fund number or B to return to the menu.\n")
 
 
 def analyze_funds(funds):
@@ -152,6 +176,10 @@ def main():
             analyze_funds(funds)
         elif choice == "2":
             generate_excel_report(funds)
+        elif choice == "3":
+            selected_fund = select_fund(funds)
+            if selected_fund:
+                analyze_funds([selected_fund])
         else:
             print("\nGoodbye.")
             break
