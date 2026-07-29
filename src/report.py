@@ -1,8 +1,7 @@
 from datetime import datetime
 from pathlib import Path
 
-OUTPUT_DIR = Path(__file__).resolve().parent.parent / "output"
-OUTPUT_DIR.mkdir(exist_ok=True)
+from investment_analyzer.core.paths import OUTPUT_DIR
 
 
 def save_report(results, filename=None):
@@ -11,7 +10,6 @@ def save_report(results, filename=None):
         filename = OUTPUT_DIR / "Fund_Report.txt"
 
     with open(filename, "w") as f:
-        
 
         f.write("=" * 70 + "\n")
         f.write("Investment Analyzer\n")
@@ -45,5 +43,5 @@ def save_report(results, filename=None):
             )
 
             f.write(line + "\n")
-    report_file = Path(filename).resolve()
-    print(f"\nReport saved to: {report_file}")
+
+    print(f"\nReport saved to: {Path(filename).resolve()}")
