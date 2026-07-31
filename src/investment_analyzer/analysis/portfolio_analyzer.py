@@ -181,6 +181,22 @@ class PortfolioAnalyzer:
 
         return episodes
 
+    def major_drawdowns(self, threshold: float = 0.10) -> list[dict]:
+        """
+        Return completed drawdown episodes whose decline
+        is at least the specified threshold.
+
+        Example:
+        threshold=0.10 means declines of 10% or greater.
+        """
+
+        if threshold <= 0:
+            raise ValueError("Drawdown threshold must be greater than zero.")
+
+        episodes = self.drawdown_episodes()
+
+        return [episode for episode in episodes if episode["decline"] <= -threshold]
+
     def max_drawdown(self) -> float:
         """
         Calculate maximum portfolio drawdown.
