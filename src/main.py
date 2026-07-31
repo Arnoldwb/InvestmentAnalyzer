@@ -205,13 +205,18 @@ def generate_excel_report(funds):
 def create_portfolio(funds):
     """
     Interactively create a portfolio from the available funds.
+
+    Returns None if the user cancels.
     """
 
     print()
     print("Create Portfolio")
     print("-" * 50)
 
-    name = input("Portfolio name: ").strip()
+    name = input("Portfolio name (or B to return to menu): ").strip()
+
+    if name.lower() == "b":
+        return None
 
     if not name:
         name = "Portfolio"
@@ -228,6 +233,7 @@ def create_portfolio(funds):
     print()
     print("Enter fund numbers and allocations.")
     print("Allocations must total 100%.")
+    print("Enter B at a fund prompt to cancel.")
     print()
 
     while portfolio.total_allocation < 100.0:
@@ -235,10 +241,15 @@ def create_portfolio(funds):
 
         print(f"Remaining allocation: {remaining:.1f}%")
 
-        selection = input("Fund number: ").strip()
+        selection = input("Fund number (or B): ").strip()
+
+        if selection.lower() == "b":
+            print()
+            print("Portfolio creation cancelled.")
+            return None
 
         if not selection.isdigit():
-            print("Please enter a valid fund number.")
+            print("Please enter a valid fund number or B.")
             print()
             continue
 
@@ -256,7 +267,12 @@ def create_portfolio(funds):
             print()
             continue
 
-        allocation_text = input("Allocation %: ").strip()
+        allocation_text = input("Allocation % (or B): ").strip()
+
+        if allocation_text.lower() == "b":
+            print()
+            print("Portfolio creation cancelled.")
+            return None
 
         try:
             allocation = float(allocation_text)
@@ -283,9 +299,14 @@ def create_portfolio(funds):
     portfolio.validate()
 
     print("Portfolio complete.")
-    print()
-
     portfolio.summary()
+
+    confirm = input("\nAnalyze this portfolio? (Y/N): ").strip().lower()
+
+    if confirm != "y":
+        print()
+        print("Portfolio analysis cancelled.")
+        return None
 
     return portfolio
 
@@ -297,9 +318,10 @@ def analyze_portfolio_interactive(funds):
 
     portfolio = create_portfolio(funds)
 
-    analyzer = PortfolioAnalyzer(portfolio)
+    if portfolio is None:
+        return
 
-    print()
+    analyzer = PortfolioAnalyzer(portfolio)
     print("PORTFOLIO PERFORMANCE STATISTICS")
     print("=" * 60)
 
@@ -343,6 +365,9 @@ def compare_portfolios_interactive(funds):
 
     portfolio_a = create_portfolio(funds)
 
+    if portfolio_a is None:
+        return
+
     print()
     print("=" * 60)
     print("CREATE PORTFOLIO B")
@@ -350,10 +375,14 @@ def compare_portfolios_interactive(funds):
 
     portfolio_b = create_portfolio(funds)
 
-    comparator = PortfolioComparator(
-        portfolio_a,
-        portfolio_b,
-    )
+    if portfolio_b is None:
+        print()
+        print("Portfolio comparison cancelled.")
+        return print("Portfolio comparison cancelled.")
+        comparator = PortfolioComparator(
+            portfolio_a,
+            portfolio_b,
+        )
 
     results = comparator.compare()
 
