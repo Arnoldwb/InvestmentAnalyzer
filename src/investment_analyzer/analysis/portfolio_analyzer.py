@@ -58,7 +58,80 @@ class PortfolioAnalyzer:
 
         for holding in self.portfolio.holdings:
             weight = holding.allocation / 100.0
-
             portfolio_returns += returns[holding.fund.symbol] * weight
 
         return portfolio_returns
+
+    def growth_index(self, initial_value: float = 1.0) -> pd.Series:
+        """
+        Calculate compounded portfolio growth.
+        """
+
+        returns = self.monthly_returns()
+
+        return initial_value * (1.0 + returns).cumprod()
+
+    def cagr(self) -> float:
+        """
+        Calculate compound annual growth rate from monthly returns.
+        """
+
+        returns = self.monthly_returns()
+
+        months = len(returns)
+
+        if months == 0:
+            return 0.0
+
+        ending_value = (1.0 + returns).prod()
+
+        years = months / 12.0
+
+        return ending_value ** (1.0 / years) - 1.0
+
+    def annualized_return(self) -> float:
+        """
+        Calculate annualized return from average monthly return.
+        """
+
+        returns = self.monthly_returns()
+
+        return (1.0 + returns.mean()) ** 12 - 1.0
+
+    def annualized_volatility(self) -> float:
+        """
+        Calculate annualized volatility.
+        """
+
+        returns = self.monthly_returns()
+
+        return returns.std() * (12**0.5)
+
+    def max_drawdown(self) -> float:
+        """
+        Calculate maximum portfolio drawdown.
+        """
+
+        growth = self.growth_index()
+
+        running_peak = growth.cummax()
+
+        drawdown = growth / running_peak - 1.0
+
+        return drawdown.min()
+
+    def sharpe_ratio(self, risk_free_rate: float = 0.0) -> float:
+        """
+        Calculate annualized Sharpe ratio.
+
+        risk_free_rate is expressed as an annual decimal.
+        Example: 0.04 represents 4%.
+        """
+
+        annual_return = self.annualized_return()
+        volatility = self.annualized_volatility()
+
+        if volatility == 0:
+            return 0.0
+
+        return (annual_return - risk_free_rate) / volatility
