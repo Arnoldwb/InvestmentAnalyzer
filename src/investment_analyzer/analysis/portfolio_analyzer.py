@@ -107,9 +107,12 @@ class PortfolioAnalyzer:
 
         return returns.std() * (12**0.5)
 
-    def max_drawdown(self) -> float:
+    def drawdown_series(self) -> pd.Series:
         """
-        Calculate maximum portfolio drawdown.
+        Calculate portfolio drawdown for every month.
+
+        Drawdown measures the percentage decline from the
+        portfolio's previous high-water mark.
         """
 
         growth = self.growth_index()
@@ -118,14 +121,23 @@ class PortfolioAnalyzer:
 
         drawdown = growth / running_peak - 1.0
 
-        return drawdown.min()
+        drawdown.name = "Drawdown"
+
+        return drawdown
+
+    def max_drawdown(self) -> float:
+        """
+        Calculate maximum portfolio drawdown.
+        """
+
+        return self.drawdown_series().min()
 
     def sharpe_ratio(self, risk_free_rate: float = 0.0) -> float:
         """
         Calculate annualized Sharpe ratio.
 
-        risk_free_rate is expressed as an annual decimal.
-        Example: 0.04 represents 4%.
+          risk_free_rate is expressed as an annual decimal.
+          Example: 0.04 represents 4%.
         """
 
         annual_return = self.annualized_return()
