@@ -125,6 +125,62 @@ class PortfolioAnalyzer:
 
         return drawdown
 
+    def drawdown_episodes(self) -> list[dict]:
+        """
+        Identify completed portfolio drawdown episodes.
+
+        Each episode begins at a portfolio peak, reaches a bottom,
+        and ends when the portfolio regains the previous peak.
+        """
+
+        growth = self.growth_index()
+
+        episodes = []
+
+        peak_date = growth.index[0]
+        peak_value = growth.iloc[0]
+
+        in_drawdown = False
+        bottom_date = None
+        bottom_value = None
+
+        for date, value in growth.iloc[1:].items():
+
+            if value >= peak_value:
+
+                if in_drawdown:
+                    decline = bottom_value / peak_value - 1.0
+
+                    episodes.append(
+                        {
+                            "peak_date": peak_date,
+                            "bottom_date": bottom_date,
+                            "recovery_date": date,
+                            "decline": decline,
+                            "days_to_bottom": (bottom_date - peak_date).days,
+                            "days_to_recovery": (date - peak_date).days,
+                        }
+                    )
+
+                    in_drawdown = False
+                    bottom_date = None
+                    bottom_value = None
+
+                peak_date = date
+                peak_value = value
+
+            else:
+                if not in_drawdown:
+                    in_drawdown = True
+                    bottom_date = date
+                    bottom_value = value
+
+                elif value < bottom_value:
+                    bottom_date = date
+                    bottom_value = value
+
+        return episodes
+
     def max_drawdown(self) -> float:
         """
         Calculate maximum portfolio drawdown.
