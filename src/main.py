@@ -12,6 +12,10 @@ from ranking import (
     print_rankings,
     print_recommendation,
 )
+from investment_analyzer.models.portfolio import Portfolio
+from investment_analyzer.analysis.portfolio_analyzer import PortfolioAnalyzer
+from investment_analyzer.reports.report_manager import ReportManager
+
 from report import save_report
 from returns import monthly_returns
 from statistics import (
@@ -198,6 +202,135 @@ def generate_excel_report(funds):
     print(f"\nWorkbook written to:\n{output_file}\n")
 
 
+def create_portfolio(funds):
+    """
+    Interactively create a portfolio from the available funds.
+    """
+
+    print()
+    print("Create Portfolio")
+    print("-" * 50)
+
+    name = input("Portfolio name: ").strip()
+
+    if not name:
+        name = "Portfolio"
+
+    portfolio = Portfolio(name)
+
+    print()
+    print("Available funds:")
+    print()
+
+    for number, symbol in enumerate(funds, start=1):
+        print(f"{number}. {symbol}")
+
+    print()
+    print("Enter fund numbers and allocations.")
+    print("Allocations must total 100%.")
+    print()
+
+    while portfolio.total_allocation < 100.0:
+        remaining = 100.0 - portfolio.total_allocation
+
+        print(f"Remaining allocation: {remaining:.1f}%")
+
+        selection = input("Fund number: ").strip()
+
+        if not selection.isdigit():
+            print("Please enter a valid fund number.")
+            print()
+            continue
+
+        index = int(selection) - 1
+
+        if index < 0 or index >= len(funds):
+            print("Please enter a valid fund number.")
+            print()
+            continue
+
+        symbol = funds[index]
+
+        if any(holding.fund.symbol == symbol for holding in portfolio.holdings):
+            print(f"{symbol} is already in the portfolio.")
+            print()
+            continue
+
+        allocation_text = input("Allocation %: ").strip()
+
+        try:
+            allocation = float(allocation_text)
+        except ValueError:
+            print("Please enter a valid allocation.")
+            print()
+            continue
+
+        if allocation <= 0:
+            print("Allocation must be greater than zero.")
+            print()
+            continue
+
+        if allocation > remaining:
+            print(f"Allocation cannot exceed the remaining " f"{remaining:.1f}%.")
+            print()
+            continue
+
+        portfolio.add_fund(symbol, allocation)
+
+        print(f"Added {symbol}: {allocation:.1f}%")
+        print()
+
+    portfolio.validate()
+
+    print("Portfolio complete.")
+    print()
+
+    portfolio.summary()
+
+    return portfolio
+
+
+def analyze_portfolio_interactive(funds):
+    """
+    Create, analyze, and report an interactive portfolio.
+    """
+
+    portfolio = create_portfolio(funds)
+
+    analyzer = PortfolioAnalyzer(portfolio)
+
+    print()
+    print("PORTFOLIO PERFORMANCE STATISTICS")
+    print("=" * 60)
+
+    print(f"CAGR                  : " f"{analyzer.cagr():.2%}")
+
+    print(f"Annualized Avg Return : " f"{analyzer.annualized_return():.2%}")
+
+    print(f"Annualized Volatility : " f"{analyzer.annualized_volatility():.2%}")
+
+    print(f"Maximum Drawdown      : " f"{analyzer.max_drawdown():.2%}")
+
+    print(f"Sharpe Ratio          : " f"{analyzer.sharpe_ratio():.2f}")
+
+    growth = analyzer.growth_index(10000)
+
+    print()
+    print("Growth of $10,000")
+    print("-" * 60)
+
+    print("Beginning Value : $10,000.00")
+    print(f"Ending Value    : " f"${growth.iloc[-1]:,.2f}")
+
+    manager = ReportManager()
+
+    filename = manager.create_portfolio_report(portfolio)
+
+    print()
+    print("Portfolio report created:")
+    print(filename)
+
+
 def main():
     """Discover funds, present the menu, and run the chosen action."""
     funds = discover_funds()
@@ -234,9 +367,7 @@ def main():
                 analyze_funds(selected_funds)
 
         elif choice == "5":
-            print()
-            print("Portfolio analysis will be added in Version 3.6 Milestone 2.")
-
+            analyze_portfolio_interactive(funds)
         elif choice == "6":
             print()
             print("Portfolio comparison will be added in Version 3.6 Milestone 3.")
