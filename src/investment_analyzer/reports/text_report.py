@@ -165,5 +165,31 @@ class TextReport(BaseReport):
         for holding in portfolio_b.holdings:
             builder.field(holding.fund.symbol, f"{holding.allocation:.1f}%")
 
+        builder.blank()
+
+        builder.section("Comparison Interpretation")
+
+        interpretation = comparator.interpretation()
+
+        builder.line("Growth:")
+        builder.line(interpretation["growth"])
+        builder.blank()
+
+        builder.line("Risk:")
+        builder.line(interpretation["risk"])
+        builder.blank()
+
+        builder.line("Drawdown:")
+        builder.line(interpretation["drawdown"])
+        builder.blank()
+
+        builder.line("Risk-Adjusted Performance:")
+        builder.line(interpretation["risk_adjusted"])
+        builder.blank()
+
+        builder.line("Growth of $10,000:")
+        builder.line(interpretation["ending_value"])
+
         builder.save(filename)
+
         return filename
