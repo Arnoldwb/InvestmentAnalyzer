@@ -28,15 +28,25 @@ from statistics import (
 def display_menu():
     """Display the available actions and return a valid selection."""
     while True:
+        print()
         print("Menu")
-        print("-" * 30)
+        print("-" * 50)
         print("1. Analyze all funds")
         print("2. Generate Excel market-cycle report")
         print("3. Analyze one fund")
         print("4. Compare selected funds")
-        print("5. Exit")
+        print("5. Analyze a portfolio")
+        print("6. Compare two portfolios")
+        print("7. Exit")
         print()
 
+        choice = input("Selection: ").strip()
+
+        if choice in {"1", "2", "3", "4", "5", "6", "7"}:
+            return choice
+
+        print()
+        print("Invalid selection. Please enter a number from 1 to 7.")
         choice = input("Selection: ").strip()
 
         if choice in {"1", "2", "3", "4", "5"}:
@@ -222,8 +232,18 @@ def main():
             if selected_funds:
                 print(f"\nComparing: {', '.join(selected_funds)}")
                 analyze_funds(selected_funds)
+
+        elif choice == "5":
+            print()
+            print("Portfolio analysis will be added in Version 3.6 Milestone 2.")
+
+        elif choice == "6":
+            print()
+            print("Portfolio comparison will be added in Version 3.6 Milestone 3.")
+
         else:
-            print("\nGoodbye.")
+            print()
+            print("Goodbye.")
             break
 
 
