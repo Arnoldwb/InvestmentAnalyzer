@@ -11,8 +11,7 @@ venv/
 
 # Generated charts and reports
 output/
-reports/
-
+/reports/
 # IDE files
 .vscode/
 .idea/
