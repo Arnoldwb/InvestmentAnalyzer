@@ -1,5 +1,5 @@
 from investment_analyzer.analysis.portfolio_analyzer import PortfolioAnalyzer
-
+from investment_analyzer.analysis.portfolio_comparator import PortfolioComparator
 from .base_report import BaseReport
 from .report_builder import ReportBuilder
 
@@ -90,4 +90,80 @@ class TextReport(BaseReport):
 
         builder.save(filename)
 
+        return filename
+
+    def create_comparison_report(self, portfolio_a, portfolio_b):
+        """
+        Create a side-by-side portfolio comparison report.
+        """
+
+        filename = self.report_path("PortfolioComparisonReport.txt")
+
+        comparator = PortfolioComparator(
+            portfolio_a,
+            portfolio_b,
+        )
+
+        results = comparator.compare()
+
+        a = results["portfolio_a"]
+        b = results["portfolio_b"]
+
+        builder = ReportBuilder()
+
+        builder.title(
+            "Investment Analyzer\n" "Version 3.5\n" "Portfolio Comparison Report"
+        )
+
+        builder.field("Generated:", self.timestamp)
+        builder.blank()
+
+        builder.line(f"{'Metric':<25}" f"{'Portfolio A':>17}" f"{'Portfolio B':>17}")
+
+        builder.line("-" * 59)
+
+        builder.line(f"{'CAGR':<25}" f"{a['cagr']:>16.2%}" f"{b['cagr']:>17.2%}")
+
+        builder.line(
+            f"{'Annualized Avg Return':<25}"
+            f"{a['annualized_return']:>16.2%}"
+            f"{b['annualized_return']:>17.2%}"
+        )
+
+        builder.line(
+            f"{'Annualized Volatility':<25}"
+            f"{a['volatility']:>16.2%}"
+            f"{b['volatility']:>17.2%}"
+        )
+
+        builder.line(
+            f"{'Maximum Drawdown':<25}"
+            f"{a['max_drawdown']:>16.2%}"
+            f"{b['max_drawdown']:>17.2%}"
+        )
+
+        builder.line(
+            f"{'Sharpe Ratio':<25}" f"{a['sharpe']:>16.2f}" f"{b['sharpe']:>17.2f}"
+        )
+
+        a_value = f"${a['ending_value']:,.2f}"
+        b_value = f"${b['ending_value']:,.2f}"
+
+        builder.line(f"{'Growth of $10,000':<25}" f"{a_value:>17}" f"{b_value:>17}")
+
+        builder.blank()
+
+        builder.section(f"Portfolio A: {portfolio_a.name}")
+
+        for holding in portfolio_a.holdings:
+            builder.field(holding.fund.symbol, f"{holding.allocation:.1f}%")
+
+        builder.blank()
+
+        builder.section(f"Portfolio B: {portfolio_b.name}")
+
+        for holding in portfolio_b.holdings:
+            builder.field(holding.fund.symbol, f"{holding.allocation:.1f}%")
+
+        builder.save(filename)
         return filename
