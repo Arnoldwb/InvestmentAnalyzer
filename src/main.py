@@ -4,7 +4,7 @@ from investment_analyzer.analysis.cycle_analyzer import MarketCycleAnalyzer
 from investment_analyzer.core.file_discovery import discover_funds
 from investment_analyzer.models.fund import Fund
 from investment_analyzer.reports.excel_report import ExcelReport
-
+from investment_analyzer.analysis.portfolio_comparator import PortfolioComparator
 from charts import growth_chart
 from loader import load_fund
 from ranking import (
@@ -331,6 +331,108 @@ def analyze_portfolio_interactive(funds):
     print(filename)
 
 
+def compare_portfolios_interactive(funds):
+    """
+    Interactively create and compare two portfolios.
+    """
+
+    print()
+    print("=" * 60)
+    print("CREATE PORTFOLIO A")
+    print("=" * 60)
+
+    portfolio_a = create_portfolio(funds)
+
+    print()
+    print("=" * 60)
+    print("CREATE PORTFOLIO B")
+    print("=" * 60)
+
+    portfolio_b = create_portfolio(funds)
+
+    comparator = PortfolioComparator(
+        portfolio_a,
+        portfolio_b,
+    )
+
+    results = comparator.compare()
+
+    a = results["portfolio_a"]
+    b = results["portfolio_b"]
+
+    print()
+    print("PORTFOLIO COMPARISON")
+    print("=" * 78)
+
+    print(f"{'Metric':<25}" f"{'Portfolio A':>20}" f"{'Portfolio B':>20}")
+
+    print("-" * 78)
+
+    print(f"{'CAGR':<25}" f"{a['cagr']:>19.2%}" f"{b['cagr']:>20.2%}")
+
+    print(
+        f"{'Annualized Avg Return':<25}"
+        f"{a['annualized_return']:>19.2%}"
+        f"{b['annualized_return']:>20.2%}"
+    )
+
+    print(
+        f"{'Annualized Volatility':<25}"
+        f"{a['volatility']:>19.2%}"
+        f"{b['volatility']:>20.2%}"
+    )
+
+    print(
+        f"{'Maximum Drawdown':<25}"
+        f"{a['max_drawdown']:>19.2%}"
+        f"{b['max_drawdown']:>20.2%}"
+    )
+
+    print(f"{'Sharpe Ratio':<25}" f"{a['sharpe']:>19.2f}" f"{b['sharpe']:>20.2f}")
+
+    a_value = f"${a['ending_value']:,.2f}"
+    b_value = f"${b['ending_value']:,.2f}"
+
+    print(f"{'Growth of $10,000':<25}" f"{a_value:>20}" f"{b_value:>20}")
+
+    interpretation = comparator.interpretation()
+
+    print()
+    print("COMPARISON INTERPRETATION")
+    print("=" * 60)
+
+    print()
+    print("Growth:")
+    print(interpretation["growth"])
+
+    print()
+    print("Risk:")
+    print(interpretation["risk"])
+
+    print()
+    print("Drawdown:")
+    print(interpretation["drawdown"])
+
+    print()
+    print("Risk-Adjusted Performance:")
+    print(interpretation["risk_adjusted"])
+
+    print()
+    print("Growth of $10,000:")
+    print(interpretation["ending_value"])
+
+    manager = ReportManager()
+
+    filename = manager.create_comparison_report(
+        portfolio_a,
+        portfolio_b,
+    )
+
+    print()
+    print("Portfolio comparison report created:")
+    print(filename)
+
+
 def main():
     """Discover funds, present the menu, and run the chosen action."""
     funds = discover_funds()
@@ -369,9 +471,7 @@ def main():
         elif choice == "5":
             analyze_portfolio_interactive(funds)
         elif choice == "6":
-            print()
-            print("Portfolio comparison will be added in Version 3.6 Milestone 3.")
-
+            compare_portfolios_interactive(funds)
         else:
             print()
             print("Goodbye.")
