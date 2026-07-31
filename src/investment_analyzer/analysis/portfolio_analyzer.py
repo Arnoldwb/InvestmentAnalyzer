@@ -158,6 +158,7 @@ class PortfolioAnalyzer:
                             "recovery_date": date,
                             "decline": decline,
                             "days_to_bottom": (bottom_date - peak_date).days,
+                            "days_bottom_to_recovery": (date - bottom_date).days,
                             "days_to_recovery": (date - peak_date).days,
                         }
                     )
