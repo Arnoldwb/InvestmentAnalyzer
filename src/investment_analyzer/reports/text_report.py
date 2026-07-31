@@ -62,7 +62,26 @@ class TextReport(BaseReport):
         builder.field("Ending Value", f"${growth.iloc[-1]:,.2f}")
 
         builder.blank()
+        builder.section("Performance Interpretation")
 
+        interpretation = analyzer.interpretation()
+
+        builder.line("Growth:")
+        builder.line(interpretation["growth"])
+        builder.blank()
+
+        builder.line("Risk:")
+        builder.line(interpretation["risk"])
+        builder.blank()
+
+        builder.line("Drawdown:")
+        builder.line(interpretation["drawdown"])
+        builder.blank()
+
+        builder.line("Risk-Adjusted Performance:")
+        builder.line(interpretation["risk_adjusted"])
+
+        builder.blank()
         try:
             portfolio.validate()
             builder.field("Portfolio Validation", "PASSED")

@@ -135,3 +135,29 @@ class PortfolioAnalyzer:
             return 0.0
 
         return (annual_return - risk_free_rate) / volatility
+
+    def interpretation(self) -> dict:
+        """
+        Return plain-language interpretations of portfolio statistics.
+        """
+
+        cagr = self.cagr()
+        volatility = self.annualized_volatility()
+        drawdown = self.max_drawdown()
+        sharpe = self.sharpe_ratio()
+
+        return {
+            "growth": (
+                f"The portfolio produced a {cagr:.2%} "
+                "compound annual growth rate over the analysis period."
+            ),
+            "risk": (f"Annualized volatility was {volatility:.2%}."),
+            "drawdown": (
+                f"The largest historical decline from a portfolio peak "
+                f"was {abs(drawdown):.2%}."
+            ),
+            "risk_adjusted": (
+                f"The portfolio's Sharpe ratio was {sharpe:.2f} "
+                "using a 0% risk-free rate assumption."
+            ),
+        }
