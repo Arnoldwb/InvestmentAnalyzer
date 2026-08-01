@@ -21,7 +21,7 @@ class TextReport(BaseReport):
         builder = ReportBuilder()
 
         builder.title(
-            "Investment Analyzer\n" "Version 3.8\n" "Portfolio Analysis Report"
+            "Investment Analyzer\n" "Version 3.9\n" "Portfolio Analysis Report"
         )
 
         builder.field("Generated:", self.timestamp)
