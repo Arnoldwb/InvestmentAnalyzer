@@ -2,6 +2,7 @@
 
 from investment_analyzer.analysis.cycle_analyzer import MarketCycleAnalyzer
 from investment_analyzer.core.file_discovery import discover_funds
+from investment_analyzer.core.portfolio_storage import save_portfolio
 from investment_analyzer.models.fund import Fund
 from investment_analyzer.reports.excel_report import ExcelReport
 from investment_analyzer.analysis.portfolio_comparator import PortfolioComparator
@@ -351,6 +352,14 @@ def analyze_portfolio_interactive(funds):
     print()
     print("Portfolio report created:")
     print(filename)
+
+    save_choice = input("\nSave this portfolio? (Y/N): ").strip().lower()
+
+    if save_choice == "y":
+        saved_path = save_portfolio(portfolio)
+        print()
+        print("Portfolio saved:")
+        print(saved_path)
 
 
 def compare_portfolios_interactive(funds):
