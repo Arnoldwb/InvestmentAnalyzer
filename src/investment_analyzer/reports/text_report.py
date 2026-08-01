@@ -160,11 +160,6 @@ class TextReport(BaseReport):
                 recovery["bottom_date"].strftime("%b %Y"),
             )
 
-            builder.field(
-                "Maximum Decline",
-                f"{recovery['decline']:.2%}",
-            )
-
             if recovery["recovery_date"] is not None:
                 builder.field(
                     "Full Recovery",
@@ -190,6 +185,13 @@ class TextReport(BaseReport):
                     "Full Recovery",
                     "Not reached in available data",
                 )
+
+            builder.blank()
+
+            builder.line("Interpretation:")
+            builder.line(
+                scenario_analyzer.interpretation(scenario)
+            )
 
             builder.blank()
 

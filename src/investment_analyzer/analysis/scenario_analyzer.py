@@ -221,3 +221,41 @@ class ScenarioAnalyzer:
             result["days_to_recovery"] = None
 
         return result
+
+    def interpretation(
+        self,
+        scenario: dict,
+    ) -> str:
+        """
+        Return a plain-language interpretation of a
+        historical stress scenario.
+        """
+
+        result = self.analyze_scenario(scenario)
+
+        recovery = self.recovery_analysis(
+            scenario["start_date"],
+            scenario["end_date"],
+        )
+
+        decline = abs(result["max_drawdown"])
+
+        if recovery["recovery_date"] is not None:
+            recovery_text = (
+                f"The portfolio regained its previous peak by "
+                f"{recovery['recovery_date'].strftime('%B %Y')}, "
+                f"{recovery['days_to_recovery']:,} days after "
+                f"the peak."
+            )
+        else:
+            recovery_text = (
+                "The portfolio did not regain its previous peak "
+                "within the available data."
+            )
+
+        return (
+            f"During the {scenario['name']}, the portfolio experienced "
+            f"a maximum drawdown of {decline:.2%}. "
+            f"{recovery_text}"
+        )
+
