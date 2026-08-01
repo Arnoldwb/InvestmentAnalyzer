@@ -378,11 +378,12 @@ def compare_portfolios_interactive(funds):
     if portfolio_b is None:
         print()
         print("Portfolio comparison cancelled.")
-        return print("Portfolio comparison cancelled.")
-        comparator = PortfolioComparator(
-            portfolio_a,
-            portfolio_b,
-        )
+        return
+
+    comparator = PortfolioComparator(
+        portfolio_a,
+        portfolio_b,
+    )
 
     results = comparator.compare()
 
