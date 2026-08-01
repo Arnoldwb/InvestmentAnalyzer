@@ -123,9 +123,47 @@ class TextReport(BaseReport):
         for text in stress.values():
             builder.line(text)
             builder.blank()
-        builder.section("Historical Stress Scenarios")
+        builder.section("Historical Scenario Comparison")
 
         scenario_analyzer = ScenarioAnalyzer(portfolio)
+
+        builder.line(
+            f"{'Scenario':<27}"
+            f"{'Return':>10}"
+            f"{'Drawdown':>11}"
+            f"{'Peak Recovery':>15}"
+        )
+
+        builder.line("-" * 60)
+
+        for scenario in HISTORICAL_SCENARIOS.values():
+            scenario_result = scenario_analyzer.analyze_scenario(
+                scenario
+            )
+
+            recovery = scenario_analyzer.recovery_analysis(
+                scenario["start_date"],
+                scenario["end_date"],
+            )
+
+            recovery_days = recovery["days_to_recovery"]
+
+            recovery_text = (
+                f"{recovery_days:,} days"
+                if recovery_days is not None
+                else "N/A"
+            )
+
+            builder.line(
+                f"{scenario['name']:<27}"
+                f"{scenario_result['total_return']:>10.2%}"
+                f"{scenario_result['max_drawdown']:>11.2%}"
+                f"{recovery_text:>15}"
+            )
+
+        builder.blank()
+
+        builder.section("Historical Stress Scenarios")
 
         for scenario in HISTORICAL_SCENARIOS.values():
             scenario_result = scenario_analyzer.analyze_scenario(
