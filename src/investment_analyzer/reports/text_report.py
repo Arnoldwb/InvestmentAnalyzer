@@ -19,7 +19,7 @@ class TextReport(BaseReport):
         builder = ReportBuilder()
 
         builder.title(
-            "Investment Analyzer\n" "Version 3.4\n" "Portfolio Analysis Report"
+            "Investment Analyzer\n" "Version 3.7\n" "Portfolio Analysis Report"
         )
 
         builder.field("Generated:", self.timestamp)
@@ -82,6 +82,39 @@ class TextReport(BaseReport):
         builder.line(interpretation["risk_adjusted"])
 
         builder.blank()
+        builder.section("Major Historical Drawdowns")
+
+        major_drawdowns = analyzer.major_drawdowns(threshold=0.10)
+
+        builder.line(
+            f"{'Peak':<11}"
+            f"{'Bottom':<11}"
+            f"{'Recovery':<11}"
+            f"{'Decline':>9}"
+            f"{'To Bottom':>11}"
+            f"{'Recover':>10}"
+            f"{'Total':>9}"
+        )
+
+        builder.line("-" * 72)
+
+        for episode in major_drawdowns:
+            peak = episode["peak_date"].strftime("%Y-%m")
+            bottom = episode["bottom_date"].strftime("%Y-%m")
+            recovery = episode["recovery_date"].strftime("%Y-%m")
+
+            builder.line(
+                f"{peak:<11}"
+                f"{bottom:<11}"
+                f"{recovery:<11}"
+                f"{episode['decline']:>9.2%}"
+                f"{episode['days_to_bottom']:>11}"
+                f"{episode['days_bottom_to_recovery']:>10}"
+                f"{episode['days_to_recovery']:>9}"
+            )
+
+        builder.blank()
+
         try:
             portfolio.validate()
             builder.field("Portfolio Validation", "PASSED")
