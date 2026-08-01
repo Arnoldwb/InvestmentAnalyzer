@@ -1,4 +1,14 @@
-# macOS
+# Saved user portfolios
+portfolios/
+
+# Development session transcripts
+docs/*_Session.txt
+
+## Saved user portfolios
+portfolios/
+
+# Development session transcripts
+docs/*_Session.txt macOS
 .DS_Store
 
 # Python
