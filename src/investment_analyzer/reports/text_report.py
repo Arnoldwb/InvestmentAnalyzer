@@ -114,7 +114,13 @@ class TextReport(BaseReport):
             )
 
         builder.blank()
+        builder.section("Historical Stress Interpretation")
 
+        stress = analyzer.stress_interpretation(threshold=0.10)
+
+        for text in stress.values():
+            builder.line(text)
+            builder.blank()
         try:
             portfolio.validate()
             builder.field("Portfolio Validation", "PASSED")

@@ -198,6 +198,54 @@ class PortfolioAnalyzer:
 
         return [episode for episode in episodes if episode["decline"] <= -threshold]
 
+    def stress_interpretation(self, threshold: float = 0.10) -> dict:
+        """
+        Return plain-language interpretation of major historical drawdowns.
+        """
+
+        episodes = self.major_drawdowns(threshold)
+
+        if not episodes:
+            return {
+                "summary": (
+                    f"The portfolio had no completed drawdowns of "
+                    f"{threshold:.0%} or greater."
+                )
+            }
+
+        worst = min(
+            episodes,
+            key=lambda episode: episode["decline"],
+        )
+
+        largest_recovery = max(
+            episodes,
+            key=lambda episode: episode["days_to_recovery"],
+        )
+
+        return {
+            "count": (
+                f"The portfolio experienced {len(episodes)} completed "
+                f"drawdowns of {threshold:.0%} or greater."
+            ),
+            "worst": (
+                f"The largest decline was {abs(worst['decline']):.2%}, "
+                f"from the {worst['peak_date'].strftime('%B %Y')} peak "
+                f"to the {worst['bottom_date'].strftime('%B %Y')} bottom."
+            ),
+            "worst_recovery": (
+                f"That decline required {worst['days_to_recovery']:,} days "
+                f"from peak to full recovery, including "
+                f"{worst['days_bottom_to_recovery']:,} days after "
+                f"the portfolio reached its bottom."
+            ),
+            "longest_recovery": (
+                f"The longest peak-to-recovery period among these major "
+                f"drawdowns was {largest_recovery['days_to_recovery']:,} "
+                f"days."
+            ),
+        }
+
     def max_drawdown(self) -> float:
         """
         Calculate maximum portfolio drawdown.
