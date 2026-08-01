@@ -2,7 +2,11 @@
 
 from investment_analyzer.analysis.cycle_analyzer import MarketCycleAnalyzer
 from investment_analyzer.core.file_discovery import discover_funds
-from investment_analyzer.core.portfolio_storage import save_portfolio
+from investment_analyzer.core.portfolio_storage import (
+    list_portfolios,
+    load_portfolio,
+    save_portfolio,
+)
 from investment_analyzer.models.fund import Fund
 from investment_analyzer.reports.excel_report import ExcelReport
 from investment_analyzer.analysis.portfolio_comparator import PortfolioComparator
@@ -42,22 +46,17 @@ def display_menu():
         print("4. Compare selected funds")
         print("5. Analyze a portfolio")
         print("6. Compare two portfolios")
-        print("7. Exit")
+        print("7. Open saved portfolio")
+        print("8. Exit")
         print()
 
         choice = input("Selection: ").strip()
 
-        if choice in {"1", "2", "3", "4", "5", "6", "7"}:
+        if choice in {"1", "2", "3", "4", "5", "6", "7", "8"}:
             return choice
 
         print()
-        print("Invalid selection. Please enter a number from 1 to 7.")
-        choice = input("Selection: ").strip()
-
-        if choice in {"1", "2", "3", "4", "5"}:
-            return choice
-
-        print("\nInvalid selection. Please enter a number from 1 to 5.\n")
+        print("Invalid selection. Please enter a number from 1 to 8.")
 
 
 def select_fund(funds):
@@ -472,6 +471,82 @@ def compare_portfolios_interactive(funds):
     print(filename)
 
 
+
+def open_saved_portfolio_interactive():
+    """
+    Select, load, and analyze a previously saved portfolio.
+    """
+    saved = list_portfolios()
+
+    if not saved:
+        print()
+        print("No saved portfolios were found.")
+        return
+
+    print()
+    print("Saved Portfolios")
+    print("-" * 50)
+
+    for number, filename in enumerate(saved, start=1):
+        print(f"{number}. {filename}")
+
+    print("B. Back to menu")
+    print()
+
+    while True:
+        selection = input("Selection: ").strip()
+
+        if selection.lower() == "b":
+            return
+
+        if selection.isdigit():
+            index = int(selection) - 1
+
+            if 0 <= index < len(saved):
+                portfolio = load_portfolio(saved[index])
+
+                print()
+                print("Portfolio loaded:")
+                portfolio.summary()
+
+                analyze_loaded_portfolio(portfolio)
+                return
+
+        print("Please enter a valid portfolio number or B.")
+
+
+def analyze_loaded_portfolio(portfolio):
+    """
+    Analyze and report a portfolio that has already been constructed.
+    """
+    analyzer = PortfolioAnalyzer(portfolio)
+
+    print()
+    print("PORTFOLIO PERFORMANCE STATISTICS")
+    print("=" * 60)
+
+    print(f"CAGR                  : {analyzer.cagr():.2%}")
+    print(f"Annualized Avg Return : {analyzer.annualized_return():.2%}")
+    print(f"Annualized Volatility : {analyzer.annualized_volatility():.2%}")
+    print(f"Maximum Drawdown      : {analyzer.max_drawdown():.2%}")
+    print(f"Sharpe Ratio          : {analyzer.sharpe_ratio():.2f}")
+
+    growth = analyzer.growth_index(10000)
+
+    print()
+    print("Growth of $10,000")
+    print("-" * 60)
+    print("Beginning Value : $10,000.00")
+    print(f"Ending Value    : ${growth.iloc[-1]:,.2f}")
+
+    manager = ReportManager()
+    filename = manager.create_portfolio_report(portfolio)
+
+    print()
+    print("Portfolio report created:")
+    print(filename)
+
+
 def main():
     """Discover funds, present the menu, and run the chosen action."""
     funds = discover_funds()
@@ -511,6 +586,8 @@ def main():
             analyze_portfolio_interactive(funds)
         elif choice == "6":
             compare_portfolios_interactive(funds)
+        elif choice == "7":
+            open_saved_portfolio_interactive()
         else:
             print()
             print("Goodbye.")
