@@ -90,3 +90,18 @@ class ScenarioAnalyzer:
             "total_return": total_return,
             "max_drawdown": max_drawdown,
         }
+
+    def analyze_scenario(self, scenario: dict) -> dict:
+        """
+        Analyze a named historical scenario definition.
+        """
+
+        result = self.analyze_period(
+            scenario["start_date"],
+            scenario["end_date"],
+        )
+
+        result["name"] = scenario["name"]
+        result["description"] = scenario.get("description", "")
+
+        return result
