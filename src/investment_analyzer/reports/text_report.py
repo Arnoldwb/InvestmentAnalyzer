@@ -1,5 +1,7 @@
 from investment_analyzer.analysis.portfolio_analyzer import PortfolioAnalyzer
 from investment_analyzer.analysis.portfolio_comparator import PortfolioComparator
+from investment_analyzer.analysis.scenario_analyzer import ScenarioAnalyzer
+from investment_analyzer.analysis.historical_scenarios import HISTORICAL_SCENARIOS
 from .base_report import BaseReport
 from .report_builder import ReportBuilder
 
@@ -19,7 +21,7 @@ class TextReport(BaseReport):
         builder = ReportBuilder()
 
         builder.title(
-            "Investment Analyzer\n" "Version 3.7\n" "Portfolio Analysis Report"
+            "Investment Analyzer\n" "Version 3.8\n" "Portfolio Analysis Report"
         )
 
         builder.field("Generated:", self.timestamp)
@@ -121,6 +123,76 @@ class TextReport(BaseReport):
         for text in stress.values():
             builder.line(text)
             builder.blank()
+        builder.section("Historical Stress Scenarios")
+
+        scenario_analyzer = ScenarioAnalyzer(portfolio)
+
+        for scenario in HISTORICAL_SCENARIOS.values():
+            scenario_result = scenario_analyzer.analyze_scenario(
+                scenario
+            )
+
+            recovery = scenario_analyzer.recovery_analysis(
+                scenario["start_date"],
+                scenario["end_date"],
+            )
+
+            builder.line(scenario["name"])
+            builder.line("-" * 40)
+
+            builder.field(
+                "Scenario Return",
+                f"{scenario_result['total_return']:.2%}",
+            )
+
+            builder.field(
+                "Maximum Drawdown",
+                f"{scenario_result['max_drawdown']:.2%}",
+            )
+
+            builder.field(
+                "Peak",
+                recovery["peak_date"].strftime("%b %Y"),
+            )
+
+            builder.field(
+                "Bottom",
+                recovery["bottom_date"].strftime("%b %Y"),
+            )
+
+            builder.field(
+                "Maximum Decline",
+                f"{recovery['decline']:.2%}",
+            )
+
+            if recovery["recovery_date"] is not None:
+                builder.field(
+                    "Full Recovery",
+                    recovery["recovery_date"].strftime("%b %Y"),
+                )
+
+                builder.field(
+                    "Peak to Bottom",
+                    f"{recovery['days_to_bottom']:,} days",
+                )
+
+                builder.field(
+                    "Bottom to Recovery",
+                    f"{recovery['days_bottom_to_recovery']:,} days",
+                )
+
+                builder.field(
+                    "Peak to Recovery",
+                    f"{recovery['days_to_recovery']:,} days",
+                )
+            else:
+                builder.field(
+                    "Full Recovery",
+                    "Not reached in available data",
+                )
+
+            builder.blank()
+
         try:
             portfolio.validate()
             builder.field("Portfolio Validation", "PASSED")
