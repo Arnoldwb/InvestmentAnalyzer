@@ -49,16 +49,17 @@ def display_menu():
         print("5. Analyze a portfolio")
         print("6. Compare two portfolios")
         print("7. Manage saved portfolios")
-        print("8. Exit")
+        print("8. Rebalance a saved portfolio")
+        print("9. Exit")
         print()
 
         choice = input("Selection: ").strip()
 
-        if choice in {"1", "2", "3", "4", "5", "6", "7", "8"}:
+        if choice in {"1", "2", "3", "4", "5", "6", "7", "8", "9"}:
             return choice
 
         print()
-        print("Invalid selection. Please enter a number from 1 to 8.")
+        print("Invalid selection. Please enter a number from 1 to 9.")
 
 
 def select_fund(funds):
@@ -204,7 +205,7 @@ def generate_excel_report(funds):
     print(f"\nWorkbook written to:\n{output_file}\n")
 
 
-def create_portfolio(funds):
+def create_portfolio(funds, confirm_analysis=True):
     """
     Interactively create a portfolio from the available funds.
 
@@ -303,12 +304,15 @@ def create_portfolio(funds):
     print("Portfolio complete.")
     portfolio.summary()
 
-    confirm = input("\nAnalyze this portfolio? (Y/N): ").strip().lower()
+    if confirm_analysis:
+        confirm = input(
+            "\nAnalyze this portfolio? (Y/N): "
+        ).strip().lower()
 
-    if confirm != "y":
-        print()
-        print("Portfolio analysis cancelled.")
-        return None
+        if confirm != "y":
+            print()
+            print("Portfolio analysis cancelled.")
+            return None
 
     return portfolio
 
@@ -380,11 +384,14 @@ def display_portfolio_comparison(portfolio_a, portfolio_b):
     print()
     print("PORTFOLIO COMPARISON")
     print("=" * 78)
+    print(f"Portfolio A: {portfolio_a.name}")
+    print(f"Portfolio B: {portfolio_b.name}")
+    print()
 
     print(
         f"{'Metric':<25}"
-        f"{portfolio_a.name:>20}"
-        f"{portfolio_b.name:>20}"
+        f"{'Portfolio A':>20}"
+        f"{'Portfolio B':>20}"
     )
 
     print("-" * 78)
@@ -498,6 +505,100 @@ def compare_portfolios_interactive(funds):
         portfolio_b,
     )
 
+
+
+
+def rebalance_saved_portfolio_interactive(funds):
+    """
+    Compare a saved portfolio with a proposed new allocation.
+
+    The original saved portfolio is never modified.
+    """
+    saved = list_portfolios()
+
+    if not saved:
+        print()
+        print("No saved portfolios were found.")
+        return
+
+    print()
+    print("=" * 60)
+    print("PORTFOLIO REBALANCING ANALYSIS")
+    print("=" * 60)
+
+    print()
+    print("Choose the current saved portfolio:")
+    print()
+
+    for number, filename in enumerate(saved, start=1):
+        print(f"{number}. {filename}")
+
+    print("B. Back to menu")
+    print()
+
+    while True:
+        selection = input("Selection: ").strip()
+
+        if selection.lower() == "b":
+            return
+
+        if selection.isdigit():
+            index = int(selection) - 1
+
+            if 0 <= index < len(saved):
+                break
+
+        print()
+        print("Please enter a valid portfolio number or B.")
+
+    current = load_portfolio(saved[index])
+
+    print()
+    print("CURRENT PORTFOLIO")
+    print("=" * 60)
+    current.summary()
+
+    print()
+    print("Now create the proposed rebalanced allocation.")
+    print("The current saved portfolio will not be changed.")
+
+    proposed = create_portfolio(funds, confirm_analysis=False)
+
+    if proposed is None:
+        print()
+        print("Rebalancing analysis cancelled.")
+        return
+
+    current.name = f"{current.name} - Current"
+    proposed.name = f"{proposed.name} - Proposed"
+
+    display_portfolio_comparison(
+        current,
+        proposed,
+    )
+
+    print()
+    save_choice = input(
+        "Save the proposed portfolio as a new saved portfolio? (Y/N): "
+    ).strip().lower()
+
+    if save_choice != "y":
+        print()
+        print("Proposed portfolio was not saved.")
+        return
+
+    proposed.name = proposed.name.removesuffix(" - Proposed")
+
+    try:
+        saved_path = save_portfolio(proposed)
+    except FileExistsError as error:
+        print()
+        print(f"Unable to save proposed portfolio: {error}")
+        return
+
+    print()
+    print("Proposed portfolio saved:")
+    print(saved_path)
 
 
 def edit_saved_portfolio_interactive(filename, funds):
@@ -904,6 +1005,8 @@ def main():
             compare_portfolios_interactive(funds)
         elif choice == "7":
             manage_saved_portfolios_interactive(funds)
+        elif choice == "8":
+            rebalance_saved_portfolio_interactive(funds)
         else:
             print()
             print("Goodbye.")
