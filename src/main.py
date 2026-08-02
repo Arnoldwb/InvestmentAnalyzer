@@ -553,6 +553,87 @@ def display_rebalancing_changes(current, proposed):
     )
 
 
+
+def display_dollar_rebalancing(current, proposed, portfolio_value):
+    """
+    Display the dollar amounts required to rebalance a portfolio.
+    """
+    analyzer = RebalancingAnalyzer(current, proposed)
+    changes = analyzer.dollar_changes(portfolio_value)
+
+    print()
+    print("DOLLAR REBALANCING")
+    print("=" * 78)
+
+    print(
+        f"{'Fund':<10}"
+        f"{'Current Value':>18}"
+        f"{'Proposed Value':>18}"
+        f"{'Buy / Sell':>18}"
+    )
+
+    print("-" * 78)
+
+    for item in changes:
+        current_value = f"${item['current_value']:,.2f}"
+        proposed_value = f"${item['proposed_value']:,.2f}"
+
+        change = item["dollar_change"]
+
+        if change > 0:
+            change_text = f"+${change:,.2f}"
+        elif change < 0:
+            change_text = f"-${abs(change):,.2f}"
+        else:
+            change_text = "$0.00"
+
+        print(
+            f"{item['symbol']:<10}"
+            f"{current_value:>18}"
+            f"{proposed_value:>18}"
+            f"{change_text:>18}"
+        )
+
+    print("-" * 78)
+
+    total_current = sum(
+        item["current_value"] for item in changes
+    )
+    total_proposed = sum(
+        item["proposed_value"] for item in changes
+    )
+    total_change = sum(
+        item["dollar_change"] for item in changes
+    )
+
+    total_current_text = f"${total_current:,.2f}"
+    total_proposed_text = f"${total_proposed:,.2f}"
+    total_change_text = f"${total_change:,.2f}"
+
+    print(
+        f"{'Total':<10}"
+        f"{total_current_text:>18}"
+        f"{total_proposed_text:>18}"
+        f"{total_change_text:>18}"
+    )
+
+    total_sales = sum(
+        -item["dollar_change"]
+        for item in changes
+        if item["dollar_change"] < 0
+    )
+
+    total_purchases = sum(
+        item["dollar_change"]
+        for item in changes
+        if item["dollar_change"] > 0
+    )
+
+    print()
+    print(f"Total to sell: ${total_sales:,.2f}")
+    print(f"Total to buy : ${total_purchases:,.2f}")
+
+
 def rebalance_saved_portfolio_interactive(funds):
     """
     Compare a saved portfolio with a proposed new allocation.
@@ -621,6 +702,27 @@ def rebalance_saved_portfolio_interactive(funds):
         current,
         proposed,
     )
+
+    print()
+    value_text = input(
+        "Enter total portfolio value for dollar rebalancing "
+        "(or press Enter to skip): "
+    ).strip()
+
+    if value_text:
+        try:
+            portfolio_value = float(
+                value_text.replace(",", "").replace("$", "")
+            )
+
+            display_dollar_rebalancing(
+                current,
+                proposed,
+                portfolio_value,
+            )
+        except ValueError as error:
+            print()
+            print(f"Dollar rebalancing skipped: {error}")
 
     display_portfolio_comparison(
         current,
