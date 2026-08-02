@@ -20,13 +20,44 @@ class Portfolio:
     def add_fund(self, symbol: str, allocation: float) -> None:
         """Add a fund to the portfolio."""
 
-        if allocation <= 0:
+        symbol = symbol.upper()
 
+        if allocation <= 0:
             raise ValueError("Allocation must be greater than zero.")
 
-        fund = Fund(symbol.upper())
+        if any(holding.fund.symbol == symbol for holding in self.holdings):
+            raise ValueError(f"{symbol} is already in the portfolio.")
+
+        fund = Fund(symbol)
 
         self.holdings.append(Holding(fund=fund, allocation=allocation))
+
+    def update_allocation(self, symbol: str, allocation: float) -> None:
+        """Change the allocation of an existing fund."""
+
+        symbol = symbol.upper()
+
+        if allocation <= 0:
+            raise ValueError("Allocation must be greater than zero.")
+
+        for holding in self.holdings:
+            if holding.fund.symbol == symbol:
+                holding.allocation = allocation
+                return
+
+        raise ValueError(f"{symbol} is not in the portfolio.")
+
+    def remove_fund(self, symbol: str) -> None:
+        """Remove an existing fund from the portfolio."""
+
+        symbol = symbol.upper()
+
+        for index, holding in enumerate(self.holdings):
+            if holding.fund.symbol == symbol:
+                del self.holdings[index]
+                return
+
+        raise ValueError(f"{symbol} is not in the portfolio.")
 
     @property
     def number_of_holdings(self) -> int:
