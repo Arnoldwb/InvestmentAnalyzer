@@ -12,6 +12,7 @@ from investment_analyzer.core.portfolio_storage import (
 from investment_analyzer.models.fund import Fund
 from investment_analyzer.reports.excel_report import ExcelReport
 from investment_analyzer.analysis.portfolio_comparator import PortfolioComparator
+from investment_analyzer.analysis.rebalancing_analyzer import RebalancingAnalyzer
 from charts import growth_chart
 from loader import load_fund
 from ranking import (
@@ -508,6 +509,50 @@ def compare_portfolios_interactive(funds):
 
 
 
+
+def display_rebalancing_changes(current, proposed):
+    """
+    Display the allocation changes required to move from the
+    current portfolio to the proposed portfolio.
+    """
+    analyzer = RebalancingAnalyzer(current, proposed)
+    changes = analyzer.allocation_changes()
+
+    print()
+    print("REBALANCING CHANGES")
+    print("=" * 60)
+
+    print(
+        f"{'Fund':<10}"
+        f"{'Current':>12}"
+        f"{'Proposed':>12}"
+        f"{'Change':>12}"
+    )
+
+    print("-" * 60)
+
+    for item in changes:
+        print(
+            f"{item['symbol']:<10}"
+            f"{item['current']:>11.1f}%"
+            f"{item['proposed']:>11.1f}%"
+            f"{item['change']:>+11.1f}%"
+        )
+
+    print("-" * 60)
+
+    total_current = sum(item["current"] for item in changes)
+    total_proposed = sum(item["proposed"] for item in changes)
+    total_change = sum(item["change"] for item in changes)
+
+    print(
+        f"{'Total':<10}"
+        f"{total_current:>11.1f}%"
+        f"{total_proposed:>11.1f}%"
+        f"{total_change:>+11.1f}%"
+    )
+
+
 def rebalance_saved_portfolio_interactive(funds):
     """
     Compare a saved portfolio with a proposed new allocation.
@@ -571,6 +616,11 @@ def rebalance_saved_portfolio_interactive(funds):
 
     current.name = f"{current.name} - Current"
     proposed.name = f"{proposed.name} - Proposed"
+
+    display_rebalancing_changes(
+        current,
+        proposed,
+    )
 
     display_portfolio_comparison(
         current,
