@@ -475,7 +475,186 @@ def compare_portfolios_interactive(funds):
 
 
 
-def manage_saved_portfolios_interactive():
+
+def edit_saved_portfolio_interactive(filename, funds):
+    """
+    Edit the holdings and allocations of a saved portfolio.
+    """
+    portfolio = load_portfolio(filename)
+
+    while True:
+        print()
+        print("=" * 60)
+        print("EDIT SAVED PORTFOLIO")
+        print("=" * 60)
+
+        portfolio.summary()
+
+        print()
+        print("A. Add a fund")
+        print("C. Change an allocation")
+        print("R. Remove a fund")
+        print("S. Save changes")
+        print("B. Cancel and return")
+        print()
+
+        action = input("Selection: ").strip().lower()
+
+        if action == "b":
+            print()
+            print("Changes cancelled. Saved portfolio was not modified.")
+            return
+
+        if action == "a":
+            available = [
+                symbol
+                for symbol in funds
+                if all(
+                    holding.fund.symbol != symbol
+                    for holding in portfolio.holdings
+                )
+            ]
+
+            if not available:
+                print()
+                print("All available funds are already in this portfolio.")
+                continue
+
+            print()
+            print("Available Funds")
+            print("-" * 40)
+
+            for number, symbol in enumerate(available, start=1):
+                print(f"{number}. {symbol}")
+
+            selection = input("\nFund number: ").strip()
+
+            if not selection.isdigit():
+                print()
+                print("Please enter a valid fund number.")
+                continue
+
+            index = int(selection) - 1
+
+            if not 0 <= index < len(available):
+                print()
+                print("Please enter a valid fund number.")
+                continue
+
+            try:
+                allocation = float(
+                    input("Allocation percentage: ").strip()
+                )
+                portfolio.add_fund(available[index], allocation)
+            except ValueError as error:
+                print()
+                print(f"Unable to add fund: {error}")
+                continue
+
+            print()
+            print(f"{available[index]} added.")
+            continue
+
+        if action == "c":
+            if not portfolio.holdings:
+                print()
+                print("This portfolio has no holdings.")
+                continue
+
+            print()
+            for number, holding in enumerate(portfolio.holdings, start=1):
+                print(
+                    f"{number}. "
+                    f"{holding.fund.symbol} "
+                    f"{holding.allocation:.1f}%"
+                )
+
+            selection = input("\nHolding number: ").strip()
+
+            if not selection.isdigit():
+                print()
+                print("Please enter a valid holding number.")
+                continue
+
+            index = int(selection) - 1
+
+            if not 0 <= index < len(portfolio.holdings):
+                print()
+                print("Please enter a valid holding number.")
+                continue
+
+            symbol = portfolio.holdings[index].fund.symbol
+
+            try:
+                allocation = float(
+                    input("New allocation percentage: ").strip()
+                )
+                portfolio.update_allocation(symbol, allocation)
+            except ValueError as error:
+                print()
+                print(f"Unable to change allocation: {error}")
+                continue
+
+            print()
+            print(f"{symbol} allocation updated.")
+            continue
+
+        if action == "r":
+            if len(portfolio.holdings) <= 1:
+                print()
+                print("A portfolio must contain at least one fund.")
+                continue
+
+            print()
+            for number, holding in enumerate(portfolio.holdings, start=1):
+                print(
+                    f"{number}. "
+                    f"{holding.fund.symbol} "
+                    f"{holding.allocation:.1f}%"
+                )
+
+            selection = input("\nHolding number to remove: ").strip()
+
+            if not selection.isdigit():
+                print()
+                print("Please enter a valid holding number.")
+                continue
+
+            index = int(selection) - 1
+
+            if not 0 <= index < len(portfolio.holdings):
+                print()
+                print("Please enter a valid holding number.")
+                continue
+
+            symbol = portfolio.holdings[index].fund.symbol
+            portfolio.remove_fund(symbol)
+
+            print()
+            print(f"{symbol} removed.")
+            continue
+
+        if action == "s":
+            try:
+                portfolio.validate()
+            except ValueError as error:
+                print()
+                print("Portfolio cannot be saved yet.")
+                print(error)
+                continue
+
+            save_portfolio(portfolio, filename)
+
+            print()
+            print("Portfolio changes saved:")
+            print(filename)
+            return
+
+        print()
+        print("Please enter A, C, R, S, or B.")
+
+
+def manage_saved_portfolios_interactive(funds):
     """
     Manage previously saved portfolios.
     """
@@ -498,6 +677,7 @@ def manage_saved_portfolios_interactive():
 
         print()
         print("O. Open and analyze a portfolio")
+        print("E. Edit a portfolio")
         print("R. Rename a portfolio")
         print("D. Delete a portfolio")
         print("B. Back to main menu")
@@ -512,9 +692,9 @@ def manage_saved_portfolios_interactive():
             open_saved_portfolio_interactive()
             continue
 
-        if action not in {"r", "d"}:
+        if action not in {"e", "r", "d"}:
             print()
-            print("Please enter O, R, D, or B.")
+            print("Please enter O, E, R, D, or B.")
             continue
 
         selection = input("Portfolio number: ").strip()
@@ -532,6 +712,10 @@ def manage_saved_portfolios_interactive():
             continue
 
         filename = saved[index]
+
+        if action == "e":
+            edit_saved_portfolio_interactive(filename, funds)
+            continue
 
         if action == "r":
             new_name = input("New portfolio name: ").strip()
@@ -695,7 +879,7 @@ def main():
         elif choice == "6":
             compare_portfolios_interactive(funds)
         elif choice == "7":
-            manage_saved_portfolios_interactive()
+            manage_saved_portfolios_interactive(funds)
         else:
             print()
             print("Goodbye.")
