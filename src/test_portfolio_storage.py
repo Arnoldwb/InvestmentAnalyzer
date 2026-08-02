@@ -9,22 +9,27 @@ from investment_analyzer.models.portfolio import Portfolio
 
 TEST_NAME = "Version 4.1 Storage Test"
 RENAMED_NAME = "Version 4.1 Renamed Test"
+DUPLICATE_NAME = "Version 4.1 Duplicate Test"
 
-
-portfolio = Portfolio(TEST_NAME)
-portfolio.add_fund("VBIAX", 60.0)
-portfolio.add_fund("VWENX", 40.0)
 
 print()
 print("PORTFOLIO STORAGE TEST")
 print("=" * 60)
 
-# Save
+
+# ------------------------------------------------------------
+# Normal save / load / rename / delete
+# ------------------------------------------------------------
+
+portfolio = Portfolio(TEST_NAME)
+portfolio.add_fund("VBIAX", 60.0)
+portfolio.add_fund("VWENX", 40.0)
+
 saved_path = save_portfolio(portfolio)
+
 print("Saved:")
 print(saved_path)
 
-# Load
 loaded = load_portfolio(saved_path.name)
 
 assert loaded.name == TEST_NAME
@@ -34,7 +39,6 @@ assert abs(loaded.total_allocation - 100.0) < 0.01
 print()
 print("Load test passed.")
 
-# Rename
 renamed_path = rename_portfolio(
     saved_path.name,
     RENAMED_NAME,
@@ -51,12 +55,74 @@ assert abs(renamed.total_allocation - 100.0) < 0.01
 
 print("Rename test passed.")
 
-# Delete
-deleted_path = delete_portfolio(renamed_path.name)
 
+# ------------------------------------------------------------
+# Blank rename must fail
+# ------------------------------------------------------------
+
+try:
+    rename_portfolio(renamed_path.name, "   ")
+except ValueError:
+    print("Blank-name protection passed.")
+else:
+    raise AssertionError("Blank portfolio name was incorrectly accepted.")
+
+
+# ------------------------------------------------------------
+# Duplicate rename must fail without damaging either file
+# ------------------------------------------------------------
+
+duplicate = Portfolio(DUPLICATE_NAME)
+duplicate.add_fund("VBIAX", 50.0)
+duplicate.add_fund("VWENX", 50.0)
+
+duplicate_path = save_portfolio(duplicate)
+
+try:
+    rename_portfolio(
+        renamed_path.name,
+        DUPLICATE_NAME,
+    )
+except FileExistsError:
+    print("Duplicate-name protection passed.")
+else:
+    raise AssertionError("Duplicate portfolio name was incorrectly accepted.")
+
+assert renamed_path.exists()
+assert duplicate_path.exists()
+
+
+# ------------------------------------------------------------
+# Missing portfolio operations must fail
+# ------------------------------------------------------------
+
+try:
+    load_portfolio("THIS_PORTFOLIO_DOES_NOT_EXIST.json")
+except FileNotFoundError:
+    print("Missing-load protection passed.")
+else:
+    raise AssertionError("Missing portfolio load did not fail.")
+
+try:
+    delete_portfolio("THIS_PORTFOLIO_DOES_NOT_EXIST.json")
+except FileNotFoundError:
+    print("Missing-delete protection passed.")
+else:
+    raise AssertionError("Missing portfolio delete did not fail.")
+
+
+# ------------------------------------------------------------
+# Cleanup
+# ------------------------------------------------------------
+
+deleted_path = delete_portfolio(renamed_path.name)
 assert not deleted_path.exists()
 
+duplicate_deleted_path = delete_portfolio(duplicate_path.name)
+assert not duplicate_deleted_path.exists()
+
 print("Delete test passed.")
+print("Cleanup passed.")
 
 print()
 print("All portfolio storage tests passed.")
