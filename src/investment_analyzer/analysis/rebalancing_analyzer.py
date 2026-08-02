@@ -47,4 +47,37 @@ class RebalancingAnalyzer:
                 }
             )
 
+
         return changes
+
+    def dollar_changes(self, portfolio_value: float) -> list[dict]:
+        """
+        Return the dollar changes required to move from the
+        current allocation to the proposed allocation.
+        """
+        if portfolio_value <= 0:
+            raise ValueError(
+                "Portfolio value must be greater than zero."
+            )
+
+        results = []
+
+        for item in self.allocation_changes():
+            current_value = (
+                portfolio_value * item["current"] / 100.0
+            )
+            proposed_value = (
+                portfolio_value * item["proposed"] / 100.0
+            )
+            dollar_change = proposed_value - current_value
+
+            results.append(
+                {
+                    **item,
+                    "current_value": current_value,
+                    "proposed_value": proposed_value,
+                    "dollar_change": dollar_change,
+                }
+            )
+
+        return results

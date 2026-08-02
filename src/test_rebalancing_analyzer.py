@@ -69,3 +69,84 @@ for item in changes:
 
 print()
 print("All rebalancing analyzer tests passed.")
+
+print()
+print("DOLLAR REBALANCING TEST")
+print("=" * 60)
+
+portfolio_value = 500000.0
+dollar_changes = analyzer.dollar_changes(portfolio_value)
+
+expected_dollars = {
+    "VBIAX": (250000.0, 200000.0, -50000.0),
+    "VGSTX": (0.0, 125000.0, 125000.0),
+    "VSMGX": (100000.0, 0.0, -100000.0),
+    "VWENX": (150000.0, 175000.0, 25000.0),
+}
+
+for item in dollar_changes:
+    symbol = item["symbol"]
+
+    current_expected, proposed_expected, change_expected = (
+        expected_dollars[symbol]
+    )
+
+    assert abs(
+        item["current_value"] - current_expected
+    ) < 0.01
+
+    assert abs(
+        item["proposed_value"] - proposed_expected
+    ) < 0.01
+
+    assert abs(
+        item["dollar_change"] - change_expected
+    ) < 0.01
+
+print("Dollar change calculations passed.")
+
+total_sales = sum(
+    -item["dollar_change"]
+    for item in dollar_changes
+    if item["dollar_change"] < 0
+)
+
+total_purchases = sum(
+    item["dollar_change"]
+    for item in dollar_changes
+    if item["dollar_change"] > 0
+)
+
+assert abs(total_sales - 150000.0) < 0.01
+assert abs(total_purchases - 150000.0) < 0.01
+assert abs(total_sales - total_purchases) < 0.01
+
+print("Buy/sell balance verification passed.")
+
+try:
+    analyzer.dollar_changes(0)
+except ValueError:
+    print("Invalid portfolio value protection passed.")
+else:
+    raise AssertionError(
+        "Zero portfolio value should raise ValueError."
+    )
+
+print()
+print("Dollar changes:")
+print("-" * 78)
+
+for item in dollar_changes:
+    print(
+        f"{item['symbol']:8}"
+        f"${item['current_value']:>12,.2f}"
+        f"${item['proposed_value']:>12,.2f}"
+        f"{item['dollar_change']:>+14,.2f}"
+    )
+
+print("-" * 78)
+print(f"Total sales:     ${total_sales:,.2f}")
+print(f"Total purchases: ${total_purchases:,.2f}")
+
+print()
+print("All dollar rebalancing tests passed.")
