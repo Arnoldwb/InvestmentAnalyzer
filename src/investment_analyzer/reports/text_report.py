@@ -1,5 +1,6 @@
 from investment_analyzer.analysis.portfolio_analyzer import PortfolioAnalyzer
 from investment_analyzer.analysis.portfolio_comparator import PortfolioComparator
+from investment_analyzer.analysis.monte_carlo_analyzer import MonteCarloAnalyzer
 from investment_analyzer.analysis.scenario_analyzer import ScenarioAnalyzer
 from investment_analyzer.analysis.historical_scenarios import HISTORICAL_SCENARIOS
 from .base_report import BaseReport
@@ -242,6 +243,143 @@ class TextReport(BaseReport):
         builder.save(filename)
 
         return filename
+
+    def create_monte_carlo_report(
+        self,
+        portfolio,
+        initial_value,
+        years,
+        simulations=10000,
+        target_value=None,
+        seed=None,
+        summary=None,
+    ):
+        """
+        Create a Monte Carlo portfolio analysis report.
+        """
+
+        filename = self.report_path("MonteCarloReport.txt")
+
+        if summary is None:
+            analyzer = MonteCarloAnalyzer(portfolio)
+
+            summary = analyzer.summary(
+                initial_value=initial_value,
+                years=years,
+                simulations=simulations,
+                seed=seed,
+                target_value=target_value,
+            )
+
+        builder = ReportBuilder()
+
+        builder.title(
+            "Investment Analyzer\n"
+            "Version 4.5\n"
+            "Monte Carlo Portfolio Analysis Report"
+        )
+
+        builder.field("Generated:", self.timestamp)
+        builder.blank()
+
+        builder.field("Portfolio", portfolio.name)
+        builder.field(
+            "Starting Value",
+            f"${initial_value:,.2f}",
+        )
+        builder.field(
+            "Projection Period",
+            f"{years} years",
+        )
+        builder.field(
+            "Simulations",
+            f"{simulations:,}",
+        )
+
+        if target_value is not None:
+            builder.field(
+                "Target Value",
+                f"${target_value:,.2f}",
+            )
+
+        builder.blank()
+        builder.section("Portfolio Holdings")
+
+        for holding in portfolio.holdings:
+            builder.field(
+                holding.fund.symbol,
+                f"{holding.allocation:.1f}%",
+            )
+
+        builder.line("-" * 60)
+        builder.field(
+            "Total Allocation",
+            f"{portfolio.total_allocation:.1f}%",
+        )
+
+        builder.blank()
+        builder.section("Projected Ending Values")
+
+        builder.field(
+            "10th Percentile",
+            f"${summary['percentile_10']:,.2f}",
+        )
+        builder.field(
+            "25th Percentile",
+            f"${summary['percentile_25']:,.2f}",
+        )
+        builder.field(
+            "Median",
+            f"${summary['median']:,.2f}",
+        )
+        builder.field(
+            "75th Percentile",
+            f"${summary['percentile_75']:,.2f}",
+        )
+        builder.field(
+            "90th Percentile",
+            f"${summary['percentile_90']:,.2f}",
+        )
+        builder.field(
+            "Mean Ending Value",
+            f"${summary['mean_ending_value']:,.2f}",
+        )
+
+        builder.blank()
+        builder.section("Probability Analysis")
+
+        builder.field(
+            "Above Starting Value",
+            f"{summary['probability_above_start']:.2%}",
+        )
+
+        if target_value is not None:
+            builder.field(
+                "At or Above Target",
+                f"{summary['probability_above_target']:.2%}",
+            )
+
+        builder.blank()
+        builder.section("Methodology")
+
+        builder.line(
+            "The simulation samples historical monthly portfolio "
+            "returns with replacement."
+        )
+        builder.line(
+            "Each simulated path compounds randomly sampled monthly "
+            "returns over the projection period."
+        )
+        builder.blank()
+        builder.line(
+            "Monte Carlo results are simulations based on historical "
+            "returns and are not forecasts or guarantees."
+        )
+
+        builder.save(filename)
+
+        return filename
+
 
     def create_comparison_report(self, portfolio_a, portfolio_b):
         """

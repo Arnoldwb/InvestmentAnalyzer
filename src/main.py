@@ -1293,6 +1293,21 @@ def monte_carlo_saved_portfolio_interactive():
         "monthly returns and are not forecasts or guarantees."
     )
 
+    manager = ReportManager()
+
+    filename = manager.create_monte_carlo_report(
+        portfolio=portfolio,
+        initial_value=initial_value,
+        years=years,
+        simulations=simulations,
+        target_value=target_value,
+        summary=summary,
+    )
+
+    print()
+    print("Monte Carlo report created:")
+    print(filename)
+
 
 def analyze_loaded_portfolio(portfolio):
     """
