@@ -13,6 +13,7 @@ from investment_analyzer.models.fund import Fund
 from investment_analyzer.reports.excel_report import ExcelReport
 from investment_analyzer.analysis.portfolio_comparator import PortfolioComparator
 from investment_analyzer.analysis.rebalancing_analyzer import RebalancingAnalyzer
+from investment_analyzer.analysis.monte_carlo_analyzer import MonteCarloAnalyzer
 from charts import growth_chart
 from loader import load_fund
 from ranking import (
@@ -51,16 +52,20 @@ def display_menu():
         print("6. Compare two portfolios")
         print("7. Manage saved portfolios")
         print("8. Rebalance a saved portfolio")
-        print("9. Exit")
+        print("9. Monte Carlo portfolio analysis")
+        print("10. Exit")
         print()
 
         choice = input("Selection: ").strip()
 
-        if choice in {"1", "2", "3", "4", "5", "6", "7", "8", "9"}:
+        if choice in {
+            "1", "2", "3", "4", "5",
+            "6", "7", "8", "9", "10"
+        }:
             return choice
 
         print()
-        print("Invalid selection. Please enter a number from 1 to 9.")
+        print("Invalid selection. Please enter a number from 1 to 10.")
 
 
 def select_fund(funds):
@@ -1084,6 +1089,211 @@ def open_saved_portfolio_interactive():
         print("Please enter a valid portfolio number or B.")
 
 
+
+def monte_carlo_saved_portfolio_interactive():
+    """
+    Run Monte Carlo analysis for a saved portfolio.
+    """
+    saved = list_portfolios()
+
+    if not saved:
+        print()
+        print("No saved portfolios were found.")
+        return
+
+    print()
+    print("=" * 60)
+    print("MONTE CARLO PORTFOLIO ANALYSIS")
+    print("=" * 60)
+
+    print()
+    print("Choose a saved portfolio:")
+    print()
+
+    for number, filename in enumerate(saved, start=1):
+        print(f"{number}. {filename}")
+
+    print("B. Back to menu")
+    print()
+
+    while True:
+        selection = input("Selection: ").strip()
+
+        if selection.lower() == "b":
+            return
+
+        if selection.isdigit():
+            index = int(selection) - 1
+
+            if 0 <= index < len(saved):
+                break
+
+        print()
+        print("Please enter a valid portfolio number or B.")
+
+    portfolio = load_portfolio(saved[index])
+
+    print()
+    print("SELECTED PORTFOLIO")
+    print("=" * 60)
+    portfolio.summary()
+
+    while True:
+        value_text = input(
+            "\nStarting portfolio value (or B to cancel): $"
+        ).strip()
+
+        if value_text.lower() == "b":
+            return
+
+        try:
+            initial_value = float(
+                value_text.replace(",", "").replace("$", "")
+            )
+
+            if initial_value <= 0:
+                raise ValueError
+
+            break
+        except ValueError:
+            print()
+            print("Please enter a portfolio value greater than zero.")
+
+    while True:
+        years_text = input(
+            "Projection period in years (or B to cancel): "
+        ).strip()
+
+        if years_text.lower() == "b":
+            return
+
+        try:
+            years = int(years_text)
+
+            if years <= 0:
+                raise ValueError
+
+            break
+        except ValueError:
+            print()
+            print("Please enter a whole number of years greater than zero.")
+
+    while True:
+        simulations_text = input(
+            "Number of simulations "
+            "(press Enter for 10,000): "
+        ).strip()
+
+        if not simulations_text:
+            simulations = 10000
+            break
+
+        try:
+            simulations = int(simulations_text)
+
+            if simulations <= 0:
+                raise ValueError
+
+            break
+        except ValueError:
+            print()
+            print(
+                "Please enter a whole number of simulations "
+                "greater than zero."
+            )
+
+    while True:
+        target_text = input(
+            "Target portfolio value "
+            "(press Enter for none): $"
+        ).strip()
+
+        if not target_text:
+            target_value = None
+            break
+
+        try:
+            target_value = float(
+                target_text.replace(",", "").replace("$", "")
+            )
+
+            if target_value <= 0:
+                raise ValueError
+
+            break
+        except ValueError:
+            print()
+            print("Please enter a target value greater than zero.")
+
+    analyzer = MonteCarloAnalyzer(portfolio)
+
+    summary = analyzer.summary(
+        initial_value=initial_value,
+        years=years,
+        simulations=simulations,
+        target_value=target_value,
+    )
+
+    print()
+    print("MONTE CARLO RESULTS")
+    print("=" * 60)
+
+    print(f"Portfolio             : {portfolio.name}")
+    print(f"Starting Value        : ${initial_value:,.2f}")
+    print(f"Projection Period     : {years} years")
+    print(f"Simulations           : {simulations:,}")
+
+    print()
+    print("Projected Ending Values")
+    print("-" * 60)
+
+    print(
+        f"10th Percentile       : "
+        f"${summary['percentile_10']:,.2f}"
+    )
+    print(
+        f"25th Percentile       : "
+        f"${summary['percentile_25']:,.2f}"
+    )
+    print(
+        f"Median                : "
+        f"${summary['median']:,.2f}"
+    )
+    print(
+        f"75th Percentile       : "
+        f"${summary['percentile_75']:,.2f}"
+    )
+    print(
+        f"90th Percentile       : "
+        f"${summary['percentile_90']:,.2f}"
+    )
+
+    print()
+    print(
+        "Probability Above Starting Value: "
+        f"{summary['probability_above_start']:.2%}"
+    )
+
+    if target_value is not None:
+        print(
+            f"Probability At or Above "
+            f"${target_value:,.2f}: "
+            f"{summary['probability_above_target']:.2%}"
+        )
+
+    print()
+    print(
+        f"Mean Ending Value     : "
+        f"${summary['mean_ending_value']:,.2f}"
+    )
+
+    print()
+    print(
+        "Monte Carlo results are simulations based on historical "
+        "monthly returns and are not forecasts or guarantees."
+    )
+
+
 def analyze_loaded_portfolio(portfolio):
     """
     Analyze and report a portfolio that has already been constructed.
@@ -1159,6 +1369,8 @@ def main():
             manage_saved_portfolios_interactive(funds)
         elif choice == "8":
             rebalance_saved_portfolio_interactive(funds)
+        elif choice == "9":
+            monte_carlo_saved_portfolio_interactive()
         else:
             print()
             print("Goodbye.")
