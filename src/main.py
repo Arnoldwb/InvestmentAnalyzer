@@ -363,33 +363,10 @@ def analyze_portfolio_interactive(funds):
         print(saved_path)
 
 
-def compare_portfolios_interactive(funds):
+def display_portfolio_comparison(portfolio_a, portfolio_b):
     """
-    Interactively create and compare two portfolios.
+    Display, interpret, and report a comparison of two portfolios.
     """
-
-    print()
-    print("=" * 60)
-    print("CREATE PORTFOLIO A")
-    print("=" * 60)
-
-    portfolio_a = create_portfolio(funds)
-
-    if portfolio_a is None:
-        return
-
-    print()
-    print("=" * 60)
-    print("CREATE PORTFOLIO B")
-    print("=" * 60)
-
-    portfolio_b = create_portfolio(funds)
-
-    if portfolio_b is None:
-        print()
-        print("Portfolio comparison cancelled.")
-        return
-
     comparator = PortfolioComparator(
         portfolio_a,
         portfolio_b,
@@ -404,11 +381,19 @@ def compare_portfolios_interactive(funds):
     print("PORTFOLIO COMPARISON")
     print("=" * 78)
 
-    print(f"{'Metric':<25}" f"{'Portfolio A':>20}" f"{'Portfolio B':>20}")
+    print(
+        f"{'Metric':<25}"
+        f"{portfolio_a.name:>20}"
+        f"{portfolio_b.name:>20}"
+    )
 
     print("-" * 78)
 
-    print(f"{'CAGR':<25}" f"{a['cagr']:>19.2%}" f"{b['cagr']:>20.2%}")
+    print(
+        f"{'CAGR':<25}"
+        f"{a['cagr']:>19.2%}"
+        f"{b['cagr']:>20.2%}"
+    )
 
     print(
         f"{'Annualized Avg Return':<25}"
@@ -428,12 +413,20 @@ def compare_portfolios_interactive(funds):
         f"{b['max_drawdown']:>20.2%}"
     )
 
-    print(f"{'Sharpe Ratio':<25}" f"{a['sharpe']:>19.2f}" f"{b['sharpe']:>20.2f}")
+    print(
+        f"{'Sharpe Ratio':<25}"
+        f"{a['sharpe']:>19.2f}"
+        f"{b['sharpe']:>20.2f}"
+    )
 
     a_value = f"${a['ending_value']:,.2f}"
     b_value = f"${b['ending_value']:,.2f}"
 
-    print(f"{'Growth of $10,000':<25}" f"{a_value:>20}" f"{b_value:>20}")
+    print(
+        f"{'Growth of $10,000':<25}"
+        f"{a_value:>20}"
+        f"{b_value:>20}"
+    )
 
     interpretation = comparator.interpretation()
 
@@ -473,6 +466,37 @@ def compare_portfolios_interactive(funds):
     print(filename)
 
 
+def compare_portfolios_interactive(funds):
+    """
+    Interactively create and compare two portfolios.
+    """
+
+    print()
+    print("=" * 60)
+    print("CREATE PORTFOLIO A")
+    print("=" * 60)
+
+    portfolio_a = create_portfolio(funds)
+
+    if portfolio_a is None:
+        return
+
+    print()
+    print("=" * 60)
+    print("CREATE PORTFOLIO B")
+    print("=" * 60)
+
+    portfolio_b = create_portfolio(funds)
+
+    if portfolio_b is None:
+        print()
+        print("Portfolio comparison cancelled.")
+        return
+
+    display_portfolio_comparison(
+        portfolio_a,
+        portfolio_b,
+    )
 
 
 
