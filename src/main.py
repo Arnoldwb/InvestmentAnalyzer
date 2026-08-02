@@ -3,8 +3,10 @@
 from investment_analyzer.analysis.cycle_analyzer import MarketCycleAnalyzer
 from investment_analyzer.core.file_discovery import discover_funds
 from investment_analyzer.core.portfolio_storage import (
+    delete_portfolio,
     list_portfolios,
     load_portfolio,
+    rename_portfolio,
     save_portfolio,
 )
 from investment_analyzer.models.fund import Fund
@@ -46,7 +48,7 @@ def display_menu():
         print("4. Compare selected funds")
         print("5. Analyze a portfolio")
         print("6. Compare two portfolios")
-        print("7. Open saved portfolio")
+        print("7. Manage saved portfolios")
         print("8. Exit")
         print()
 
@@ -472,6 +474,112 @@ def compare_portfolios_interactive(funds):
 
 
 
+
+def manage_saved_portfolios_interactive():
+    """
+    Manage previously saved portfolios.
+    """
+    while True:
+        saved = list_portfolios()
+
+        print()
+        print("=" * 60)
+        print("MANAGE SAVED PORTFOLIOS")
+        print("=" * 60)
+
+        if not saved:
+            print()
+            print("No saved portfolios were found.")
+            return
+
+        print()
+        for number, filename in enumerate(saved, start=1):
+            print(f"{number}. {filename}")
+
+        print()
+        print("O. Open and analyze a portfolio")
+        print("R. Rename a portfolio")
+        print("D. Delete a portfolio")
+        print("B. Back to main menu")
+        print()
+
+        action = input("Selection: ").strip().lower()
+
+        if action == "b":
+            return
+
+        if action == "o":
+            open_saved_portfolio_interactive()
+            continue
+
+        if action not in {"r", "d"}:
+            print()
+            print("Please enter O, R, D, or B.")
+            continue
+
+        selection = input("Portfolio number: ").strip()
+
+        if not selection.isdigit():
+            print()
+            print("Please enter a valid portfolio number.")
+            continue
+
+        index = int(selection) - 1
+
+        if not 0 <= index < len(saved):
+            print()
+            print("Please enter a valid portfolio number.")
+            continue
+
+        filename = saved[index]
+
+        if action == "r":
+            new_name = input("New portfolio name: ").strip()
+
+            if not new_name:
+                print()
+                print("Portfolio name cannot be empty.")
+                continue
+
+            try:
+                new_path = rename_portfolio(filename, new_name)
+            except (ValueError, FileExistsError, FileNotFoundError) as error:
+                print()
+                print(f"Unable to rename portfolio: {error}")
+                continue
+
+            print()
+            print("Portfolio renamed:")
+            print(new_path.name)
+            continue
+
+        portfolio = load_portfolio(filename)
+
+        print()
+        print("Portfolio selected:")
+        portfolio.summary()
+
+        confirm = input(
+            "\nDelete this portfolio permanently? (Y/N): "
+        ).strip().lower()
+
+        if confirm != "y":
+            print()
+            print("Delete cancelled.")
+            continue
+
+        try:
+            deleted_path = delete_portfolio(filename)
+        except FileNotFoundError as error:
+            print()
+            print(f"Unable to delete portfolio: {error}")
+            continue
+
+        print()
+        print("Portfolio deleted:")
+        print(deleted_path.name)
+
+
 def open_saved_portfolio_interactive():
     """
     Select, load, and analyze a previously saved portfolio.
@@ -587,7 +695,7 @@ def main():
         elif choice == "6":
             compare_portfolios_interactive(funds)
         elif choice == "7":
-            open_saved_portfolio_interactive()
+            manage_saved_portfolios_interactive()
         else:
             print()
             print("Goodbye.")
