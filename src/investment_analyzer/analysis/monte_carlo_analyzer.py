@@ -75,10 +75,16 @@ class MonteCarloAnalyzer:
         years: int,
         simulations: int = 10000,
         seed: int | None = None,
+        target_value: float | None = None,
     ) -> dict:
         """
         Return summary statistics for simulated ending values.
         """
+
+        if target_value is not None and target_value <= 0:
+            raise ValueError(
+                "Target portfolio value must be greater than zero."
+            )
 
         ending_values = self.simulate(
             initial_value=initial_value,
@@ -87,7 +93,7 @@ class MonteCarloAnalyzer:
             seed=seed,
         )
 
-        return {
+        results = {
             "initial_value": initial_value,
             "years": years,
             "simulations": simulations,
@@ -113,3 +119,11 @@ class MonteCarloAnalyzer:
                 np.mean(ending_values)
             ),
         }
+
+        if target_value is not None:
+            results["target_value"] = target_value
+            results["probability_above_target"] = float(
+                np.mean(ending_values >= target_value)
+            )
+
+        return results

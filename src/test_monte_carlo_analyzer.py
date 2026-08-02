@@ -154,3 +154,48 @@ print(
 
 print()
 print("All Monte Carlo analyzer tests passed.")
+
+print()
+print("MONTE CARLO TARGET TEST")
+print("=" * 60)
+
+target_summary = analyzer.summary(
+    initial_value=500000.0,
+    years=10,
+    simulations=10000,
+    seed=42,
+    target_value=1000000.0,
+)
+
+assert target_summary["target_value"] == 1000000.0
+
+assert (
+    0.0
+    <= target_summary["probability_above_target"]
+    <= 1.0
+)
+
+print("Target-value storage verification passed.")
+print("Target probability range verification passed.")
+
+try:
+    analyzer.summary(
+        initial_value=500000.0,
+        years=10,
+        target_value=0,
+    )
+except ValueError:
+    print("Invalid target-value protection passed.")
+else:
+    raise AssertionError(
+        "Zero target value should raise ValueError."
+    )
+
+print()
+print(
+    "Probability of ending at or above $1,000,000: "
+    f"{target_summary['probability_above_target']:.2%}"
+)
+
+print()
+print("All Monte Carlo target tests passed.")
