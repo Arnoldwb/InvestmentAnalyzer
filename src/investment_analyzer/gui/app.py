@@ -11,6 +11,7 @@ from PySide6.QtWidgets import (
     QMainWindow,
     QMessageBox,
     QPushButton,
+    QMenu,
     QSpinBox,
     QDoubleSpinBox,
     QTableWidget,
@@ -151,7 +152,9 @@ class PortfolioWindow(QDialog):
 
         layout.addWidget(self.performance_table)
 
-        close_button = QPushButton("Close")
+        close_button = QPushButton(
+            "Return to Investment Analyzer"
+        )
         close_button.setMinimumHeight(40)
         close_button.clicked.connect(self.accept)
 
@@ -393,6 +396,9 @@ class MonteCarloWindow(QDialog):
         self.initial_value.setValue(500000.0)
         self.initial_value.setPrefix("$")
         self.initial_value.setGroupSeparatorShown(True)
+        self.initial_value.setSingleStep(10000.0)
+        self.initial_value.setKeyboardTracking(False)
+        self.initial_value.lineEdit().setReadOnly(False)
 
         value_layout.addWidget(self.initial_value)
         layout.addLayout(value_layout)
@@ -414,6 +420,8 @@ class MonteCarloWindow(QDialog):
         self.annual_withdrawal.setGroupSeparatorShown(
             True
         )
+        self.annual_withdrawal.setSingleStep(1000.0)
+        self.annual_withdrawal.lineEdit().setReadOnly(False)
 
         self.withdrawal_layout.addWidget(
             self.withdrawal_label
@@ -459,6 +467,8 @@ class MonteCarloWindow(QDialog):
         self.inflation_rate.setDecimals(2)
         self.inflation_rate.setValue(3.0)
         self.inflation_rate.setSuffix("%")
+        self.inflation_rate.setSingleStep(0.25)
+        self.inflation_rate.lineEdit().setReadOnly(False)
 
         self.inflation_layout.addWidget(
             self.inflation_label
@@ -480,6 +490,8 @@ class MonteCarloWindow(QDialog):
         self.target_survival.setDecimals(2)
         self.target_survival.setValue(90.0)
         self.target_survival.setSuffix("%")
+        self.target_survival.setSingleStep(1.0)
+        self.target_survival.lineEdit().setReadOnly(False)
 
         self.survival_layout.addWidget(
             self.survival_label
@@ -570,7 +582,9 @@ class MonteCarloWindow(QDialog):
 
         layout.addWidget(note)
 
-        close_button = QPushButton("Close")
+        close_button = QPushButton(
+            "Return to Investment Analyzer"
+        )
         close_button.setMinimumHeight(40)
         close_button.clicked.connect(self.accept)
 
@@ -946,6 +960,44 @@ class InvestmentAnalyzerWindow(QMainWindow):
         self.monte_carlo_button = QPushButton(
             "Monte Carlo & Withdrawal Analysis"
         )
+
+        self.monte_carlo_menu = QMenu(
+            self.monte_carlo_button
+        )
+
+        growth_action = self.monte_carlo_menu.addAction(
+            "Portfolio Growth"
+        )
+        withdrawal_action = self.monte_carlo_menu.addAction(
+            "Withdrawal Sustainability"
+        )
+        sustainable_action = self.monte_carlo_menu.addAction(
+            "Sustainable Withdrawal Calculator"
+        )
+        comparison_action = self.monte_carlo_menu.addAction(
+            "Compare Withdrawal Strategies"
+        )
+
+        growth_action.triggered.connect(
+            lambda: self.open_monte_carlo_window("growth")
+        )
+        withdrawal_action.triggered.connect(
+            lambda: self.open_monte_carlo_window("withdrawal")
+        )
+        sustainable_action.triggered.connect(
+            lambda: self.open_monte_carlo_window("sustainable")
+        )
+        comparison_action.triggered.connect(
+            lambda: self.open_monte_carlo_window("comparison")
+        )
+
+        self.monte_carlo_button.setMenu(
+            self.monte_carlo_menu
+        )
+        self.monte_carlo_button.setStyleSheet(
+            "QPushButton { text-align: center; }"
+        )
+
         self.reports_button = QPushButton("Reports")
         self.exit_button = QPushButton("Exit")
 
@@ -969,9 +1021,6 @@ class InvestmentAnalyzerWindow(QMainWindow):
         self.portfolio_button.clicked.connect(
             self.open_portfolio_window
         )
-        self.monte_carlo_button.clicked.connect(
-            self.open_monte_carlo_window
-        )
         self.exit_button.clicked.connect(self.close)
 
     def open_portfolio_window(self):
@@ -982,12 +1031,25 @@ class InvestmentAnalyzerWindow(QMainWindow):
         window = PortfolioWindow(self)
         window.exec()
 
-    def open_monte_carlo_window(self):
+    def open_monte_carlo_window(self, analysis=None):
         """
         Open the Monte Carlo analysis window.
+
+        If an analysis is supplied, select it automatically.
         """
 
         window = MonteCarloWindow(self)
+
+        if analysis is not None:
+            index = window.analysis_selector.findData(
+                analysis
+            )
+
+            if index >= 0:
+                window.analysis_selector.setCurrentIndex(
+                    index
+                )
+
         window.exec()
 
 
