@@ -374,3 +374,44 @@ class MonteCarloAnalyzer:
             ),
             "tolerance": tolerance,
         }
+
+    def compare_withdrawal_strategies(
+        self,
+        initial_value: float,
+        annual_withdrawals,
+        years: int,
+        simulations: int = 10000,
+        seed: int | None = None,
+        inflation_rate: float = 0.0,
+    ) -> list[dict]:
+        """
+        Compare multiple annual withdrawal strategies using the
+        same Monte Carlo assumptions.
+        """
+
+        if not annual_withdrawals:
+            raise ValueError(
+                "At least one annual withdrawal is required."
+            )
+
+        for annual_withdrawal in annual_withdrawals:
+            if annual_withdrawal < 0:
+                raise ValueError(
+                    "Annual withdrawals cannot be negative."
+                )
+
+        results = []
+
+        for annual_withdrawal in annual_withdrawals:
+            summary = self.withdrawal_summary(
+                initial_value=initial_value,
+                annual_withdrawal=annual_withdrawal,
+                years=years,
+                simulations=simulations,
+                seed=seed,
+                inflation_rate=inflation_rate,
+            )
+
+            results.append(summary)
+
+        return results
