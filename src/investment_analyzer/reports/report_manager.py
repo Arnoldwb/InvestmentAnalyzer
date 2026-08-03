@@ -33,7 +33,25 @@ class ReportManager(BaseReport):
             seed=seed,
             summary=summary,
         )
-
+    def create_withdrawal_report(
+        self,
+        portfolio,
+        initial_value,
+        annual_withdrawal,
+        years,
+        simulations=10000,
+        seed=None,
+        summary=None,
+    ):
+        return self.text.create_withdrawal_report(
+            portfolio=portfolio,
+            initial_value=initial_value,
+            annual_withdrawal=annual_withdrawal,
+            years=years,
+            simulations=simulations,
+            seed=seed,
+            summary=summary,
+        )
     def create_comparison_report(self, portfolio_a, portfolio_b):
         return self.text.create_comparison_report(
             portfolio_a,

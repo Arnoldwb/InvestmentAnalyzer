@@ -1316,7 +1316,20 @@ def monte_carlo_saved_portfolio_interactive():
             "Monte Carlo results are simulations based on historical "
             "monthly returns and are not forecasts or guarantees."
         )
+        manager = ReportManager()
 
+        filename = manager.create_withdrawal_report(
+            portfolio=portfolio,
+            initial_value=initial_value,
+            annual_withdrawal=annual_withdrawal,
+            years=years,
+            simulations=simulations,
+            summary=summary,
+        )
+
+        print()
+        print("Withdrawal sustainability report created:")
+        print(filename)
         return
 
     while True:

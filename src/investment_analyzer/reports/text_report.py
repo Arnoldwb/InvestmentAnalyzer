@@ -380,7 +380,147 @@ class TextReport(BaseReport):
 
         return filename
 
+    def create_withdrawal_report(
+        self,
+        portfolio,
+        initial_value,
+        annual_withdrawal,
+        years,
+        simulations=10000,
+        seed=None,
+        summary=None,
+    ):
+        """
+        Create a Monte Carlo withdrawal sustainability report.
+        """
 
+        filename = self.report_path(
+            "WithdrawalSustainabilityReport.txt"
+        )
+
+        if summary is None:
+            analyzer = MonteCarloAnalyzer(portfolio)
+
+            summary = analyzer.withdrawal_summary(
+                initial_value=initial_value,
+                annual_withdrawal=annual_withdrawal,
+                years=years,
+                simulations=simulations,
+                seed=seed,
+            )
+
+        builder = ReportBuilder()
+
+        builder.title(
+            "Investment Analyzer\n"
+            "Version 4.6\n"
+            "Withdrawal Sustainability Analysis Report"
+        )
+
+        builder.field("Generated:", self.timestamp)
+        builder.blank()
+
+        builder.field("Portfolio", portfolio.name)
+        builder.field(
+            "Starting Value",
+            f"${initial_value:,.2f}",
+        )
+        builder.field(
+            "Annual Withdrawal",
+            f"${annual_withdrawal:,.2f}",
+        )
+        builder.field(
+            "Initial Withdrawal Rate",
+            f"{summary['withdrawal_rate']:.2%}",
+        )
+        builder.field(
+            "Projection Period",
+            f"{years} years",
+        )
+        builder.field(
+            "Simulations",
+            f"{simulations:,}",
+        )
+
+        builder.blank()
+        builder.section("Portfolio Holdings")
+
+        for holding in portfolio.holdings:
+            builder.field(
+                holding.fund.symbol,
+                f"{holding.allocation:.1f}%",
+            )
+
+        builder.line("-" * 60)
+        builder.field(
+            "Total Allocation",
+            f"{portfolio.total_allocation:.1f}%",
+        )
+
+        builder.blank()
+        builder.section("Withdrawal Sustainability")
+
+        builder.field(
+            "Survival Probability",
+            f"{summary['survival_probability']:.2%}",
+        )
+        builder.field(
+            "Depletion Probability",
+            f"{summary['depletion_probability']:.2%}",
+        )
+
+        builder.blank()
+        builder.section("Projected Ending Values")
+
+        builder.field(
+            "10th Percentile",
+            f"${summary['percentile_10']:,.2f}",
+        )
+        builder.field(
+            "25th Percentile",
+            f"${summary['percentile_25']:,.2f}",
+        )
+        builder.field(
+            "Median",
+            f"${summary['median']:,.2f}",
+        )
+        builder.field(
+            "75th Percentile",
+            f"${summary['percentile_75']:,.2f}",
+        )
+        builder.field(
+            "90th Percentile",
+            f"${summary['percentile_90']:,.2f}",
+        )
+        builder.field(
+            "Mean Ending Value",
+            f"${summary['mean_ending_value']:,.2f}",
+        )
+
+        builder.blank()
+        builder.section("Methodology")
+
+        builder.line(
+            "The simulation samples historical monthly portfolio "
+            "returns with replacement."
+        )
+        builder.line(
+            "The annual withdrawal is divided into equal monthly "
+            "withdrawals during each simulated path."
+        )
+        builder.line(
+            "Portfolio values are not allowed to fall below zero."
+        )
+
+        builder.blank()
+        builder.line(
+            "Monte Carlo results are simulations based on historical "
+            "returns and are not forecasts or guarantees."
+        )
+
+        builder.save(filename)
+
+        return filename
     def create_comparison_report(self, portfolio_a, portfolio_b):
         """
         Create a side-by-side portfolio comparison report.
