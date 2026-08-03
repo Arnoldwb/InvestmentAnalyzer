@@ -127,3 +127,72 @@ class MonteCarloAnalyzer:
             )
 
         return results
+    def simulate_withdrawals(
+        self,
+        initial_value: float,
+        annual_withdrawal: float,
+        years: int,
+        simulations: int = 10000,
+        seed: int | None = None,
+    ) -> np.ndarray:
+        """
+        Return ending portfolio values from Monte Carlo simulations
+        with fixed monthly withdrawals.
+
+        The annual withdrawal is divided into 12 equal monthly
+        withdrawals. Portfolio values cannot fall below zero.
+        """
+
+        if initial_value <= 0:
+            raise ValueError(
+                "Initial portfolio value must be greater than zero."
+            )
+
+        if annual_withdrawal < 0:
+            raise ValueError(
+                "Annual withdrawal cannot be negative."
+            )
+
+        if years <= 0:
+            raise ValueError(
+                "Projection years must be greater than zero."
+            )
+
+        if simulations <= 0:
+            raise ValueError(
+                "Number of simulations must be greater than zero."
+            )
+
+        analyzer = PortfolioAnalyzer(self.portfolio)
+        historical_returns = analyzer.monthly_returns().to_numpy()
+
+        if historical_returns.size == 0:
+            raise ValueError(
+                "No historical portfolio returns are available."
+            )
+
+        months = years * 12
+        monthly_withdrawal = annual_withdrawal / 12.0
+
+        rng = np.random.default_rng(seed)
+
+        sampled_returns = rng.choice(
+            historical_returns,
+            size=(simulations, months),
+            replace=True,
+        )
+
+        values = np.full(
+            simulations,
+            initial_value,
+            dtype=float,
+        )
+
+        for month in range(months):
+            values *= 1.0 + sampled_returns[:, month]
+
+            if monthly_withdrawal > 0:
+                values -= monthly_withdrawal
+                values = np.maximum(values, 0.0)
+
+        return values
