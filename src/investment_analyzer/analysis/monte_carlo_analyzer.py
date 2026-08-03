@@ -219,6 +219,7 @@ class MonteCarloAnalyzer:
         years: int,
         simulations: int = 10000,
         seed: int | None = None,
+        inflation_rate: float = 0.0,
     ) -> dict:
         """
         Return summary statistics for Monte Carlo simulations
@@ -231,6 +232,7 @@ class MonteCarloAnalyzer:
             years=years,
             simulations=simulations,
             seed=seed,
+            inflation_rate=inflation_rate,
         )
 
         survival_probability = float(
@@ -244,6 +246,7 @@ class MonteCarloAnalyzer:
         return {
             "initial_value": initial_value,
             "annual_withdrawal": annual_withdrawal,
+            "inflation_rate": inflation_rate,
             "withdrawal_rate": (
                 annual_withdrawal / initial_value
             ),

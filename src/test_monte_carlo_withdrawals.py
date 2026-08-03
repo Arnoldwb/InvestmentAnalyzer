@@ -297,3 +297,84 @@ else:
 
 print()
 print("All Monte Carlo inflation withdrawal tests passed.")
+
+print()
+print("INFLATION-ADJUSTED SUSTAINABILITY TEST")
+print("=" * 60)
+
+inflation_summary = analyzer.withdrawal_summary(
+    initial_value=500000.0,
+    annual_withdrawal=25000.0,
+    years=10,
+    simulations=10000,
+    seed=42,
+    inflation_rate=0.03,
+)
+
+assert inflation_summary["inflation_rate"] == 0.03
+
+print("Inflation-rate storage verification passed.")
+
+assert (
+    0.0
+    <= inflation_summary["survival_probability"]
+    <= 1.0
+)
+
+assert (
+    0.0
+    <= inflation_summary["depletion_probability"]
+    <= 1.0
+)
+
+print("Inflation sustainability probability ranges passed.")
+
+assert (
+    inflation_summary["survival_probability"]
+    + inflation_summary["depletion_probability"]
+    == 1.0
+)
+
+print("Inflation probability reconciliation passed.")
+
+zero_inflation_summary = analyzer.withdrawal_summary(
+    initial_value=500000.0,
+    annual_withdrawal=25000.0,
+    years=10,
+    simulations=10000,
+    seed=42,
+    inflation_rate=0.0,
+)
+
+assert zero_inflation_summary["inflation_rate"] == 0.0
+
+assert (
+    inflation_summary["mean_ending_value"]
+    < zero_inflation_summary["mean_ending_value"]
+)
+
+print("Inflation summary impact verification passed.")
+
+print()
+print("INFLATION-ADJUSTED SUSTAINABILITY SUMMARY")
+print("-" * 60)
+
+print(
+    f"Inflation Rate        : "
+    f"{inflation_summary['inflation_rate']:.2%}"
+)
+print(
+    f"Survival Probability  : "
+    f"{inflation_summary['survival_probability']:.2%}"
+)
+print(
+    f"Depletion Probability : "
+    f"{inflation_summary['depletion_probability']:.2%}"
+)
+print(
+    f"Median Ending Value   : "
+    f"${inflation_summary['median']:,.2f}"
+)
+
+print()
+print("All inflation-adjusted sustainability tests passed.")
