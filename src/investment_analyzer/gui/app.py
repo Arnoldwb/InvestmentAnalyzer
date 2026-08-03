@@ -16,6 +16,9 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from investment_analyzer.analysis.portfolio_analyzer import (
+    PortfolioAnalyzer,
+)
 from investment_analyzer.core.portfolio_storage import (
     list_portfolios,
     load_portfolio,
@@ -31,7 +34,7 @@ class PortfolioWindow(QDialog):
         super().__init__(parent)
 
         self.setWindowTitle("Portfolio Analysis")
-        self.resize(650, 450)
+        self.resize(700, 700)
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(30, 25, 30, 25)
@@ -90,6 +93,58 @@ class PortfolioWindow(QDialog):
         )
         layout.addWidget(self.total_label)
 
+        performance_title = QLabel(
+            "Portfolio Performance"
+        )
+        performance_title.setAlignment(
+            Qt.AlignmentFlag.AlignCenter
+        )
+
+        performance_font = performance_title.font()
+        performance_font.setPointSize(16)
+        performance_font.setBold(True)
+        performance_title.setFont(performance_font)
+
+        layout.addWidget(performance_title)
+
+        self.performance_table = QTableWidget()
+        self.performance_table.setColumnCount(2)
+        self.performance_table.setRowCount(6)
+        self.performance_table.setHorizontalHeaderLabels(
+            ["Statistic", "Value"]
+        )
+
+        statistics = [
+            "CAGR",
+            "Annualized Average Return",
+            "Annualized Volatility",
+            "Maximum Drawdown",
+            "Sharpe Ratio",
+            "Growth of $10,000",
+        ]
+
+        for row, statistic in enumerate(statistics):
+            self.performance_table.setItem(
+                row,
+                0,
+                QTableWidgetItem(statistic),
+            )
+            self.performance_table.setItem(
+                row,
+                1,
+                QTableWidgetItem("--"),
+            )
+
+        self.performance_table.horizontalHeader().setStretchLastSection(
+            True
+        )
+        self.performance_table.setEditTriggers(
+            QTableWidget.EditTrigger.NoEditTriggers
+        )
+        self.performance_table.setMaximumHeight(235)
+
+        layout.addWidget(self.performance_table)
+
         close_button = QPushButton("Close")
         close_button.setMinimumHeight(40)
         close_button.clicked.connect(self.accept)
@@ -131,6 +186,7 @@ class PortfolioWindow(QDialog):
             )
             self.holdings_table.setRowCount(0)
             self.total_label.setText("Total Allocation: --")
+            self.clear_performance_results()
             return
 
         try:
@@ -174,6 +230,71 @@ class PortfolioWindow(QDialog):
             f"Total Allocation: "
             f"{portfolio.total_allocation:.1f}%"
         )
+
+        self.display_performance_results(portfolio)
+
+    def clear_performance_results(self):
+        """
+        Clear displayed portfolio performance statistics.
+        """
+
+        for row in range(6):
+            item = self.performance_table.item(row, 1)
+
+            if item is not None:
+                item.setText("--")
+
+    def display_performance_results(self, portfolio):
+        """
+        Calculate and display portfolio performance statistics.
+        """
+
+        self.clear_performance_results()
+
+        try:
+            analyzer = PortfolioAnalyzer(portfolio)
+
+            cagr = analyzer.cagr()
+            annual_return = analyzer.annualized_return()
+            volatility = analyzer.annualized_volatility()
+            drawdown = analyzer.max_drawdown()
+            sharpe = analyzer.sharpe_ratio()
+
+            growth = analyzer.growth_index(10000)
+            ending_value = growth.iloc[-1]
+
+        except Exception as error:
+            QMessageBox.critical(
+                self,
+                "Analysis Error",
+                "Unable to analyze the selected portfolio:"
+                f"\n\n{error}",
+            )
+            return
+
+        values = [
+            f"{cagr:.2%}",
+            f"{annual_return:.2%}",
+            f"{volatility:.2%}",
+            f"{drawdown:.2%}",
+            f"{sharpe:.2f}",
+            f"${ending_value:,.2f}",
+        ]
+
+        for row, value in enumerate(values):
+            item = self.performance_table.item(row, 1)
+
+            if item is None:
+                item = QTableWidgetItem()
+                self.performance_table.setItem(
+                    row,
+                    1,
+                    item,
+                )
+
+            item.setText(value)
+
+        self.performance_table.resizeColumnsToContents()
 
 
 class InvestmentAnalyzerWindow(QMainWindow):
