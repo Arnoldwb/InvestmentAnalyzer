@@ -134,6 +134,7 @@ class MonteCarloAnalyzer:
         years: int,
         simulations: int = 10000,
         seed: int | None = None,
+        inflation_rate: float = 0.0,
     ) -> np.ndarray:
         """
         Return ending portfolio values from Monte Carlo simulations
@@ -151,6 +152,11 @@ class MonteCarloAnalyzer:
         if annual_withdrawal < 0:
             raise ValueError(
                 "Annual withdrawal cannot be negative."
+            )
+
+        if inflation_rate < 0:
+            raise ValueError(
+                "Inflation rate cannot be negative."
             )
 
         if years <= 0:
@@ -172,7 +178,6 @@ class MonteCarloAnalyzer:
             )
 
         months = years * 12
-        monthly_withdrawal = annual_withdrawal / 12.0
 
         rng = np.random.default_rng(seed)
 
@@ -190,6 +195,17 @@ class MonteCarloAnalyzer:
 
         for month in range(months):
             values *= 1.0 + sampled_returns[:, month]
+
+            year_number = month // 12
+
+            adjusted_annual_withdrawal = (
+                annual_withdrawal
+                * (1.0 + inflation_rate) ** year_number
+            )
+
+            monthly_withdrawal = (
+                adjusted_annual_withdrawal / 12.0
+            )
 
             if monthly_withdrawal > 0:
                 values -= monthly_withdrawal

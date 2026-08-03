@@ -234,3 +234,66 @@ print(
 
 print()
 print("All withdrawal sustainability tests passed.")
+print()
+print("MONTE CARLO INFLATION WITHDRAWAL TEST")
+print("=" * 60)
+
+inflation_values = analyzer.simulate_withdrawals(
+    initial_value=500000.0,
+    annual_withdrawal=25000.0,
+    years=10,
+    simulations=10000,
+    seed=42,
+    inflation_rate=0.03,
+)
+
+assert len(inflation_values) == 10000
+assert np.all(np.isfinite(inflation_values))
+assert np.all(inflation_values >= 0)
+
+print("Inflation simulation verification passed.")
+
+zero_inflation_values = analyzer.simulate_withdrawals(
+    initial_value=500000.0,
+    annual_withdrawal=25000.0,
+    years=10,
+    simulations=10000,
+    seed=42,
+    inflation_rate=0.0,
+)
+
+fixed_values = analyzer.simulate_withdrawals(
+    initial_value=500000.0,
+    annual_withdrawal=25000.0,
+    years=10,
+    simulations=10000,
+    seed=42,
+)
+
+assert np.array_equal(
+    zero_inflation_values,
+    fixed_values,
+)
+
+print("Zero-inflation compatibility passed.")
+
+assert np.mean(inflation_values) < np.mean(fixed_values)
+
+print("Inflation impact verification passed.")
+
+try:
+    analyzer.simulate_withdrawals(
+        initial_value=500000.0,
+        annual_withdrawal=25000.0,
+        years=10,
+        inflation_rate=-0.01,
+    )
+except ValueError:
+    print("Invalid inflation-rate protection passed.")
+else:
+    raise AssertionError(
+        "Negative inflation rate should raise ValueError."
+    )
+
+print()
+print("All Monte Carlo inflation withdrawal tests passed.")
