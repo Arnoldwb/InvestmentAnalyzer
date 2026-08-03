@@ -389,6 +389,7 @@ class TextReport(BaseReport):
         simulations=10000,
         seed=None,
         summary=None,
+        inflation_rate=0.0,
     ):
         """
         Create a Monte Carlo withdrawal sustainability report.
@@ -407,13 +408,14 @@ class TextReport(BaseReport):
                 years=years,
                 simulations=simulations,
                 seed=seed,
+                inflation_rate=inflation_rate,
             )
 
         builder = ReportBuilder()
 
         builder.title(
             "Investment Analyzer\n"
-            "Version 4.6\n"
+            "Version 4.7\n"
             "Withdrawal Sustainability Analysis Report"
         )
 
@@ -432,6 +434,10 @@ class TextReport(BaseReport):
         builder.field(
             "Initial Withdrawal Rate",
             f"{summary['withdrawal_rate']:.2%}",
+        )
+        builder.field(
+            "Annual Inflation Rate",
+            f"{summary['inflation_rate']:.2%}",
         )
         builder.field(
             "Projection Period",
@@ -507,6 +513,10 @@ class TextReport(BaseReport):
         builder.line(
             "The annual withdrawal is divided into equal monthly "
             "withdrawals during each simulated path."
+        )
+        builder.line(
+            "The annual withdrawal is increased once each year by "
+            "the specified inflation rate."
         )
         builder.line(
             "Portfolio values are not allowed to fall below zero."

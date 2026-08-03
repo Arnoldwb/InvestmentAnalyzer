@@ -1363,6 +1363,7 @@ def monte_carlo_saved_portfolio_interactive():
             years=years,
             simulations=simulations,
             summary=summary,
+            inflation_rate=inflation_rate,
         )
 
         print()

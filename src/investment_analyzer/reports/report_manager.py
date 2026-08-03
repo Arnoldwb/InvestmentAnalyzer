@@ -42,6 +42,7 @@ class ReportManager(BaseReport):
         simulations=10000,
         seed=None,
         summary=None,
+        inflation_rate=0.0,
     ):
         return self.text.create_withdrawal_report(
             portfolio=portfolio,
@@ -51,6 +52,7 @@ class ReportManager(BaseReport):
             simulations=simulations,
             seed=seed,
             summary=summary,
+            inflation_rate=inflation_rate,
         )
     def create_comparison_report(self, portfolio_a, portfolio_b):
         return self.text.create_comparison_report(
