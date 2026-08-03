@@ -304,7 +304,7 @@ class PortfolioWindow(QDialog):
 
 class MonteCarloWindow(QDialog):
     """
-    Graphical Monte Carlo portfolio growth analysis.
+    Graphical Monte Carlo and withdrawal analysis.
     """
 
     def __init__(self, parent=None):
@@ -313,14 +313,14 @@ class MonteCarloWindow(QDialog):
         self.setWindowTitle(
             "Monte Carlo & Withdrawal Analysis"
         )
-        self.resize(700, 650)
+        self.resize(720, 720)
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(30, 25, 30, 25)
-        layout.setSpacing(14)
+        layout.setSpacing(12)
 
         title = QLabel(
-            "Monte Carlo Portfolio Growth"
+            "Monte Carlo & Withdrawal Analysis"
         )
         title.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
@@ -333,7 +333,6 @@ class MonteCarloWindow(QDialog):
 
         # Portfolio selector
         portfolio_layout = QHBoxLayout()
-
         portfolio_layout.addWidget(QLabel("Portfolio:"))
 
         self.portfolio_selector = QComboBox()
@@ -348,8 +347,27 @@ class MonteCarloWindow(QDialog):
             self.portfolio_selector,
             1,
         )
-
         layout.addLayout(portfolio_layout)
+
+        # Analysis selector
+        analysis_layout = QHBoxLayout()
+        analysis_layout.addWidget(QLabel("Analysis:"))
+
+        self.analysis_selector = QComboBox()
+        self.analysis_selector.addItem(
+            "Portfolio Growth",
+            "growth",
+        )
+        self.analysis_selector.addItem(
+            "Withdrawal Sustainability",
+            "withdrawal",
+        )
+
+        analysis_layout.addWidget(
+            self.analysis_selector,
+            1,
+        )
+        layout.addLayout(analysis_layout)
 
         # Starting value
         value_layout = QHBoxLayout()
@@ -368,8 +386,55 @@ class MonteCarloWindow(QDialog):
         self.initial_value.setGroupSeparatorShown(True)
 
         value_layout.addWidget(self.initial_value)
-
         layout.addLayout(value_layout)
+
+        # Withdrawal
+        self.withdrawal_layout = QHBoxLayout()
+        self.withdrawal_label = QLabel(
+            "Annual Withdrawal:"
+        )
+
+        self.annual_withdrawal = QDoubleSpinBox()
+        self.annual_withdrawal.setRange(
+            0.0,
+            1000000000.0,
+        )
+        self.annual_withdrawal.setDecimals(2)
+        self.annual_withdrawal.setValue(25000.0)
+        self.annual_withdrawal.setPrefix("$")
+        self.annual_withdrawal.setGroupSeparatorShown(
+            True
+        )
+
+        self.withdrawal_layout.addWidget(
+            self.withdrawal_label
+        )
+        self.withdrawal_layout.addWidget(
+            self.annual_withdrawal
+        )
+
+        layout.addLayout(self.withdrawal_layout)
+
+        # Inflation
+        self.inflation_layout = QHBoxLayout()
+        self.inflation_label = QLabel(
+            "Annual Inflation Rate:"
+        )
+
+        self.inflation_rate = QDoubleSpinBox()
+        self.inflation_rate.setRange(0.0, 100.0)
+        self.inflation_rate.setDecimals(2)
+        self.inflation_rate.setValue(3.0)
+        self.inflation_rate.setSuffix("%")
+
+        self.inflation_layout.addWidget(
+            self.inflation_label
+        )
+        self.inflation_layout.addWidget(
+            self.inflation_rate
+        )
+
+        layout.addLayout(self.inflation_layout)
 
         # Projection period
         years_layout = QHBoxLayout()
@@ -383,7 +448,6 @@ class MonteCarloWindow(QDialog):
         self.years.setSuffix(" years")
 
         years_layout.addWidget(self.years)
-
         layout.addLayout(years_layout)
 
         # Simulations
@@ -401,67 +465,44 @@ class MonteCarloWindow(QDialog):
         simulations_layout.addWidget(
             self.simulations
         )
-
         layout.addLayout(simulations_layout)
 
-        run_button = QPushButton(
+        self.run_button = QPushButton(
             "Run Monte Carlo Analysis"
         )
-        run_button.setMinimumHeight(44)
-        run_button.clicked.connect(
+        self.run_button.setMinimumHeight(44)
+        self.run_button.clicked.connect(
             self.run_analysis
         )
 
-        layout.addWidget(run_button)
+        layout.addWidget(self.run_button)
 
-        results_title = QLabel("Projected Ending Values")
-        results_title.setAlignment(
+        self.results_title = QLabel(
+            "Projected Ending Values"
+        )
+        self.results_title.setAlignment(
             Qt.AlignmentFlag.AlignCenter
         )
 
-        results_font = results_title.font()
+        results_font = self.results_title.font()
         results_font.setPointSize(16)
         results_font.setBold(True)
-        results_title.setFont(results_font)
+        self.results_title.setFont(results_font)
 
-        layout.addWidget(results_title)
+        layout.addWidget(self.results_title)
 
         self.results_table = QTableWidget()
         self.results_table.setColumnCount(2)
-        self.results_table.setRowCount(7)
         self.results_table.setHorizontalHeaderLabels(
             ["Statistic", "Result"]
         )
-
-        labels = [
-            "10th Percentile",
-            "25th Percentile",
-            "Median",
-            "75th Percentile",
-            "90th Percentile",
-            "Mean Ending Value",
-            "Probability Above Starting Value",
-        ]
-
-        for row, label in enumerate(labels):
-            self.results_table.setItem(
-                row,
-                0,
-                QTableWidgetItem(label),
-            )
-            self.results_table.setItem(
-                row,
-                1,
-                QTableWidgetItem("--"),
-            )
-
         self.results_table.setEditTriggers(
             QTableWidget.EditTrigger.NoEditTriggers
         )
         self.results_table.horizontalHeader().setStretchLastSection(
             True
         )
-        self.results_table.setMaximumHeight(270)
+        self.results_table.setMaximumHeight(300)
 
         layout.addWidget(self.results_table)
 
@@ -481,9 +522,77 @@ class MonteCarloWindow(QDialog):
 
         layout.addWidget(close_button)
 
+        self.analysis_selector.currentIndexChanged.connect(
+            self.analysis_changed
+        )
+
+        self.analysis_changed()
+
+    def analysis_changed(self):
+        """
+        Adjust the controls for the selected analysis.
+        """
+
+        analysis = self.analysis_selector.currentData()
+
+        withdrawal_mode = analysis == "withdrawal"
+
+        self.withdrawal_label.setVisible(
+            withdrawal_mode
+        )
+        self.annual_withdrawal.setVisible(
+            withdrawal_mode
+        )
+        self.inflation_label.setVisible(
+            withdrawal_mode
+        )
+        self.inflation_rate.setVisible(
+            withdrawal_mode
+        )
+
+        if withdrawal_mode:
+            self.run_button.setText(
+                "Run Withdrawal Analysis"
+            )
+            self.results_title.setText(
+                "Withdrawal Sustainability Results"
+            )
+        else:
+            self.run_button.setText(
+                "Run Monte Carlo Analysis"
+            )
+            self.results_title.setText(
+                "Projected Ending Values"
+            )
+
+        self.results_table.setRowCount(0)
+
+    def populate_results(self, labels, values):
+        """
+        Populate the results table.
+        """
+
+        self.results_table.setRowCount(len(labels))
+
+        for row, (label, value) in enumerate(
+            zip(labels, values)
+        ):
+            self.results_table.setItem(
+                row,
+                0,
+                QTableWidgetItem(label),
+            )
+            self.results_table.setItem(
+                row,
+                1,
+                QTableWidgetItem(value),
+            )
+
+        self.results_table.resizeColumnsToContents()
+
     def run_analysis(self):
         """
-        Run Monte Carlo portfolio growth analysis.
+        Run the selected Monte Carlo analysis.
         """
 
         filename = self.portfolio_selector.currentData()
@@ -498,48 +607,96 @@ class MonteCarloWindow(QDialog):
 
         try:
             portfolio = load_portfolio(filename)
-
             analyzer = MonteCarloAnalyzer(portfolio)
 
-            summary = analyzer.summary(
-                initial_value=self.initial_value.value(),
-                years=self.years.value(),
-                simulations=self.simulations.value(),
-            )
+            analysis = self.analysis_selector.currentData()
+
+            if analysis == "withdrawal":
+                summary = analyzer.withdrawal_summary(
+                    initial_value=self.initial_value.value(),
+                    annual_withdrawal=(
+                        self.annual_withdrawal.value()
+                    ),
+                    years=self.years.value(),
+                    simulations=self.simulations.value(),
+                    inflation_rate=(
+                        self.inflation_rate.value()
+                        / 100.0
+                    ),
+                )
+
+                labels = [
+                    "Annual Withdrawal",
+                    "Initial Withdrawal Rate",
+                    "Survival Probability",
+                    "Depletion Probability",
+                    "10th Percentile",
+                    "25th Percentile",
+                    "Median",
+                    "75th Percentile",
+                    "90th Percentile",
+                    "Mean Ending Value",
+                ]
+
+                values = [
+                    (
+                        f"${summary['annual_withdrawal']:,.2f}"
+                    ),
+                    f"{summary['withdrawal_rate']:.2%}",
+                    (
+                        f"{summary['survival_probability']:.2%}"
+                    ),
+                    (
+                        f"{summary['depletion_probability']:.2%}"
+                    ),
+                    f"${summary['percentile_10']:,.2f}",
+                    f"${summary['percentile_25']:,.2f}",
+                    f"${summary['median']:,.2f}",
+                    f"${summary['percentile_75']:,.2f}",
+                    f"${summary['percentile_90']:,.2f}",
+                    (
+                        f"${summary['mean_ending_value']:,.2f}"
+                    ),
+                ]
+
+            else:
+                summary = analyzer.summary(
+                    initial_value=self.initial_value.value(),
+                    years=self.years.value(),
+                    simulations=self.simulations.value(),
+                )
+
+                labels = [
+                    "10th Percentile",
+                    "25th Percentile",
+                    "Median",
+                    "75th Percentile",
+                    "90th Percentile",
+                    "Mean Ending Value",
+                    "Probability Above Starting Value",
+                ]
+
+                values = [
+                    f"${summary['percentile_10']:,.2f}",
+                    f"${summary['percentile_25']:,.2f}",
+                    f"${summary['median']:,.2f}",
+                    f"${summary['percentile_75']:,.2f}",
+                    f"${summary['percentile_90']:,.2f}",
+                    f"${summary['mean_ending_value']:,.2f}",
+                    (
+                        f"{summary['probability_above_start']:.2%}"
+                    ),
+                ]
+
+            self.populate_results(labels, values)
 
         except Exception as error:
             QMessageBox.critical(
                 self,
                 "Monte Carlo Error",
-                "Unable to complete the Monte Carlo analysis:"
+                "Unable to complete the analysis:"
                 f"\n\n{error}",
             )
-            return
-
-        values = [
-            f"${summary['percentile_10']:,.2f}",
-            f"${summary['percentile_25']:,.2f}",
-            f"${summary['median']:,.2f}",
-            f"${summary['percentile_75']:,.2f}",
-            f"${summary['percentile_90']:,.2f}",
-            f"${summary['mean_ending_value']:,.2f}",
-            f"{summary['probability_above_start']:.2%}",
-        ]
-
-        for row, value in enumerate(values):
-            item = self.results_table.item(row, 1)
-
-            if item is None:
-                item = QTableWidgetItem()
-                self.results_table.setItem(
-                    row,
-                    1,
-                    item,
-                )
-
-            item.setText(value)
-
-        self.results_table.resizeColumnsToContents()
 
 
 class InvestmentAnalyzerWindow(QMainWindow):
