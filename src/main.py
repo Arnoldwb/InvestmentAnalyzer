@@ -1178,6 +1178,7 @@ def monte_carlo_saved_portfolio_interactive():
             print()
             print("Please enter a portfolio value greater than zero.")
     annual_withdrawal = None
+    inflation_rate = 0.0
 
     if analysis_choice == "2":
         while True:
@@ -1203,6 +1204,38 @@ def monte_carlo_saved_portfolio_interactive():
                     "Please enter an annual withdrawal "
                     "of zero or greater."
                 )
+
+        while True:
+            inflation_text = input(
+                "Annual inflation rate "
+                "(press Enter for 0%): "
+            ).strip()
+
+            if not inflation_text:
+                inflation_rate = 0.0
+                break
+
+            if inflation_text.lower() == "b":
+                return
+
+            try:
+                inflation_percent = float(
+                    inflation_text.replace("%", "")
+                )
+
+                if inflation_percent < 0:
+                    raise ValueError
+
+                inflation_rate = inflation_percent / 100.0
+                break
+
+            except ValueError:
+                print()
+                print(
+                    "Please enter an inflation rate "
+                    "of zero or greater."
+                )
+
     while True:
         years_text = input(
             "Projection period in years (or B to cancel): "
@@ -1254,6 +1287,7 @@ def monte_carlo_saved_portfolio_interactive():
             annual_withdrawal=annual_withdrawal,
             years=years,
             simulations=simulations,
+            inflation_rate=inflation_rate,
         )
 
         print()
@@ -1266,6 +1300,10 @@ def monte_carlo_saved_portfolio_interactive():
         print(
             f"Initial Withdrawal Rate: "
             f"{summary['withdrawal_rate']:.2%}"
+        )
+        print(
+            f"Annual Inflation Rate  : "
+            f"{summary['inflation_rate']:.2%}"
         )
         print(f"Projection Period      : {years} years")
         print(f"Simulations            : {simulations:,}")
