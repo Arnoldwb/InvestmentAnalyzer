@@ -531,6 +531,132 @@ class TextReport(BaseReport):
         builder.save(filename)
 
         return filename
+    def create_sustainable_withdrawal_report(
+        self,
+        portfolio,
+        initial_value,
+        years,
+        target_survival_probability,
+        simulations=10000,
+        seed=None,
+        inflation_rate=0.0,
+        result=None,
+    ):
+        """
+        Create a sustainable withdrawal analysis report.
+        """
+
+        filename = self.report_path(
+            "SustainableWithdrawalReport.txt"
+        )
+
+        if result is None:
+            analyzer = MonteCarloAnalyzer(portfolio)
+
+            result = analyzer.sustainable_withdrawal(
+                initial_value=initial_value,
+                years=years,
+                target_survival_probability=(
+                    target_survival_probability
+                ),
+                simulations=simulations,
+                seed=seed,
+                inflation_rate=inflation_rate,
+            )
+
+        builder = ReportBuilder()
+
+        builder.title(
+            "Investment Analyzer\n"
+            "Version 4.8\n"
+            "Sustainable Withdrawal Analysis Report"
+        )
+
+        builder.field("Generated:", self.timestamp)
+        builder.blank()
+
+        builder.field("Portfolio", portfolio.name)
+        builder.field(
+            "Starting Value",
+            f"${initial_value:,.2f}",
+        )
+        builder.field(
+            "Projection Period",
+            f"{years} years",
+        )
+        builder.field(
+            "Annual Inflation Rate",
+            f"{inflation_rate:.2%}",
+        )
+        builder.field(
+            "Target Survival",
+            f"{target_survival_probability:.2%}",
+        )
+        builder.field(
+            "Simulations",
+            f"{simulations:,}",
+        )
+
+        builder.blank()
+        builder.section("Portfolio Holdings")
+
+        for holding in portfolio.holdings:
+            builder.field(
+                holding.fund.symbol,
+                f"{holding.allocation:.1f}%",
+            )
+
+        builder.line("-" * 60)
+        builder.field(
+            "Total Allocation",
+            f"{portfolio.total_allocation:.1f}%",
+        )
+
+        builder.blank()
+        builder.section("Sustainable Withdrawal Results")
+
+        builder.field(
+            "Sustainable Withdrawal",
+            f"${result['annual_withdrawal']:,.2f}",
+        )
+        builder.field(
+            "Initial Withdrawal Rate",
+            f"{result['withdrawal_rate']:.2%}",
+        )
+        builder.field(
+            "Actual Survival",
+            f"{result['survival_probability']:.2%}",
+        )
+
+        builder.blank()
+        builder.section("Methodology")
+
+        builder.line(
+            "The calculator searches for an initial annual withdrawal "
+            "that meets the specified survival-probability target."
+        )
+        builder.line(
+            "The simulation samples historical monthly portfolio "
+            "returns with replacement."
+        )
+        builder.line(
+            "The annual withdrawal is increased once each year by "
+            "the specified inflation rate."
+        )
+        builder.line(
+            "Portfolio values are not allowed to fall below zero."
+        )
+
+        builder.blank()
+        builder.line(
+            "The sustainable withdrawal is an estimate based on "
+            "historical-return simulations and is not a guarantee."
+        )
+
+        builder.save(filename)
+
+        return filename
+
     def create_comparison_report(self, portfolio_a, portfolio_b):
         """
         Create a side-by-side portfolio comparison report.

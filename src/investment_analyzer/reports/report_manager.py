@@ -54,6 +54,30 @@ class ReportManager(BaseReport):
             summary=summary,
             inflation_rate=inflation_rate,
         )
+    def create_sustainable_withdrawal_report(
+        self,
+        portfolio,
+        initial_value,
+        years,
+        target_survival_probability,
+        simulations=10000,
+        seed=None,
+        inflation_rate=0.0,
+        result=None,
+    ):
+        return self.text.create_sustainable_withdrawal_report(
+            portfolio=portfolio,
+            initial_value=initial_value,
+            years=years,
+            target_survival_probability=(
+                target_survival_probability
+            ),
+            simulations=simulations,
+            seed=seed,
+            inflation_rate=inflation_rate,
+            result=result,
+        )
+
     def create_comparison_report(self, portfolio_a, portfolio_b):
         return self.text.create_comparison_report(
             portfolio_a,

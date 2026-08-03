@@ -1402,6 +1402,24 @@ def monte_carlo_saved_portfolio_interactive():
             "historical-return simulations and is not a guarantee."
         )
 
+        manager = ReportManager()
+
+        filename = manager.create_sustainable_withdrawal_report(
+            portfolio=portfolio,
+            initial_value=initial_value,
+            years=years,
+            target_survival_probability=(
+                target_survival_probability
+            ),
+            simulations=simulations,
+            inflation_rate=inflation_rate,
+            result=result,
+        )
+
+        print()
+        print("Sustainable withdrawal report created:")
+        print(filename)
+
         return
 
     if analysis_choice == "2":
