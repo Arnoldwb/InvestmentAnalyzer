@@ -7,6 +7,7 @@ from PySide6.QtWidgets import (
     QDialog,
     QHBoxLayout,
     QLabel,
+    QLineEdit,
     QMainWindow,
     QMessageBox,
     QPushButton,
@@ -366,6 +367,10 @@ class MonteCarloWindow(QDialog):
             "Sustainable Withdrawal Calculator",
             "sustainable",
         )
+        self.analysis_selector.addItem(
+            "Compare Withdrawal Strategies",
+            "comparison",
+        )
 
         analysis_layout.addWidget(
             self.analysis_selector,
@@ -418,6 +423,30 @@ class MonteCarloWindow(QDialog):
         )
 
         layout.addLayout(self.withdrawal_layout)
+
+        # Withdrawal strategy comparison amounts
+        self.comparison_layout = QHBoxLayout()
+        self.comparison_label = QLabel(
+            "Annual Withdrawals:"
+        )
+
+        self.comparison_amounts = QLineEdit()
+        self.comparison_amounts.setText(
+            "20000, 25000, 30000, 35000"
+        )
+        self.comparison_amounts.setPlaceholderText(
+            "Example: 20000, 25000, 30000, 35000"
+        )
+
+        self.comparison_layout.addWidget(
+            self.comparison_label
+        )
+        self.comparison_layout.addWidget(
+            self.comparison_amounts,
+            1,
+        )
+
+        layout.addLayout(self.comparison_layout)
 
         # Inflation
         self.inflation_layout = QHBoxLayout()
@@ -562,6 +591,7 @@ class MonteCarloWindow(QDialog):
 
         withdrawal_mode = analysis == "withdrawal"
         sustainable_mode = analysis == "sustainable"
+        comparison_mode = analysis == "comparison"
 
         self.withdrawal_label.setVisible(
             withdrawal_mode
@@ -570,8 +600,17 @@ class MonteCarloWindow(QDialog):
             withdrawal_mode
         )
 
+        self.comparison_label.setVisible(
+            comparison_mode
+        )
+        self.comparison_amounts.setVisible(
+            comparison_mode
+        )
+
         show_inflation = (
-            withdrawal_mode or sustainable_mode
+            withdrawal_mode
+            or sustainable_mode
+            or comparison_mode
         )
 
         self.inflation_label.setVisible(
@@ -602,6 +641,14 @@ class MonteCarloWindow(QDialog):
             )
             self.results_title.setText(
                 "Sustainable Withdrawal Results"
+            )
+
+        elif comparison_mode:
+            self.run_button.setText(
+                "Compare Withdrawal Strategies"
+            )
+            self.results_title.setText(
+                "Withdrawal Strategy Comparison"
             )
 
         else:
@@ -658,7 +705,74 @@ class MonteCarloWindow(QDialog):
 
             analysis = self.analysis_selector.currentData()
 
-            if analysis == "sustainable":
+            if analysis == "comparison":
+                amounts_text = (
+                    self.comparison_amounts.text().strip()
+                )
+
+                if not amounts_text:
+                    raise ValueError(
+                        "Enter at least one annual withdrawal amount."
+                    )
+
+                annual_withdrawals = []
+
+                for item in amounts_text.split(","):
+                    cleaned = (
+                        item.strip()
+                        .replace("$", "")
+                        .replace(" ", "")
+                    )
+
+                    if not cleaned:
+                        continue
+
+                    amount = float(cleaned)
+
+                    if amount < 0:
+                        raise ValueError(
+                            "Withdrawal amounts cannot be negative."
+                        )
+
+                    annual_withdrawals.append(amount)
+
+                if not annual_withdrawals:
+                    raise ValueError(
+                        "Enter at least one valid withdrawal amount."
+                    )
+
+                results = (
+                    analyzer.compare_withdrawal_strategies(
+                        initial_value=self.initial_value.value(),
+                        annual_withdrawals=annual_withdrawals,
+                        years=self.years.value(),
+                        simulations=self.simulations.value(),
+                        inflation_rate=(
+                            self.inflation_rate.value()
+                            / 100.0
+                        ),
+                    )
+                )
+
+                labels = []
+                values = []
+
+                for result in results:
+                    labels.append(
+                        f"${result['annual_withdrawal']:,.2f}"
+                    )
+
+                    values.append(
+                        f"Rate {result['withdrawal_rate']:.2%} | "
+                        f"Survival "
+                        f"{result['survival_probability']:.2%} | "
+                        f"Depletion "
+                        f"{result['depletion_probability']:.2%} | "
+                        f"Median "
+                        f"${result['median']:,.2f}"
+                    )
+
+            elif analysis == "sustainable":
                 summary = analyzer.sustainable_withdrawal(
                     initial_value=self.initial_value.value(),
                     years=self.years.value(),
