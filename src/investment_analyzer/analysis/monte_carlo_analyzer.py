@@ -273,3 +273,104 @@ class MonteCarloAnalyzer:
             "survival_probability": survival_probability,
             "depletion_probability": depletion_probability,
         }
+
+    def sustainable_withdrawal(
+        self,
+        initial_value: float,
+        years: int,
+        target_survival_probability: float = 0.90,
+        simulations: int = 10000,
+        seed: int | None = None,
+        inflation_rate: float = 0.0,
+        tolerance: float = 1.0,
+    ) -> dict:
+        """
+        Estimate the highest starting annual withdrawal that meets
+        a requested Monte Carlo survival probability.
+
+        The withdrawal is increased annually by the specified
+        inflation rate.
+        """
+
+        if initial_value <= 0:
+            raise ValueError(
+                "Initial portfolio value must be greater than zero."
+            )
+
+        if years <= 0:
+            raise ValueError(
+                "Projection years must be greater than zero."
+            )
+
+        if simulations <= 0:
+            raise ValueError(
+                "Number of simulations must be greater than zero."
+            )
+
+        if inflation_rate < 0:
+            raise ValueError(
+                "Inflation rate cannot be negative."
+            )
+
+        if not 0 < target_survival_probability <= 1:
+            raise ValueError(
+                "Target survival probability must be greater than "
+                "zero and no greater than one."
+            )
+
+        if tolerance <= 0:
+            raise ValueError(
+                "Tolerance must be greater than zero."
+            )
+
+        low = 0.0
+        high = initial_value
+
+        best_withdrawal = 0.0
+        best_survival_probability = 1.0
+
+        while high - low > tolerance:
+            candidate = (low + high) / 2.0
+
+            summary = self.withdrawal_summary(
+                initial_value=initial_value,
+                annual_withdrawal=candidate,
+                years=years,
+                simulations=simulations,
+                seed=seed,
+                inflation_rate=inflation_rate,
+            )
+
+            survival_probability = summary[
+                "survival_probability"
+            ]
+
+            if (
+                survival_probability
+                >= target_survival_probability
+            ):
+                best_withdrawal = candidate
+                best_survival_probability = (
+                    survival_probability
+                )
+                low = candidate
+            else:
+                high = candidate
+
+        return {
+            "initial_value": initial_value,
+            "annual_withdrawal": best_withdrawal,
+            "withdrawal_rate": (
+                best_withdrawal / initial_value
+            ),
+            "years": years,
+            "simulations": simulations,
+            "inflation_rate": inflation_rate,
+            "target_survival_probability": (
+                target_survival_probability
+            ),
+            "survival_probability": (
+                best_survival_probability
+            ),
+            "tolerance": tolerance,
+        }
