@@ -1143,6 +1143,7 @@ def monte_carlo_saved_portfolio_interactive():
     print()
     print("1. Portfolio growth")
     print("2. Withdrawal sustainability")
+    print("3. Sustainable withdrawal calculator")
     print("B. Back to menu")
     print()
 
@@ -1152,11 +1153,11 @@ def monte_carlo_saved_portfolio_interactive():
         if analysis_choice == "b":
             return
 
-        if analysis_choice in {"1", "2"}:
+        if analysis_choice in {"1", "2", "3"}:
             break
 
         print()
-        print("Please enter 1, 2, or B.")
+        print("Please enter 1, 2, 3, or B.")
     while True:
         value_text = input(
             "\nStarting portfolio value (or B to cancel): $"
@@ -1179,6 +1180,72 @@ def monte_carlo_saved_portfolio_interactive():
             print("Please enter a portfolio value greater than zero.")
     annual_withdrawal = None
     inflation_rate = 0.0
+    target_survival_probability = None
+
+    if analysis_choice == "3":
+        while True:
+            inflation_text = input(
+                "Annual inflation rate "
+                "(press Enter for 0%): "
+            ).strip()
+
+            if not inflation_text:
+                inflation_rate = 0.0
+                break
+
+            if inflation_text.lower() == "b":
+                return
+
+            try:
+                inflation_percent = float(
+                    inflation_text.replace("%", "")
+                )
+
+                if inflation_percent < 0:
+                    raise ValueError
+
+                inflation_rate = inflation_percent / 100.0
+                break
+
+            except ValueError:
+                print()
+                print(
+                    "Please enter an inflation rate "
+                    "of zero or greater."
+                )
+
+        while True:
+            survival_text = input(
+                "Target survival probability "
+                "(press Enter for 90%): "
+            ).strip()
+
+            if not survival_text:
+                target_survival_probability = 0.90
+                break
+
+            if survival_text.lower() == "b":
+                return
+
+            try:
+                survival_percent = float(
+                    survival_text.replace("%", "")
+                )
+
+                if not 0 < survival_percent <= 100:
+                    raise ValueError
+
+                target_survival_probability = (
+                    survival_percent / 100.0
+                )
+                break
+
+            except ValueError:
+                print()
+                print(
+                    "Please enter a survival probability "
+                    "greater than 0 and no greater than 100."
+                )
 
     if analysis_choice == "2":
         while True:
@@ -1278,6 +1345,64 @@ def monte_carlo_saved_portfolio_interactive():
                 "Please enter a whole number of simulations "
                 "greater than zero."
             )
+
+    if analysis_choice == "3":
+        analyzer = MonteCarloAnalyzer(portfolio)
+
+        result = analyzer.sustainable_withdrawal(
+            initial_value=initial_value,
+            years=years,
+            target_survival_probability=(
+                target_survival_probability
+            ),
+            simulations=simulations,
+            inflation_rate=inflation_rate,
+        )
+
+        print()
+        print("SUSTAINABLE WITHDRAWAL RESULTS")
+        print("=" * 60)
+
+        print(f"Portfolio              : {portfolio.name}")
+        print(
+            f"Starting Value         : "
+            f"${initial_value:,.2f}"
+        )
+        print(
+            f"Projection Period      : "
+            f"{years} years"
+        )
+        print(
+            f"Annual Inflation Rate  : "
+            f"{inflation_rate:.2%}"
+        )
+        print(
+            f"Target Survival        : "
+            f"{target_survival_probability:.2%}"
+        )
+        print(f"Simulations            : {simulations:,}")
+
+        print()
+        print(
+            f"Sustainable Withdrawal : "
+            f"${result['annual_withdrawal']:,.2f}"
+        )
+        print(
+            f"Initial Withdrawal Rate: "
+            f"{result['withdrawal_rate']:.2%}"
+        )
+        print(
+            f"Actual Survival        : "
+            f"{result['survival_probability']:.2%}"
+        )
+
+        print()
+        print(
+            "The sustainable withdrawal is an estimate based on "
+            "historical-return simulations and is not a guarantee."
+        )
+
+        return
 
     if analysis_choice == "2":
         analyzer = MonteCarloAnalyzer(portfolio)
