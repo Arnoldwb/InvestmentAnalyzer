@@ -116,3 +116,121 @@ else:
 
 print()
 print("All Monte Carlo withdrawal tests passed.")
+
+print()
+print("MONTE CARLO WITHDRAWAL SUSTAINABILITY TEST")
+print("=" * 60)
+
+sustainability = analyzer.withdrawal_summary(
+    initial_value=500000.0,
+    annual_withdrawal=25000.0,
+    years=10,
+    simulations=10000,
+    seed=42,
+)
+
+assert sustainability["initial_value"] == 500000.0
+assert sustainability["annual_withdrawal"] == 25000.0
+assert sustainability["years"] == 10
+assert sustainability["simulations"] == 10000
+
+assert np.isclose(
+    sustainability["withdrawal_rate"],
+    0.05,
+)
+
+assert (
+    0.0
+    <= sustainability["survival_probability"]
+    <= 1.0
+)
+
+assert (
+    0.0
+    <= sustainability["depletion_probability"]
+    <= 1.0
+)
+
+assert np.isclose(
+    sustainability["survival_probability"]
+    + sustainability["depletion_probability"],
+    1.0,
+)
+
+assert (
+    sustainability["percentile_10"]
+    <= sustainability["percentile_25"]
+    <= sustainability["median"]
+    <= sustainability["percentile_75"]
+    <= sustainability["percentile_90"]
+)
+
+print("Summary input verification passed.")
+print("Withdrawal-rate calculation passed.")
+print("Survival probability range passed.")
+print("Depletion probability range passed.")
+print("Probability reconciliation passed.")
+print("Percentile ordering passed.")
+
+print()
+print("WITHDRAWAL SUSTAINABILITY SUMMARY")
+print("-" * 60)
+
+print(
+    f"Starting Value        : "
+    f"${sustainability['initial_value']:,.2f}"
+)
+print(
+    f"Annual Withdrawal     : "
+    f"${sustainability['annual_withdrawal']:,.2f}"
+)
+print(
+    f"Initial Withdrawal Rate: "
+    f"{sustainability['withdrawal_rate']:.2%}"
+)
+print(
+    f"Projection Period     : "
+    f"{sustainability['years']} years"
+)
+print(
+    f"Simulations           : "
+    f"{sustainability['simulations']:,}"
+)
+
+print()
+print(
+    f"Survival Probability  : "
+    f"{sustainability['survival_probability']:.2%}"
+)
+print(
+    f"Depletion Probability : "
+    f"{sustainability['depletion_probability']:.2%}"
+)
+
+print()
+print("Projected Ending Values")
+print("-" * 60)
+
+print(
+    f"10th Percentile       : "
+    f"${sustainability['percentile_10']:,.2f}"
+)
+print(
+    f"25th Percentile       : "
+    f"${sustainability['percentile_25']:,.2f}"
+)
+print(
+    f"Median                : "
+    f"${sustainability['median']:,.2f}"
+)
+print(
+    f"75th Percentile       : "
+    f"${sustainability['percentile_75']:,.2f}"
+)
+print(
+    f"90th Percentile       : "
+    f"${sustainability['percentile_90']:,.2f}"
+)
+
+print()
+print("All withdrawal sustainability tests passed.")

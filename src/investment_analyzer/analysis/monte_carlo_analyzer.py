@@ -196,3 +196,61 @@ class MonteCarloAnalyzer:
                 values = np.maximum(values, 0.0)
 
         return values
+    def withdrawal_summary(
+        self,
+        initial_value: float,
+        annual_withdrawal: float,
+        years: int,
+        simulations: int = 10000,
+        seed: int | None = None,
+    ) -> dict:
+        """
+        Return summary statistics for Monte Carlo simulations
+        with fixed annual withdrawals.
+        """
+
+        ending_values = self.simulate_withdrawals(
+            initial_value=initial_value,
+            annual_withdrawal=annual_withdrawal,
+            years=years,
+            simulations=simulations,
+            seed=seed,
+        )
+
+        survival_probability = float(
+            np.mean(ending_values > 0)
+        )
+
+        depletion_probability = float(
+            np.mean(ending_values == 0)
+        )
+
+        return {
+            "initial_value": initial_value,
+            "annual_withdrawal": annual_withdrawal,
+            "withdrawal_rate": (
+                annual_withdrawal / initial_value
+            ),
+            "years": years,
+            "simulations": simulations,
+            "percentile_10": float(
+                np.percentile(ending_values, 10)
+            ),
+            "percentile_25": float(
+                np.percentile(ending_values, 25)
+            ),
+            "median": float(
+                np.percentile(ending_values, 50)
+            ),
+            "percentile_75": float(
+                np.percentile(ending_values, 75)
+            ),
+            "percentile_90": float(
+                np.percentile(ending_values, 90)
+            ),
+            "mean_ending_value": float(
+                np.mean(ending_values)
+            ),
+            "survival_probability": survival_probability,
+            "depletion_probability": depletion_probability,
+        }
