@@ -40,6 +40,7 @@ from statistics import (
 
 def display_menu():
     """Display the available actions and return a valid selection."""
+
     while True:
         print()
         print("Menu")
@@ -1137,7 +1138,25 @@ def monte_carlo_saved_portfolio_interactive():
     print("SELECTED PORTFOLIO")
     print("=" * 60)
     portfolio.summary()
+    print()
+    print("Choose Monte Carlo analysis:")
+    print()
+    print("1. Portfolio growth")
+    print("2. Withdrawal sustainability")
+    print("B. Back to menu")
+    print()
 
+    while True:
+        analysis_choice = input("Selection: ").strip().lower()
+
+        if analysis_choice == "b":
+            return
+
+        if analysis_choice in {"1", "2"}:
+            break
+
+        print()
+        print("Please enter 1, 2, or B.")
     while True:
         value_text = input(
             "\nStarting portfolio value (or B to cancel): $"
@@ -1158,7 +1177,32 @@ def monte_carlo_saved_portfolio_interactive():
         except ValueError:
             print()
             print("Please enter a portfolio value greater than zero.")
+    annual_withdrawal = None
 
+    if analysis_choice == "2":
+        while True:
+            withdrawal_text = input(
+                "Annual withdrawal amount (or B to cancel): $"
+            ).strip()
+
+            if withdrawal_text.lower() == "b":
+                return
+
+            try:
+                annual_withdrawal = float(
+                    withdrawal_text.replace(",", "").replace("$", "")
+                )
+
+                if annual_withdrawal < 0:
+                    raise ValueError
+
+                break
+            except ValueError:
+                print()
+                print(
+                    "Please enter an annual withdrawal "
+                    "of zero or greater."
+                )
     while True:
         years_text = input(
             "Projection period in years (or B to cancel): "
@@ -1201,6 +1245,79 @@ def monte_carlo_saved_portfolio_interactive():
                 "Please enter a whole number of simulations "
                 "greater than zero."
             )
+
+    if analysis_choice == "2":
+        analyzer = MonteCarloAnalyzer(portfolio)
+
+        summary = analyzer.withdrawal_summary(
+            initial_value=initial_value,
+            annual_withdrawal=annual_withdrawal,
+            years=years,
+            simulations=simulations,
+        )
+
+        print()
+        print("WITHDRAWAL SUSTAINABILITY RESULTS")
+        print("=" * 60)
+
+        print(f"Portfolio              : {portfolio.name}")
+        print(f"Starting Value         : ${initial_value:,.2f}")
+        print(f"Annual Withdrawal      : ${annual_withdrawal:,.2f}")
+        print(
+            f"Initial Withdrawal Rate: "
+            f"{summary['withdrawal_rate']:.2%}"
+        )
+        print(f"Projection Period      : {years} years")
+        print(f"Simulations            : {simulations:,}")
+
+        print()
+        print(
+            f"Survival Probability   : "
+            f"{summary['survival_probability']:.2%}"
+        )
+        print(
+            f"Depletion Probability  : "
+            f"{summary['depletion_probability']:.2%}"
+        )
+
+        print()
+        print("Projected Ending Values")
+        print("-" * 60)
+
+        print(
+            f"10th Percentile        : "
+            f"${summary['percentile_10']:,.2f}"
+        )
+        print(
+            f"25th Percentile        : "
+            f"${summary['percentile_25']:,.2f}"
+        )
+        print(
+            f"Median                 : "
+            f"${summary['median']:,.2f}"
+        )
+        print(
+            f"75th Percentile        : "
+            f"${summary['percentile_75']:,.2f}"
+        )
+        print(
+            f"90th Percentile        : "
+            f"${summary['percentile_90']:,.2f}"
+        )
+
+        print()
+        print(
+            f"Mean Ending Value      : "
+            f"${summary['mean_ending_value']:,.2f}"
+        )
+
+        print()
+        print(
+            "Monte Carlo results are simulations based on historical "
+            "monthly returns and are not forecasts or guarantees."
+        )
+
+        return
 
     while True:
         target_text = input(
