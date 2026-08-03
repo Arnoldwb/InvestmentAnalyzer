@@ -657,6 +657,139 @@ class TextReport(BaseReport):
 
         return filename
 
+    def create_withdrawal_strategy_comparison_report(
+        self,
+        portfolio,
+        initial_value,
+        annual_withdrawals,
+        years,
+        simulations=10000,
+        seed=None,
+        inflation_rate=0.0,
+        results=None,
+    ):
+        """
+        Create a Monte Carlo withdrawal strategy comparison report.
+        """
+
+        filename = self.report_path(
+            "WithdrawalStrategyComparisonReport.txt"
+        )
+
+        if results is None:
+            analyzer = MonteCarloAnalyzer(portfolio)
+
+            results = analyzer.compare_withdrawal_strategies(
+                initial_value=initial_value,
+                annual_withdrawals=annual_withdrawals,
+                years=years,
+                simulations=simulations,
+                seed=seed,
+                inflation_rate=inflation_rate,
+            )
+
+        builder = ReportBuilder()
+
+        builder.title(
+            "Investment Analyzer\n"
+            "Version 4.9\n"
+            "Withdrawal Strategy Comparison Report"
+        )
+
+        builder.field("Generated:", self.timestamp)
+        builder.blank()
+
+        builder.field("Portfolio", portfolio.name)
+        builder.field(
+            "Starting Value",
+            f"${initial_value:,.2f}",
+        )
+        builder.field(
+            "Projection Period",
+            f"{years} years",
+        )
+        builder.field(
+            "Annual Inflation Rate",
+            f"{inflation_rate:.2%}",
+        )
+        builder.field(
+            "Simulations",
+            f"{simulations:,}",
+        )
+
+        builder.blank()
+        builder.section("Portfolio Holdings")
+
+        for holding in portfolio.holdings:
+            builder.field(
+                holding.fund.symbol,
+                f"{holding.allocation:.1f}%",
+            )
+
+        builder.line("-" * 60)
+        builder.field(
+            "Total Allocation",
+            f"{portfolio.total_allocation:.1f}%",
+        )
+
+        builder.blank()
+        builder.section("Withdrawal Strategy Comparison")
+
+        builder.line(
+            f"{'Withdrawal':>14} "
+            f"{'Rate':>8} "
+            f"{'Survival':>10} "
+            f"{'Depletion':>10} "
+            f"{'Median Ending':>18}"
+        )
+        builder.line("-" * 78)
+
+        for result in results:
+            builder.line(
+                f"${result['annual_withdrawal']:>13,.2f} "
+                f"{result['withdrawal_rate']:>7.2%} "
+                f"{result['survival_probability']:>9.2%} "
+                f"{result['depletion_probability']:>9.2%} "
+                f"${result['median']:>17,.2f}"
+            )
+
+        builder.blank()
+        builder.section("Interpretation")
+
+        builder.line(
+            "Higher withdrawals generally increase depletion risk "
+            "and reduce projected ending values."
+        )
+
+        builder.blank()
+        builder.section("Methodology")
+
+        builder.line(
+            "Each withdrawal strategy is tested using Monte Carlo "
+            "simulation of historical monthly portfolio returns."
+        )
+        builder.line(
+            "The annual withdrawal is divided into equal monthly "
+            "withdrawals during each simulated path."
+        )
+        builder.line(
+            "The annual withdrawal is increased once each year by "
+            "the specified inflation rate."
+        )
+        builder.line(
+            "Portfolio values are not allowed to fall below zero."
+        )
+
+        builder.blank()
+        builder.line(
+            "Monte Carlo results are simulations based on historical "
+            "returns and are not forecasts or guarantees."
+        )
+
+        builder.save(filename)
+
+        return filename
+
     def create_comparison_report(self, portfolio_a, portfolio_b):
         """
         Create a side-by-side portfolio comparison report.

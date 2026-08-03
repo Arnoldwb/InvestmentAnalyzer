@@ -1477,6 +1477,24 @@ def monte_carlo_saved_portfolio_interactive():
             "monthly returns and are not forecasts or guarantees."
         )
 
+        manager = ReportManager()
+
+        filename = (
+            manager.create_withdrawal_strategy_comparison_report(
+                portfolio=portfolio,
+                initial_value=initial_value,
+                annual_withdrawals=withdrawal_amounts,
+                years=years,
+                simulations=simulations,
+                inflation_rate=inflation_rate,
+                results=results,
+            )
+        )
+
+        print()
+        print("Withdrawal strategy comparison report created:")
+        print(filename)
+
         return
 
     if analysis_choice == "3":

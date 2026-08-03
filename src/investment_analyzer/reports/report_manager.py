@@ -78,6 +78,28 @@ class ReportManager(BaseReport):
             result=result,
         )
 
+    def create_withdrawal_strategy_comparison_report(
+        self,
+        portfolio,
+        initial_value,
+        annual_withdrawals,
+        years,
+        simulations=10000,
+        seed=None,
+        inflation_rate=0.0,
+        results=None,
+    ):
+        return self.text.create_withdrawal_strategy_comparison_report(
+            portfolio=portfolio,
+            initial_value=initial_value,
+            annual_withdrawals=annual_withdrawals,
+            years=years,
+            simulations=simulations,
+            seed=seed,
+            inflation_rate=inflation_rate,
+            results=results,
+        )
+
     def create_comparison_report(self, portfolio_a, portfolio_b):
         return self.text.create_comparison_report(
             portfolio_a,
