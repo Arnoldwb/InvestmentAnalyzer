@@ -362,6 +362,10 @@ class MonteCarloWindow(QDialog):
             "Withdrawal Sustainability",
             "withdrawal",
         )
+        self.analysis_selector.addItem(
+            "Sustainable Withdrawal Calculator",
+            "sustainable",
+        )
 
         analysis_layout.addWidget(
             self.analysis_selector,
@@ -435,6 +439,27 @@ class MonteCarloWindow(QDialog):
         )
 
         layout.addLayout(self.inflation_layout)
+
+        # Target survival probability
+        self.survival_layout = QHBoxLayout()
+        self.survival_label = QLabel(
+            "Target Survival Probability:"
+        )
+
+        self.target_survival = QDoubleSpinBox()
+        self.target_survival.setRange(0.01, 100.0)
+        self.target_survival.setDecimals(2)
+        self.target_survival.setValue(90.0)
+        self.target_survival.setSuffix("%")
+
+        self.survival_layout.addWidget(
+            self.survival_label
+        )
+        self.survival_layout.addWidget(
+            self.target_survival
+        )
+
+        layout.addLayout(self.survival_layout)
 
         # Projection period
         years_layout = QHBoxLayout()
@@ -536,6 +561,7 @@ class MonteCarloWindow(QDialog):
         analysis = self.analysis_selector.currentData()
 
         withdrawal_mode = analysis == "withdrawal"
+        sustainable_mode = analysis == "sustainable"
 
         self.withdrawal_label.setVisible(
             withdrawal_mode
@@ -543,11 +569,23 @@ class MonteCarloWindow(QDialog):
         self.annual_withdrawal.setVisible(
             withdrawal_mode
         )
+
+        show_inflation = (
+            withdrawal_mode or sustainable_mode
+        )
+
         self.inflation_label.setVisible(
-            withdrawal_mode
+            show_inflation
         )
         self.inflation_rate.setVisible(
-            withdrawal_mode
+            show_inflation
+        )
+
+        self.survival_label.setVisible(
+            sustainable_mode
+        )
+        self.target_survival.setVisible(
+            sustainable_mode
         )
 
         if withdrawal_mode:
@@ -557,6 +595,15 @@ class MonteCarloWindow(QDialog):
             self.results_title.setText(
                 "Withdrawal Sustainability Results"
             )
+
+        elif sustainable_mode:
+            self.run_button.setText(
+                "Calculate Sustainable Withdrawal"
+            )
+            self.results_title.setText(
+                "Sustainable Withdrawal Results"
+            )
+
         else:
             self.run_button.setText(
                 "Run Monte Carlo Analysis"
@@ -611,7 +658,44 @@ class MonteCarloWindow(QDialog):
 
             analysis = self.analysis_selector.currentData()
 
-            if analysis == "withdrawal":
+            if analysis == "sustainable":
+                summary = analyzer.sustainable_withdrawal(
+                    initial_value=self.initial_value.value(),
+                    years=self.years.value(),
+                    target_survival_probability=(
+                        self.target_survival.value()
+                        / 100.0
+                    ),
+                    simulations=self.simulations.value(),
+                    inflation_rate=(
+                        self.inflation_rate.value()
+                        / 100.0
+                    ),
+                )
+
+                labels = [
+                    "Sustainable Annual Withdrawal",
+                    "Initial Withdrawal Rate",
+                    "Target Survival Probability",
+                    "Actual Survival Probability",
+                    "Annual Inflation Rate",
+                ]
+
+                values = [
+                    (
+                        f"${summary['annual_withdrawal']:,.2f}"
+                    ),
+                    f"{summary['withdrawal_rate']:.2%}",
+                    (
+                        f"{summary['target_survival_probability']:.2%}"
+                    ),
+                    (
+                        f"{summary['survival_probability']:.2%}"
+                    ),
+                    f"{summary['inflation_rate']:.2%}",
+                ]
+
+            elif analysis == "withdrawal":
                 summary = analyzer.withdrawal_summary(
                     initial_value=self.initial_value.value(),
                     annual_withdrawal=(
