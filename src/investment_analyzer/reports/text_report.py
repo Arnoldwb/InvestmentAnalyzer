@@ -13,7 +13,14 @@ class TextReport(BaseReport):
     """
 
     def create_portfolio_report(self, portfolio):
-        filename = self.report_path("PortfolioReport.txt")
+        safe_name = portfolio.name.strip().replace(" ", "_")
+
+        if not safe_name:
+            safe_name = "Portfolio"
+
+        filename = self.report_path(
+            f"{safe_name}_Report.txt"
+        )
 
         analyzer = PortfolioAnalyzer(portfolio)
         returns = analyzer.monthly_returns()

@@ -1,5 +1,8 @@
-from PySide6.QtCore import Qt
-from PySide6.QtGui import QFontDatabase
+from PySide6.QtCore import Qt, QUrl
+from PySide6.QtGui import (
+    QDesktopServices,
+    QFontDatabase,
+)
 from PySide6.QtWidgets import (
     QComboBox,
     QDialog,
@@ -11,6 +14,7 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
 )
 
+from investment_analyzer.core.paths import REPORTS_DIR
 from investment_analyzer.core.portfolio_storage import (
     list_portfolios,
     load_portfolio,
@@ -90,14 +94,30 @@ class ReportCenterWindow(QDialog):
         )
         layout.addWidget(self.status_label)
 
+        button_layout = QHBoxLayout()
+
+        self.open_folder_button = QPushButton(
+            "Open Reports Folder"
+        )
         return_button = QPushButton(
             "Return to Investment Analyzer"
         )
+
+        self.open_folder_button.setMinimumHeight(40)
         return_button.setMinimumHeight(40)
-        layout.addWidget(return_button)
+
+        button_layout.addWidget(
+            self.open_folder_button
+        )
+        button_layout.addWidget(return_button)
+
+        layout.addLayout(button_layout)
 
         self.generate_button.clicked.connect(
             self.generate_report
+        )
+        self.open_folder_button.clicked.connect(
+            self.open_reports_folder
         )
         return_button.clicked.connect(self.accept)
 
@@ -105,6 +125,27 @@ class ReportCenterWindow(QDialog):
             self.generate_button.setEnabled(False)
             self.status_label.setText(
                 "No saved portfolios are available."
+            )
+
+    def open_reports_folder(self):
+        """
+        Open the reports directory in the system file manager.
+        """
+
+        REPORTS_DIR.mkdir(
+            parents=True,
+            exist_ok=True,
+        )
+
+        opened = QDesktopServices.openUrl(
+            QUrl.fromLocalFile(str(REPORTS_DIR))
+        )
+
+        if not opened:
+            QMessageBox.warning(
+                self,
+                "Open Reports Folder",
+                "Unable to open the reports folder.",
             )
 
     def generate_report(self):
