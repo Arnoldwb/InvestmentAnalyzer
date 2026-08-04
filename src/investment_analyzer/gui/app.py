@@ -1,6 +1,7 @@
 import sys
 
 from PySide6.QtCore import Qt
+from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg
 from PySide6.QtWidgets import (
     QApplication,
     QComboBox,
@@ -35,6 +36,10 @@ from investment_analyzer.core.portfolio_storage import (
     save_portfolio,
 )
 from investment_analyzer.models.portfolio import Portfolio
+from investment_analyzer.gui.chart_viewer import ChartViewerWindow
+from investment_analyzer.visualization.chart_generator import (
+    ChartGenerator,
+)
 
 
 class PortfolioWindow(QDialog):
@@ -1321,7 +1326,7 @@ class InvestmentAnalyzerWindow(QMainWindow):
         title_font.setBold(True)
         title.setFont(title_font)
 
-        subtitle = QLabel("Version 5.0")
+        subtitle = QLabel("Version 5.2")
         subtitle.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         subtitle_font = subtitle.font()
@@ -1343,6 +1348,9 @@ class InvestmentAnalyzerWindow(QMainWindow):
         )
         self.portfolio_button = QPushButton(
             "Portfolio Analysis"
+        )
+        self.chart_viewer_button = QPushButton(
+            "Chart Viewer"
         )
         self.monte_carlo_button = QPushButton(
             "Monte Carlo & Withdrawal Analysis"
@@ -1391,6 +1399,7 @@ class InvestmentAnalyzerWindow(QMainWindow):
         for button in (
             self.portfolio_builder_button,
             self.portfolio_button,
+            self.chart_viewer_button,
             self.monte_carlo_button,
             self.reports_button,
             self.exit_button,
@@ -1401,7 +1410,7 @@ class InvestmentAnalyzerWindow(QMainWindow):
         layout.addStretch()
 
         status = QLabel(
-            "Version 5.0 Mac Application Development"
+            "Version 5.2 Chart Viewer Development"
         )
         status.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(status)
@@ -1411,6 +1420,9 @@ class InvestmentAnalyzerWindow(QMainWindow):
         )
         self.portfolio_button.clicked.connect(
             self.open_portfolio_window
+        )
+        self.chart_viewer_button.clicked.connect(
+            self.open_chart_viewer
         )
         self.exit_button.clicked.connect(self.close)
 
@@ -1428,6 +1440,14 @@ class InvestmentAnalyzerWindow(QMainWindow):
         """
 
         window = PortfolioWindow(self)
+        window.exec()
+
+    def open_chart_viewer(self):
+        """
+        Open the portfolio Chart Viewer.
+        """
+
+        window = ChartViewerWindow(self)
         window.exec()
 
     def open_monte_carlo_window(self, analysis=None):
