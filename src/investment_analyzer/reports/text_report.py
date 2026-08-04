@@ -22,7 +22,7 @@ class TextReport(BaseReport):
         builder = ReportBuilder()
 
         builder.title(
-            "Investment Analyzer\n" "Version 3.9\n" "Portfolio Analysis Report"
+            "Investment Analyzer\n" "Version 5.3\n" "Portfolio Analysis Report"
         )
 
         builder.field("Generated:", self.timestamp)
@@ -138,14 +138,24 @@ class TextReport(BaseReport):
         builder.line("-" * 60)
 
         for scenario in HISTORICAL_SCENARIOS.values():
-            scenario_result = scenario_analyzer.analyze_scenario(
-                scenario
-            )
+            try:
+                scenario_result = scenario_analyzer.analyze_scenario(
+                    scenario
+                )
 
-            recovery = scenario_analyzer.recovery_analysis(
-                scenario["start_date"],
-                scenario["end_date"],
-            )
+                recovery = scenario_analyzer.recovery_analysis(
+                    scenario["start_date"],
+                    scenario["end_date"],
+                )
+
+            except ValueError:
+                builder.line(
+                    f"{scenario['name']:<27}"
+                    f"{'N/A':>10}"
+                    f"{'N/A':>11}"
+                    f"{'No data':>15}"
+                )
+                continue
 
             recovery_days = recovery["days_to_recovery"]
 
@@ -167,17 +177,26 @@ class TextReport(BaseReport):
         builder.section("Historical Stress Scenarios")
 
         for scenario in HISTORICAL_SCENARIOS.values():
-            scenario_result = scenario_analyzer.analyze_scenario(
-                scenario
-            )
-
-            recovery = scenario_analyzer.recovery_analysis(
-                scenario["start_date"],
-                scenario["end_date"],
-            )
-
             builder.line(scenario["name"])
             builder.line("-" * 40)
+
+            try:
+                scenario_result = scenario_analyzer.analyze_scenario(
+                    scenario
+                )
+
+                recovery = scenario_analyzer.recovery_analysis(
+                    scenario["start_date"],
+                    scenario["end_date"],
+                )
+
+            except ValueError:
+                builder.line(
+                    "N/A — No portfolio return data exists "
+                    "for this scenario period."
+                )
+                builder.blank()
+                continue
 
             builder.field(
                 "Scenario Return",
@@ -275,7 +294,7 @@ class TextReport(BaseReport):
 
         builder.title(
             "Investment Analyzer\n"
-            "Version 4.5\n"
+            "Version 5.3\n"
             "Monte Carlo Portfolio Analysis Report"
         )
 
@@ -415,7 +434,7 @@ class TextReport(BaseReport):
 
         builder.title(
             "Investment Analyzer\n"
-            "Version 4.7\n"
+            "Version 5.3\n"
             "Withdrawal Sustainability Analysis Report"
         )
 
@@ -568,7 +587,7 @@ class TextReport(BaseReport):
 
         builder.title(
             "Investment Analyzer\n"
-            "Version 4.8\n"
+            "Version 5.3\n"
             "Sustainable Withdrawal Analysis Report"
         )
 
@@ -692,7 +711,7 @@ class TextReport(BaseReport):
 
         builder.title(
             "Investment Analyzer\n"
-            "Version 4.9\n"
+            "Version 5.3\n"
             "Withdrawal Strategy Comparison Report"
         )
 
@@ -810,7 +829,7 @@ class TextReport(BaseReport):
         builder = ReportBuilder()
 
         builder.title(
-            "Investment Analyzer\n" "Version 3.5\n" "Portfolio Comparison Report"
+            "Investment Analyzer\n" "Version 5.3\n" "Portfolio Comparison Report"
         )
 
         builder.field("Generated:", self.timestamp)

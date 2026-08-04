@@ -37,6 +37,7 @@ from investment_analyzer.core.portfolio_storage import (
 )
 from investment_analyzer.models.portfolio import Portfolio
 from investment_analyzer.gui.chart_viewer import ChartViewerWindow
+from investment_analyzer.gui.report_center import ReportCenterWindow
 from investment_analyzer.visualization.chart_generator import (
     ChartGenerator,
 )
@@ -1424,6 +1425,9 @@ class InvestmentAnalyzerWindow(QMainWindow):
         self.chart_viewer_button.clicked.connect(
             self.open_chart_viewer
         )
+        self.reports_button.clicked.connect(
+            self.open_report_center
+        )
         self.exit_button.clicked.connect(self.close)
 
     def open_portfolio_builder(self):
@@ -1440,6 +1444,14 @@ class InvestmentAnalyzerWindow(QMainWindow):
         """
 
         window = PortfolioWindow(self)
+        window.exec()
+
+    def open_report_center(self):
+        """
+        Open the Report Center window.
+        """
+
+        window = ReportCenterWindow(self)
         window.exec()
 
     def open_chart_viewer(self):
