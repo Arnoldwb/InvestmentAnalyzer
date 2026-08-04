@@ -25,3 +25,7 @@ output/
 # IDE files
 .vscode/
 .idea/
+
+# PyInstaller build artifacts
+build/
+dist/
