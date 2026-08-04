@@ -1,16 +1,15 @@
 from pathlib import Path
 from datetime import datetime
 
-
+from investment_analyzer.core.paths import REPORTS_DIR
 class BaseReport:
     """
     Base class for all report generators.
     """
 
     def __init__(self):
-        self.project_root = Path(__file__).resolve().parents[3]
-        self.output_folder = self.project_root / "reports"
-        self.output_folder.mkdir(exist_ok=True)
+       self.output_folder = REPORTS_DIR
+       self.output_folder.mkdir(parents=True, exist_ok=True)
 
     @property
     def timestamp(self) -> str:

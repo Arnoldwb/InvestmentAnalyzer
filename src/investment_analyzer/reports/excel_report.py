@@ -2,9 +2,9 @@
 excel_report.py
 """
 
-from pathlib import Path
 from openpyxl import Workbook
 from openpyxl.styles import Font
+from investment_analyzer.core.paths import OUTPUT_DIR
 
 class ExcelReport:
     def __init__(self):
@@ -38,9 +38,7 @@ class ExcelReport:
             w=max(len(str(x.value)) if x.value is not None else 0 for x in col)+3
             self.summary.column_dimensions[col[0].column_letter].width=w
         self.summary.freeze_panes="A2"
-        root=Path(__file__).resolve().parents[3]
-        outdir=root/"output"
-        outdir.mkdir(exist_ok=True)
-        outfile=outdir/filename
+        OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+        outfile = OUTPUT_DIR / filename
         self.workbook.save(outfile)
         return outfile

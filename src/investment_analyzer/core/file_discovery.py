@@ -1,4 +1,4 @@
-from pathlib import Path
+from investment_analyzer.core.paths import DATA_DIR
 
 
 def discover_funds():
@@ -7,12 +7,9 @@ def discover_funds():
     found in the project's data folder.
     """
 
-    project_root = Path(__file__).resolve().parents[3]
-    data_folder = project_root / "data"
-
     funds = sorted(
         csv_file.stem
-        for csv_file in data_folder.glob("*.csv")
+        for csv_file in DATA_DIR.glob("*.csv")
     )
 
     return funds

@@ -1,11 +1,10 @@
+
 import json
 from pathlib import Path
 
-from investment_analyzer.core.paths import PROJECT_ROOT
+from investment_analyzer.core.paths import PORTFOLIO_DIR
 from investment_analyzer.models.portfolio import Portfolio
 
-
-PORTFOLIO_DIR = PROJECT_ROOT / "portfolios"
 
 
 def ensure_portfolio_directory() -> Path:

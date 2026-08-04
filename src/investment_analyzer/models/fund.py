@@ -1,6 +1,7 @@
 from dataclasses import dataclass, field
-from pathlib import Path
 import pandas as pd
+
+from investment_analyzer.core.paths import DATA_DIR
 
 @dataclass
 class Fund:
@@ -8,8 +9,7 @@ class Fund:
     data: pd.DataFrame = field(default_factory=pd.DataFrame)
 
     def load_data(self):
-        project_root=Path(__file__).resolve().parents[3]
-        csv_file=project_root/'data'/f'{self.symbol}.csv'
+        csv_file = DATA_DIR / f"{self.symbol}.csv"
         if not csv_file.exists():
             raise FileNotFoundError(csv_file)
         self.data=pd.read_csv(csv_file)
