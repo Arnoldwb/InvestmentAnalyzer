@@ -28,8 +28,10 @@ from investment_analyzer.analysis.portfolio_analyzer import (
 )
 from investment_analyzer.core.file_discovery import discover_funds
 from investment_analyzer.core.portfolio_storage import (
+    delete_portfolio,
     list_portfolios,
     load_portfolio,
+    rename_portfolio,
     save_portfolio,
 )
 from investment_analyzer.models.portfolio import Portfolio
@@ -917,14 +919,16 @@ class MonteCarloWindow(QDialog):
 
 class PortfolioBuilderWindow(QDialog):
     """
-    Create and save a new Investment Analyzer portfolio.
+    Create, edit, and delete Investment Analyzer portfolios.
     """
 
     def __init__(self, parent=None):
         super().__init__(parent)
 
+        self.current_filename = None
+
         self.setWindowTitle("Portfolio Builder")
-        self.resize(600, 650)
+        self.resize(650, 720)
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(30, 25, 30, 25)
@@ -939,6 +943,20 @@ class PortfolioBuilderWindow(QDialog):
         title.setFont(title_font)
 
         layout.addWidget(title)
+
+        existing_layout = QHBoxLayout()
+        existing_layout.addWidget(QLabel("Saved Portfolio:"))
+
+        self.portfolio_selector = QComboBox()
+        existing_layout.addWidget(self.portfolio_selector, 1)
+
+        self.open_button = QPushButton("Open")
+        self.new_button = QPushButton("New")
+
+        existing_layout.addWidget(self.open_button)
+        existing_layout.addWidget(self.new_button)
+
+        layout.addLayout(existing_layout)
 
         name_layout = QHBoxLayout()
         name_layout.addWidget(QLabel("Portfolio Name:"))
@@ -1011,20 +1029,120 @@ class PortfolioBuilderWindow(QDialog):
         button_layout = QHBoxLayout()
 
         self.save_button = QPushButton("Save Portfolio")
-        self.cancel_button = QPushButton("Cancel")
+        self.delete_button = QPushButton("Delete Portfolio")
+        self.cancel_button = QPushButton("Return to Investment Analyzer")
 
-        self.save_button.setMinimumHeight(40)
-        self.cancel_button.setMinimumHeight(40)
+        for button in (
+            self.save_button,
+            self.delete_button,
+            self.cancel_button,
+        ):
+            button.setMinimumHeight(40)
 
         button_layout.addWidget(self.save_button)
+        button_layout.addWidget(self.delete_button)
         button_layout.addWidget(self.cancel_button)
 
         layout.addLayout(button_layout)
 
+        self.open_button.clicked.connect(
+            self.open_selected_portfolio
+        )
+        self.new_button.clicked.connect(
+            self.new_portfolio
+        )
         self.save_button.clicked.connect(
-            self.save_new_portfolio
+            self.save_current_portfolio
+        )
+        self.delete_button.clicked.connect(
+            self.delete_current_portfolio
         )
         self.cancel_button.clicked.connect(self.reject)
+
+        self.refresh_portfolio_list()
+        self.new_portfolio()
+
+    def refresh_portfolio_list(self):
+        """
+        Refresh the list of saved portfolios.
+        """
+
+        self.portfolio_selector.clear()
+
+        for filename in list_portfolios():
+            self.portfolio_selector.addItem(
+                filename.removesuffix(".json"),
+                filename,
+            )
+
+    def clear_allocations(self):
+        """
+        Set every displayed fund allocation to zero.
+        """
+
+        for row in range(self.fund_table.rowCount()):
+            allocation = self.fund_table.cellWidget(row, 1)
+            allocation.setValue(0.0)
+
+        self.update_total()
+
+    def new_portfolio(self):
+        """
+        Prepare the builder for a new portfolio.
+        """
+
+        self.current_filename = None
+        self.name_edit.clear()
+        self.clear_allocations()
+        self.delete_button.setEnabled(False)
+        self.name_edit.setFocus()
+
+    def open_selected_portfolio(self):
+        """
+        Load the selected saved portfolio into the builder.
+        """
+
+        filename = self.portfolio_selector.currentData()
+
+        if not filename:
+            QMessageBox.information(
+                self,
+                "No Saved Portfolio",
+                "There are no saved portfolios to open.",
+            )
+            return
+
+        try:
+            portfolio = load_portfolio(filename)
+        except Exception as error:
+            QMessageBox.critical(
+                self,
+                "Open Error",
+                f"Unable to open portfolio:\n\n{error}",
+            )
+            return
+
+        self.current_filename = filename
+        self.name_edit.setText(portfolio.name)
+        self.clear_allocations()
+
+        allocations = {
+            holding.fund.symbol: holding.allocation
+            for holding in portfolio.holdings
+        }
+
+        for row in range(self.fund_table.rowCount()):
+            symbol = self.fund_table.item(row, 0).text()
+
+            if symbol in allocations:
+                allocation = self.fund_table.cellWidget(
+                    row,
+                    1,
+                )
+                allocation.setValue(allocations[symbol])
+
+        self.update_total()
+        self.delete_button.setEnabled(True)
 
     def total_allocation(self):
         """
@@ -1049,20 +1167,15 @@ class PortfolioBuilderWindow(QDialog):
             f"Total Allocation: {total:.1f}%"
         )
 
-    def save_new_portfolio(self):
+    def build_portfolio(self):
         """
-        Validate and save the portfolio.
+        Build a Portfolio from the current form values.
         """
 
         name = self.name_edit.text().strip()
 
         if not name:
-            QMessageBox.warning(
-                self,
-                "Portfolio Name Required",
-                "Please enter a portfolio name.",
-            )
-            return
+            raise ValueError("Please enter a portfolio name.")
 
         portfolio = Portfolio(name)
 
@@ -1076,23 +1189,58 @@ class PortfolioBuilderWindow(QDialog):
             if allocation <= 0:
                 continue
 
-            symbol_item = self.fund_table.item(row, 0)
-            symbol = symbol_item.text()
-
+            symbol = self.fund_table.item(row, 0).text()
             portfolio.add_fund(symbol, allocation)
 
+        portfolio.validate()
+
+        return portfolio
+
+    def save_current_portfolio(self):
+        """
+        Save a new portfolio or update the currently opened one.
+        """
+
         try:
-            portfolio.validate()
+            portfolio = self.build_portfolio()
         except ValueError as error:
             QMessageBox.warning(
                 self,
-                "Invalid Allocation",
+                "Invalid Portfolio",
                 str(error),
             )
             return
 
         try:
-            path = save_portfolio(portfolio)
+            if self.current_filename is None:
+                path = save_portfolio(portfolio)
+            else:
+                old_filename = self.current_filename
+                old_portfolio = load_portfolio(old_filename)
+
+                if portfolio.name != old_portfolio.name:
+                    renamed_path = rename_portfolio(
+                        old_filename,
+                        portfolio.name,
+                    )
+                    self.current_filename = renamed_path.name
+
+                path = save_portfolio(
+                    portfolio,
+                    self.current_filename,
+                )
+
+            self.current_filename = path.name
+            self.refresh_portfolio_list()
+
+            index = self.portfolio_selector.findData(
+                self.current_filename
+            )
+            if index >= 0:
+                self.portfolio_selector.setCurrentIndex(index)
+
+            self.delete_button.setEnabled(True)
+
         except Exception as error:
             QMessageBox.critical(
                 self,
@@ -1107,7 +1255,44 @@ class PortfolioBuilderWindow(QDialog):
             f"Portfolio saved successfully:\n\n{path.name}",
         )
 
-        self.accept()
+    def delete_current_portfolio(self):
+        """
+        Delete the currently opened saved portfolio.
+        """
+
+        if self.current_filename is None:
+            return
+
+        answer = QMessageBox.question(
+            self,
+            "Delete Portfolio",
+            "Are you sure you want to delete this portfolio?",
+            QMessageBox.StandardButton.Yes
+            | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.No,
+        )
+
+        if answer != QMessageBox.StandardButton.Yes:
+            return
+
+        try:
+            delete_portfolio(self.current_filename)
+        except Exception as error:
+            QMessageBox.critical(
+                self,
+                "Delete Error",
+                f"Unable to delete portfolio:\n\n{error}",
+            )
+            return
+
+        QMessageBox.information(
+            self,
+            "Portfolio Deleted",
+            "The portfolio was deleted successfully.",
+        )
+
+        self.refresh_portfolio_list()
+        self.new_portfolio()
 
 
 class InvestmentAnalyzerWindow(QMainWindow):
