@@ -74,6 +74,10 @@ class ChartViewerWindow(QDialog):
             "Drawdown History",
             "drawdown",
         )
+        self.chart_type_selector.addItem(
+            "Monthly Returns",
+            "monthly_returns",
+        )
 
         selector_layout.addWidget(
             self.chart_type_selector
@@ -129,7 +133,7 @@ class ChartViewerWindow(QDialog):
 
     def display_chart(self):
         """
-        Display Growth of $10,000 for the selected portfolio.
+        Display the selected chart for the selected portfolio.
         """
 
         filename = self.portfolio_selector.currentData()
@@ -152,6 +156,11 @@ class ChartViewerWindow(QDialog):
                     portfolio
                 )
                 description = "Drawdown History"
+            elif chart_type == "monthly_returns":
+                figure = generator.portfolio_monthly_returns_chart(
+                    portfolio
+                )
+                description = "Monthly Returns"
             else:
                 figure = generator.portfolio_growth_chart(
                     portfolio,

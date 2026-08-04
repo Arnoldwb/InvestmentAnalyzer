@@ -90,3 +90,43 @@ class ChartGenerator:
         figure.tight_layout()
 
         return figure
+
+    def portfolio_monthly_returns_chart(self, portfolio) -> Figure:
+        """
+        Create a monthly portfolio returns chart.
+        """
+
+        analyzer = PortfolioAnalyzer(portfolio)
+        returns = analyzer.monthly_returns() * 100.0
+
+        figure = Figure(figsize=(9, 5.5))
+        axes = figure.subplots()
+
+        axes.bar(
+            returns.index,
+            returns.values,
+            width=20,
+        )
+
+        axes.axhline(
+            0.0,
+            linewidth=1,
+        )
+
+        axes.set_title(
+            f"{portfolio.name} — Monthly Returns"
+        )
+        axes.set_xlabel("Date")
+        axes.set_ylabel("Monthly Return (%)")
+        axes.grid(
+            True,
+            axis="y",
+        )
+
+        axes.yaxis.set_major_formatter(
+            lambda value, position: f"{value:.0f}%"
+        )
+
+        figure.tight_layout()
+
+        return figure
