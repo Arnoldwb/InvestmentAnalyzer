@@ -1,3 +1,5 @@
-from investment_analyzer.app import main
+from investment_analyzer.gui.app import run_gui
 
-main()
+
+if __name__ == "__main__":
+    run_gui()
