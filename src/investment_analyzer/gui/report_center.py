@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from PySide6.QtCore import Qt, QUrl
 from PySide6.QtGui import (
     QDesktopServices,
@@ -6,6 +8,7 @@ from PySide6.QtGui import (
 from PySide6.QtWidgets import (
     QComboBox,
     QDialog,
+    QFileDialog,
     QHBoxLayout,
     QLabel,
     QMessageBox,
@@ -96,6 +99,9 @@ class ReportCenterWindow(QDialog):
 
         button_layout = QHBoxLayout()
 
+        self.save_as_button = QPushButton(
+            "Save Report As..."
+        )
         self.open_folder_button = QPushButton(
             "Open Reports Folder"
         )
@@ -103,9 +109,15 @@ class ReportCenterWindow(QDialog):
             "Return to Investment Analyzer"
         )
 
+        self.save_as_button.setMinimumHeight(40)
         self.open_folder_button.setMinimumHeight(40)
         return_button.setMinimumHeight(40)
 
+        self.save_as_button.setEnabled(False)
+
+        button_layout.addWidget(
+            self.save_as_button
+        )
         button_layout.addWidget(
             self.open_folder_button
         )
@@ -115,6 +127,9 @@ class ReportCenterWindow(QDialog):
 
         self.generate_button.clicked.connect(
             self.generate_report
+        )
+        self.save_as_button.clicked.connect(
+            self.save_report_as
         )
         self.open_folder_button.clicked.connect(
             self.open_reports_folder
@@ -126,6 +141,54 @@ class ReportCenterWindow(QDialog):
             self.status_label.setText(
                 "No saved portfolios are available."
             )
+
+    def save_report_as(self):
+        """
+        Save a copy of the currently displayed report.
+        """
+
+        if self.current_report_path is None:
+            QMessageBox.warning(
+                self,
+                "Save Report",
+                "Generate a report before saving a copy.",
+            )
+            return
+
+        suggested_name = self.current_report_path.name
+
+        filename, _ = QFileDialog.getSaveFileName(
+            self,
+            "Save Report As",
+            suggested_name,
+            "Text Files (*.txt);;All Files (*)",
+        )
+
+        if not filename:
+            return
+
+        destination = Path(filename)
+
+        if destination.suffix == "":
+            destination = destination.with_suffix(".txt")
+
+        try:
+            destination.write_text(
+                self.report_viewer.toPlainText(),
+                encoding="utf-8",
+            )
+        except Exception as error:
+            QMessageBox.critical(
+                self,
+                "Save Report Error",
+                "Unable to save the report:"
+                f"\n\n{error}",
+            )
+            return
+
+        self.status_label.setText(
+            f"Report saved as {destination.name}"
+        )
 
     def open_reports_folder(self):
         """
@@ -184,6 +247,7 @@ class ReportCenterWindow(QDialog):
 
         self.current_report_path = path
         self.report_viewer.setPlainText(report_text)
+        self.save_as_button.setEnabled(True)
 
         self.status_label.setText(
             f"Report generated for {portfolio.name}"
