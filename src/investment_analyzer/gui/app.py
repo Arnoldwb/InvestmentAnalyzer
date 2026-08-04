@@ -1327,7 +1327,7 @@ class InvestmentAnalyzerWindow(QMainWindow):
         title_font.setBold(True)
         title.setFont(title_font)
 
-        subtitle = QLabel("Version 5.2")
+        subtitle = QLabel("Version 5.3")
         subtitle.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         subtitle_font = subtitle.font()
@@ -1411,7 +1411,7 @@ class InvestmentAnalyzerWindow(QMainWindow):
         layout.addStretch()
 
         status = QLabel(
-            "Version 5.2 Chart Viewer Development"
+            "Version 5.3 Report Center"
         )
         status.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(status)
