@@ -22,6 +22,14 @@ class ChartGenerator:
         analyzer = PortfolioAnalyzer(portfolio)
         growth = analyzer.growth_index(initial_value)
 
+        # Add the investment's starting value immediately before
+        # the first monthly return so the chart begins at the
+        # requested initial investment.
+        if not growth.empty:
+            start_date = growth.index[0] - growth.index.freq
+            growth.loc[start_date] = initial_value
+            growth = growth.sort_index()
+
         figure = Figure(figsize=(9, 5.5))
         axes = figure.subplots()
 
