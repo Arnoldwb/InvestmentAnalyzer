@@ -26,10 +26,13 @@ from investment_analyzer.analysis.monte_carlo_analyzer import (
 from investment_analyzer.analysis.portfolio_analyzer import (
     PortfolioAnalyzer,
 )
+from investment_analyzer.core.file_discovery import discover_funds
 from investment_analyzer.core.portfolio_storage import (
     list_portfolios,
     load_portfolio,
+    save_portfolio,
 )
+from investment_analyzer.models.portfolio import Portfolio
 
 
 class PortfolioWindow(QDialog):
@@ -911,6 +914,202 @@ class MonteCarloWindow(QDialog):
             )
 
 
+
+class PortfolioBuilderWindow(QDialog):
+    """
+    Create and save a new Investment Analyzer portfolio.
+    """
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+
+        self.setWindowTitle("Portfolio Builder")
+        self.resize(600, 650)
+
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(30, 25, 30, 25)
+        layout.setSpacing(15)
+
+        title = QLabel("Portfolio Builder")
+        title.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+        title_font = title.font()
+        title_font.setPointSize(20)
+        title_font.setBold(True)
+        title.setFont(title_font)
+
+        layout.addWidget(title)
+
+        name_layout = QHBoxLayout()
+        name_layout.addWidget(QLabel("Portfolio Name:"))
+
+        self.name_edit = QLineEdit()
+        self.name_edit.setPlaceholderText(
+            "Enter a name for the portfolio"
+        )
+
+        name_layout.addWidget(self.name_edit, 1)
+        layout.addLayout(name_layout)
+
+        instructions = QLabel(
+            "Enter an allocation for each fund you want to include. "
+            "The total allocation must equal 100%."
+        )
+        instructions.setWordWrap(True)
+        layout.addWidget(instructions)
+
+        self.fund_table = QTableWidget()
+        self.fund_table.setColumnCount(2)
+        self.fund_table.setHorizontalHeaderLabels(
+            ["Fund", "Allocation %"]
+        )
+
+        funds = discover_funds()
+        self.fund_table.setRowCount(len(funds))
+
+        for row, symbol in enumerate(funds):
+            symbol_item = QTableWidgetItem(symbol)
+            symbol_item.setFlags(
+                symbol_item.flags()
+                & ~Qt.ItemFlag.ItemIsEditable
+            )
+            self.fund_table.setItem(row, 0, symbol_item)
+
+            allocation = QDoubleSpinBox()
+            allocation.setRange(0.0, 100.0)
+            allocation.setDecimals(1)
+            allocation.setSingleStep(1.0)
+            allocation.setSuffix("%")
+            allocation.valueChanged.connect(
+                self.update_total
+            )
+
+            self.fund_table.setCellWidget(
+                row,
+                1,
+                allocation,
+            )
+
+        self.fund_table.horizontalHeader().setStretchLastSection(
+            True
+        )
+        self.fund_table.resizeColumnsToContents()
+
+        layout.addWidget(self.fund_table)
+
+        self.total_label = QLabel("Total Allocation: 0.0%")
+        self.total_label.setAlignment(
+            Qt.AlignmentFlag.AlignRight
+        )
+
+        total_font = self.total_label.font()
+        total_font.setBold(True)
+        self.total_label.setFont(total_font)
+
+        layout.addWidget(self.total_label)
+
+        button_layout = QHBoxLayout()
+
+        self.save_button = QPushButton("Save Portfolio")
+        self.cancel_button = QPushButton("Cancel")
+
+        self.save_button.setMinimumHeight(40)
+        self.cancel_button.setMinimumHeight(40)
+
+        button_layout.addWidget(self.save_button)
+        button_layout.addWidget(self.cancel_button)
+
+        layout.addLayout(button_layout)
+
+        self.save_button.clicked.connect(
+            self.save_new_portfolio
+        )
+        self.cancel_button.clicked.connect(self.reject)
+
+    def total_allocation(self):
+        """
+        Return the total allocation currently entered.
+        """
+
+        total = 0.0
+
+        for row in range(self.fund_table.rowCount()):
+            allocation = self.fund_table.cellWidget(row, 1)
+            total += allocation.value()
+
+        return total
+
+    def update_total(self):
+        """
+        Update the displayed portfolio allocation total.
+        """
+
+        total = self.total_allocation()
+        self.total_label.setText(
+            f"Total Allocation: {total:.1f}%"
+        )
+
+    def save_new_portfolio(self):
+        """
+        Validate and save the portfolio.
+        """
+
+        name = self.name_edit.text().strip()
+
+        if not name:
+            QMessageBox.warning(
+                self,
+                "Portfolio Name Required",
+                "Please enter a portfolio name.",
+            )
+            return
+
+        portfolio = Portfolio(name)
+
+        for row in range(self.fund_table.rowCount()):
+            allocation_widget = self.fund_table.cellWidget(
+                row,
+                1,
+            )
+            allocation = allocation_widget.value()
+
+            if allocation <= 0:
+                continue
+
+            symbol_item = self.fund_table.item(row, 0)
+            symbol = symbol_item.text()
+
+            portfolio.add_fund(symbol, allocation)
+
+        try:
+            portfolio.validate()
+        except ValueError as error:
+            QMessageBox.warning(
+                self,
+                "Invalid Allocation",
+                str(error),
+            )
+            return
+
+        try:
+            path = save_portfolio(portfolio)
+        except Exception as error:
+            QMessageBox.critical(
+                self,
+                "Save Error",
+                f"Unable to save portfolio:\n\n{error}",
+            )
+            return
+
+        QMessageBox.information(
+            self,
+            "Portfolio Saved",
+            f"Portfolio saved successfully:\n\n{path.name}",
+        )
+
+        self.accept()
+
+
 class InvestmentAnalyzerWindow(QMainWindow):
     """
     Main graphical window for Investment Analyzer.
@@ -954,6 +1153,9 @@ class InvestmentAnalyzerWindow(QMainWindow):
         layout.addWidget(description)
         layout.addSpacing(30)
 
+        self.portfolio_builder_button = QPushButton(
+            "Portfolio Builder"
+        )
         self.portfolio_button = QPushButton(
             "Portfolio Analysis"
         )
@@ -1002,6 +1204,7 @@ class InvestmentAnalyzerWindow(QMainWindow):
         self.exit_button = QPushButton("Exit")
 
         for button in (
+            self.portfolio_builder_button,
             self.portfolio_button,
             self.monte_carlo_button,
             self.reports_button,
@@ -1018,10 +1221,21 @@ class InvestmentAnalyzerWindow(QMainWindow):
         status.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(status)
 
+        self.portfolio_builder_button.clicked.connect(
+            self.open_portfolio_builder
+        )
         self.portfolio_button.clicked.connect(
             self.open_portfolio_window
         )
         self.exit_button.clicked.connect(self.close)
+
+    def open_portfolio_builder(self):
+        """
+        Open the Portfolio Builder window.
+        """
+
+        window = PortfolioBuilderWindow(self)
+        window.exec()
 
     def open_portfolio_window(self):
         """
