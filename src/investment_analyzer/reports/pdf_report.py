@@ -14,6 +14,12 @@ from reportlab.platypus import (
 from investment_analyzer.analysis.portfolio_analyzer import (
     PortfolioAnalyzer,
 )
+from investment_analyzer.analysis.scenario_analyzer import (
+    ScenarioAnalyzer,
+)
+from investment_analyzer.analysis.historical_scenarios import (
+    HISTORICAL_SCENARIOS,
+)
 
 from .base_report import BaseReport
 
@@ -372,6 +378,247 @@ class PDFReport(BaseReport):
                     body_style,
                 )
             )
+
+        story.append(
+            Paragraph(
+                "Major Historical Drawdowns",
+                section_style,
+            )
+        )
+
+        major_drawdowns = analyzer.major_drawdowns(
+            threshold=0.10
+        )
+
+        drawdown_data = [
+            [
+                "Peak",
+                "Bottom",
+                "Recovery",
+                "Decline",
+                "To Bottom",
+                "Recover",
+                "Total",
+            ]
+        ]
+
+        for episode in major_drawdowns:
+            drawdown_data.append(
+                [
+                    episode["peak_date"].strftime("%Y-%m"),
+                    episode["bottom_date"].strftime("%Y-%m"),
+                    episode["recovery_date"].strftime("%Y-%m"),
+                    f"{episode['decline']:.2%}",
+                    f"{episode['days_to_bottom']:,}",
+                    f"{episode['days_bottom_to_recovery']:,}",
+                    f"{episode['days_to_recovery']:,}",
+                ]
+            )
+
+        drawdown_table = Table(
+            drawdown_data,
+            colWidths=[
+                0.75 * inch,
+                0.75 * inch,
+                0.75 * inch,
+                0.65 * inch,
+                0.75 * inch,
+                0.70 * inch,
+                0.65 * inch,
+            ],
+            repeatRows=1,
+            hAlign="LEFT",
+        )
+
+        drawdown_table.setStyle(
+            TableStyle(
+                [
+                    (
+                        "BACKGROUND",
+                        (0, 0),
+                        (-1, 0),
+                        colors.lightgrey,
+                    ),
+                    (
+                        "FONTNAME",
+                        (0, 0),
+                        (-1, 0),
+                        "Helvetica-Bold",
+                    ),
+                    (
+                        "FONTSIZE",
+                        (0, 0),
+                        (-1, -1),
+                        8,
+                    ),
+                    (
+                        "ALIGN",
+                        (3, 1),
+                        (-1, -1),
+                        "RIGHT",
+                    ),
+                    (
+                        "GRID",
+                        (0, 0),
+                        (-1, -1),
+                        0.5,
+                        colors.grey,
+                    ),
+                    (
+                        "TOPPADDING",
+                        (0, 0),
+                        (-1, -1),
+                        4,
+                    ),
+                    (
+                        "BOTTOMPADDING",
+                        (0, 0),
+                        (-1, -1),
+                        4,
+                    ),
+                ]
+            )
+        )
+
+        story.append(drawdown_table)
+
+        story.append(
+            Paragraph(
+                "Historical Stress Interpretation",
+                section_style,
+            )
+        )
+
+        stress = analyzer.stress_interpretation(
+            threshold=0.10
+        )
+
+        for stress_text in stress.values():
+            story.append(
+                Paragraph(
+                    stress_text,
+                    body_style,
+                )
+            )
+
+        story.append(
+            Paragraph(
+                "Historical Scenario Comparison",
+                section_style,
+            )
+        )
+
+        scenario_analyzer = ScenarioAnalyzer(portfolio)
+
+        scenario_data = [
+            [
+                "Scenario",
+                "Return",
+                "Drawdown",
+                "Peak Recovery",
+            ]
+        ]
+
+        for scenario in HISTORICAL_SCENARIOS.values():
+            try:
+                scenario_result = (
+                    scenario_analyzer.analyze_scenario(
+                        scenario
+                    )
+                )
+
+                recovery = (
+                    scenario_analyzer.recovery_analysis(
+                        scenario["start_date"],
+                        scenario["end_date"],
+                    )
+                )
+
+            except ValueError:
+                scenario_data.append(
+                    [
+                        scenario["name"],
+                        "N/A",
+                        "N/A",
+                        "No data",
+                    ]
+                )
+                continue
+
+            recovery_days = recovery["days_to_recovery"]
+
+            recovery_text = (
+                f"{recovery_days:,} days"
+                if recovery_days is not None
+                else "N/A"
+            )
+
+            scenario_data.append(
+                [
+                    scenario["name"],
+                    f"{scenario_result['total_return']:.2%}",
+                    f"{scenario_result['max_drawdown']:.2%}",
+                    recovery_text,
+                ]
+            )
+
+        scenario_table = Table(
+            scenario_data,
+            colWidths=[
+                2.6 * inch,
+                0.9 * inch,
+                0.9 * inch,
+                1.2 * inch,
+            ],
+            repeatRows=1,
+            hAlign="LEFT",
+        )
+
+        scenario_table.setStyle(
+            TableStyle(
+                [
+                    (
+                        "BACKGROUND",
+                        (0, 0),
+                        (-1, 0),
+                        colors.lightgrey,
+                    ),
+                    (
+                        "FONTNAME",
+                        (0, 0),
+                        (-1, 0),
+                        "Helvetica-Bold",
+                    ),
+                    (
+                        "ALIGN",
+                        (1, 1),
+                        (-1, -1),
+                        "RIGHT",
+                    ),
+                    (
+                        "GRID",
+                        (0, 0),
+                        (-1, -1),
+                        0.5,
+                        colors.grey,
+                    ),
+                    (
+                        "TOPPADDING",
+                        (0, 0),
+                        (-1, -1),
+                        5,
+                    ),
+                    (
+                        "BOTTOMPADDING",
+                        (0, 0),
+                        (-1, -1),
+                        5,
+                    ),
+                ]
+            )
+        )
+
+        story.append(scenario_table)
 
         try:
             portfolio.validate()
