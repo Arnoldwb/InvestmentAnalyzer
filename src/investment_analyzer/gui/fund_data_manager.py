@@ -1,6 +1,7 @@
 from PySide6.QtCore import Qt, QUrl
 from PySide6.QtGui import QDesktopServices
 from PySide6.QtWidgets import (
+    QApplication,
     QDialog,
     QFileDialog,
     QHBoxLayout,
@@ -8,6 +9,7 @@ from PySide6.QtWidgets import (
     QLineEdit,
     QMessageBox,
     QPushButton,
+    QPlainTextEdit,
     QTableWidget,
     QTableWidgetItem,
     QVBoxLayout,
@@ -74,6 +76,11 @@ class FundDataManagerWindow(QDialog):
         )
         self.yahoo_button.setMinimumHeight(36)
 
+        self.paste_button = QPushButton(
+            "Paste Historical Data"
+        )
+        self.paste_button.setMinimumHeight(36)
+
         lookup_layout.addWidget(lookup_label)
         lookup_layout.addWidget(
             self.lookup_symbol,
@@ -81,6 +88,9 @@ class FundDataManagerWindow(QDialog):
         )
         lookup_layout.addWidget(
             self.yahoo_button
+        )
+        lookup_layout.addWidget(
+            self.paste_button
         )
 
         layout.addLayout(lookup_layout)
@@ -160,6 +170,9 @@ class FundDataManagerWindow(QDialog):
         self.yahoo_button.clicked.connect(
             self.open_yahoo_history
         )
+        self.paste_button.clicked.connect(
+            self.preview_clipboard_data
+        )
         self.lookup_symbol.returnPressed.connect(
             self.open_yahoo_history
         )
@@ -176,6 +189,50 @@ class FundDataManagerWindow(QDialog):
         close_button.clicked.connect(self.accept)
 
         self.refresh_library()
+
+    def preview_clipboard_data(self):
+        """
+        Preview clipboard text without changing fund data.
+        """
+
+        text = QApplication.clipboard().text()
+
+        if not text.strip():
+            QMessageBox.warning(
+                self,
+                "Paste Historical Data",
+                "The clipboard does not contain text.",
+            )
+            return
+
+        dialog = QDialog(self)
+        dialog.setWindowTitle(
+            "Historical Data Clipboard Preview"
+        )
+        dialog.resize(900, 600)
+
+        layout = QVBoxLayout(dialog)
+
+        message = QLabel(
+            "Clipboard preview only — "
+            "no fund data has been changed."
+        )
+        message.setAlignment(
+            Qt.AlignmentFlag.AlignCenter
+        )
+        layout.addWidget(message)
+
+        preview = QPlainTextEdit()
+        preview.setReadOnly(True)
+        preview.setPlainText(text)
+        layout.addWidget(preview, 1)
+
+        close_button = QPushButton("Close Preview")
+        close_button.setMinimumHeight(40)
+        close_button.clicked.connect(dialog.accept)
+        layout.addWidget(close_button)
+
+        dialog.exec()
 
     def use_selected_symbol(self):
         """
