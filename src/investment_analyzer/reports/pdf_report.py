@@ -7,6 +7,7 @@ from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import inch
 from reportlab.platypus import (
     Image,
+    PageBreak,
     Paragraph,
     SimpleDocTemplate,
     Spacer,
@@ -417,6 +418,9 @@ class PDFReport(BaseReport):
         ]
 
         for chart_title, figure in chart_specs:
+            if chart_title == "Drawdown History":
+                story.append(PageBreak())
+
             story.append(
                 Paragraph(
                     chart_title,
@@ -443,6 +447,8 @@ class PDFReport(BaseReport):
 
             story.append(chart_image)
             story.append(Spacer(1, 10))
+
+        story.append(PageBreak())
 
         story.append(
             Paragraph(
