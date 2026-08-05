@@ -1,4 +1,5 @@
 from .base_report import BaseReport
+from .pdf_report import PDFReport
 from .text_report import TextReport
 
 
@@ -10,9 +11,13 @@ class ReportManager(BaseReport):
     def __init__(self):
         super().__init__()
         self.text = TextReport()
+        self.pdf = PDFReport()
 
     def create_portfolio_report(self, portfolio):
         return self.text.create_portfolio_report(portfolio)
+
+    def create_portfolio_pdf_report(self, portfolio):
+        return self.pdf.create_portfolio_report(portfolio)
 
     def create_monte_carlo_report(
         self,
