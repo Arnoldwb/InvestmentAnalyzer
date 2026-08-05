@@ -1,3 +1,6 @@
+import tempfile
+from pathlib import Path
+
 from PySide6.QtCore import Qt, QUrl
 from PySide6.QtGui import QDesktopServices
 from PySide6.QtWidgets import (
@@ -290,16 +293,156 @@ class FundDataManagerWindow(QDialog):
         )
         layout.addWidget(preview, 1)
 
+        preview_buttons = QHBoxLayout()
+
+        import_button = QPushButton(
+            "Import This Data"
+        )
+        import_button.setMinimumHeight(40)
+
         close_button = QPushButton(
             "Close Preview"
         )
         close_button.setMinimumHeight(40)
-        close_button.clicked.connect(
+
+        import_button.clicked.connect(
             dialog.accept
         )
-        layout.addWidget(close_button)
+        close_button.clicked.connect(
+            dialog.reject
+        )
 
-        dialog.exec()
+        preview_buttons.addWidget(
+            import_button
+        )
+        preview_buttons.addWidget(
+            close_button
+        )
+
+        layout.addLayout(preview_buttons)
+
+        choice = dialog.exec()
+
+        if choice != QDialog.DialogCode.Accepted:
+            return
+
+        symbol = (
+            self.lookup_symbol.text()
+            .strip()
+            .upper()
+        )
+
+        if not symbol:
+            QMessageBox.warning(
+                self,
+                "Fund Symbol Required",
+                "Enter the fund or stock symbol "
+                "before importing the data.",
+            )
+            return
+
+        if not all(
+            character.isalnum()
+            or character in ".-"
+            for character in symbol
+        ):
+            QMessageBox.warning(
+                self,
+                "Invalid Fund Symbol",
+                "The symbol contains unsupported "
+                "characters.",
+            )
+            return
+
+        existing = self.library.get(symbol)
+        replace = False
+
+        if existing is not None:
+            answer = QMessageBox.question(
+                self,
+                "Replace Existing Fund?",
+                f"{symbol} already exists.\n\n"
+                "Replace its existing historical data "
+                "with the clipboard data?",
+                QMessageBox.StandardButton.Yes
+                | QMessageBox.StandardButton.No,
+                QMessageBox.StandardButton.No,
+            )
+
+            if answer != QMessageBox.StandardButton.Yes:
+                return
+
+            replace = True
+
+        try:
+            with tempfile.TemporaryDirectory() as folder:
+                temporary_csv = (
+                    Path(folder)
+                    / f"{symbol}.csv"
+                )
+
+                result.data.to_csv(
+                    temporary_csv,
+                    index=False,
+                )
+
+                validation = (
+                    self.manager.validate_file(
+                        temporary_csv
+                    )
+                )
+
+                if not validation.valid:
+                    QMessageBox.critical(
+                        self,
+                        "Historical Data Validation Failed",
+                        self._validation_message(
+                            validation
+                        ),
+                    )
+                    return
+
+                import_result = (
+                    self.manager.import_file(
+                        temporary_csv,
+                        replace=replace,
+                    )
+                )
+
+        except Exception as error:
+            QMessageBox.critical(
+                self,
+                "Historical Data Import Error",
+                "Unable to import the historical "
+                f"data:\n\n{error}",
+            )
+            return
+
+        if not import_result.imported:
+            QMessageBox.critical(
+                self,
+                "Historical Data Import Failed",
+                self._validation_message(
+                    import_result.validation
+                ),
+            )
+            return
+
+        self.refresh_library()
+
+        action = (
+            "replaced"
+            if import_result.replaced
+            else "imported"
+        )
+
+        QMessageBox.information(
+            self,
+            "Historical Data Imported",
+            f"{symbol} was successfully {action}.\n\n"
+            f"Usable rows: "
+            f"{import_result.validation.usable_rows:,}",
+        )
 
     def use_selected_symbol(self):
         """
