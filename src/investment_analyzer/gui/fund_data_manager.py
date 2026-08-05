@@ -21,6 +21,9 @@ from investment_analyzer.core.fund_data_manager import (
 from investment_analyzer.core.fund_library import (
     FundLibrary,
 )
+from investment_analyzer.core.fund_clipboard_parser import (
+    FundClipboardParser,
+)
 
 
 class FundDataManagerWindow(QDialog):
@@ -192,7 +195,9 @@ class FundDataManagerWindow(QDialog):
 
     def preview_clipboard_data(self):
         """
-        Preview clipboard text without changing fund data.
+        Parse and preview historical clipboard data.
+
+        No fund data is changed by this preview.
         """
 
         text = QApplication.clipboard().text()
@@ -205,31 +210,93 @@ class FundDataManagerWindow(QDialog):
             )
             return
 
+        parser = FundClipboardParser()
+        result = parser.parse(text)
+
+        if not result.valid:
+            details = "\n".join(
+                f"• {message}"
+                for message in result.errors
+            )
+
+            QMessageBox.critical(
+                self,
+                "Invalid Historical Data",
+                "The clipboard data could not be used."
+                + (
+                    f"\n\n{details}"
+                    if details
+                    else ""
+                ),
+            )
+            return
+
         dialog = QDialog(self)
         dialog.setWindowTitle(
-            "Historical Data Clipboard Preview"
+            "Historical Data Parsed Preview"
         )
-        dialog.resize(900, 600)
+        dialog.resize(900, 650)
 
         layout = QVBoxLayout(dialog)
 
+        summary_lines = [
+            "Clipboard data parsed successfully.",
+            "",
+            f"Rows received: {result.rows_received:,}",
+            f"Usable rows: {result.usable_rows:,}",
+            f"Ignored rows: {result.ignored_rows:,}",
+        ]
+
+        if not result.data.empty:
+            summary_lines.extend(
+                [
+                    "",
+                    "History: "
+                    f"{result.data.iloc[0]['Date']} "
+                    "through "
+                    f"{result.data.iloc[-1]['Date']}",
+                ]
+            )
+
+        if result.warnings:
+            summary_lines.append("")
+            summary_lines.append("Warnings:")
+
+            for warning in result.warnings:
+                summary_lines.append(
+                    f"• {warning}"
+                )
+
+        summary_lines.extend(
+            [
+                "",
+                "Preview only — no fund data "
+                "has been changed.",
+            ]
+        )
+
         message = QLabel(
-            "Clipboard preview only — "
-            "no fund data has been changed."
+            "\n".join(summary_lines)
         )
         message.setAlignment(
-            Qt.AlignmentFlag.AlignCenter
+            Qt.AlignmentFlag.AlignLeft
         )
         layout.addWidget(message)
 
         preview = QPlainTextEdit()
         preview.setReadOnly(True)
-        preview.setPlainText(text)
+        preview.setPlainText(
+            result.data.to_csv(index=False)
+        )
         layout.addWidget(preview, 1)
 
-        close_button = QPushButton("Close Preview")
+        close_button = QPushButton(
+            "Close Preview"
+        )
         close_button.setMinimumHeight(40)
-        close_button.clicked.connect(dialog.accept)
+        close_button.clicked.connect(
+            dialog.accept
+        )
         layout.addWidget(close_button)
 
         dialog.exec()
