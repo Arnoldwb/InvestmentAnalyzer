@@ -29,7 +29,7 @@ class TextReport(BaseReport):
         builder = ReportBuilder()
 
         builder.title(
-            "Investment Analyzer\n" "Version 5.3\n" "Portfolio Analysis Report"
+            "Investment Analyzer\n" "Version 5.4\n" "Portfolio Analysis Report"
         )
 
         builder.field("Generated:", self.timestamp)
@@ -301,7 +301,7 @@ class TextReport(BaseReport):
 
         builder.title(
             "Investment Analyzer\n"
-            "Version 5.3\n"
+            "Version 5.4\n"
             "Monte Carlo Portfolio Analysis Report"
         )
 
@@ -441,7 +441,7 @@ class TextReport(BaseReport):
 
         builder.title(
             "Investment Analyzer\n"
-            "Version 5.3\n"
+            "Version 5.4\n"
             "Withdrawal Sustainability Analysis Report"
         )
 
@@ -594,7 +594,7 @@ class TextReport(BaseReport):
 
         builder.title(
             "Investment Analyzer\n"
-            "Version 5.3\n"
+            "Version 5.4\n"
             "Sustainable Withdrawal Analysis Report"
         )
 
@@ -718,7 +718,7 @@ class TextReport(BaseReport):
 
         builder.title(
             "Investment Analyzer\n"
-            "Version 5.3\n"
+            "Version 5.4\n"
             "Withdrawal Strategy Comparison Report"
         )
 
@@ -836,7 +836,7 @@ class TextReport(BaseReport):
         builder = ReportBuilder()
 
         builder.title(
-            "Investment Analyzer\n" "Version 5.3\n" "Portfolio Comparison Report"
+            "Investment Analyzer\n" "Version 5.4\n" "Portfolio Comparison Report"
         )
 
         builder.field("Generated:", self.timestamp)
