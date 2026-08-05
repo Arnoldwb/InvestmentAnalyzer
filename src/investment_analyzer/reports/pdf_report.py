@@ -1,9 +1,12 @@
+from io import BytesIO
+
 from reportlab.lib import colors
 from reportlab.lib.enums import TA_CENTER
 from reportlab.lib.pagesizes import letter
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import inch
 from reportlab.platypus import (
+    Image,
     Paragraph,
     SimpleDocTemplate,
     Spacer,
@@ -19,6 +22,9 @@ from investment_analyzer.analysis.scenario_analyzer import (
 )
 from investment_analyzer.analysis.historical_scenarios import (
     HISTORICAL_SCENARIOS,
+)
+from investment_analyzer.visualization.chart_generator import (
+    ChartGenerator,
 )
 
 from .base_report import BaseReport
@@ -378,6 +384,65 @@ class PDFReport(BaseReport):
                     body_style,
                 )
             )
+
+        story.append(
+            Paragraph(
+                "Portfolio Charts",
+                section_style,
+            )
+        )
+
+        chart_generator = ChartGenerator()
+
+        chart_specs = [
+            (
+                "Growth of $10,000",
+                chart_generator.portfolio_growth_chart(
+                    portfolio,
+                    initial_value=10000.0,
+                ),
+            ),
+            (
+                "Drawdown History",
+                chart_generator.portfolio_drawdown_chart(
+                    portfolio
+                ),
+            ),
+            (
+                "Monthly Returns",
+                chart_generator.portfolio_monthly_returns_chart(
+                    portfolio
+                ),
+            ),
+        ]
+
+        for chart_title, figure in chart_specs:
+            story.append(
+                Paragraph(
+                    chart_title,
+                    styles["Heading3"],
+                )
+            )
+
+            image_buffer = BytesIO()
+
+            figure.savefig(
+                image_buffer,
+                format="png",
+                dpi=150,
+                bbox_inches="tight",
+            )
+
+            image_buffer.seek(0)
+
+            chart_image = Image(
+                image_buffer,
+                width=6.5 * inch,
+                height=3.95 * inch,
+            )
+
+            story.append(chart_image)
+            story.append(Spacer(1, 10))
 
         story.append(
             Paragraph(
