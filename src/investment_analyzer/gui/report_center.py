@@ -1,3 +1,4 @@
+import shutil
 from pathlib import Path
 
 from PySide6.QtCore import Qt, QUrl
@@ -70,6 +71,22 @@ class ReportCenterWindow(QDialog):
             1,
         )
 
+        selector_layout.addWidget(QLabel("Format:"))
+
+        self.format_selector = QComboBox()
+        self.format_selector.addItem(
+            "Text Report",
+            "text",
+        )
+        self.format_selector.addItem(
+            "PDF Report",
+            "pdf",
+        )
+
+        selector_layout.addWidget(
+            self.format_selector
+        )
+
         self.generate_button = QPushButton(
             "Generate Portfolio Report"
         )
@@ -102,6 +119,9 @@ class ReportCenterWindow(QDialog):
         self.save_as_button = QPushButton(
             "Save Report As..."
         )
+        self.open_pdf_button = QPushButton(
+            "Open PDF"
+        )
         self.open_folder_button = QPushButton(
             "Open Reports Folder"
         )
@@ -110,13 +130,18 @@ class ReportCenterWindow(QDialog):
         )
 
         self.save_as_button.setMinimumHeight(40)
+        self.open_pdf_button.setMinimumHeight(40)
         self.open_folder_button.setMinimumHeight(40)
         return_button.setMinimumHeight(40)
 
         self.save_as_button.setEnabled(False)
+        self.open_pdf_button.setEnabled(False)
 
         button_layout.addWidget(
             self.save_as_button
+        )
+        button_layout.addWidget(
+            self.open_pdf_button
         )
         button_layout.addWidget(
             self.open_folder_button
@@ -131,6 +156,9 @@ class ReportCenterWindow(QDialog):
         self.save_as_button.clicked.connect(
             self.save_report_as
         )
+        self.open_pdf_button.clicked.connect(
+            self.open_pdf
+        )
         self.open_folder_button.clicked.connect(
             self.open_reports_folder
         )
@@ -144,7 +172,7 @@ class ReportCenterWindow(QDialog):
 
     def save_report_as(self):
         """
-        Save a copy of the currently displayed report.
+        Save a copy of the currently generated report.
         """
 
         if self.current_report_path is None:
@@ -157,11 +185,22 @@ class ReportCenterWindow(QDialog):
 
         suggested_name = self.current_report_path.name
 
+        if self.current_report_path.suffix.lower() == ".pdf":
+            file_filter = (
+                "PDF Files (*.pdf);;All Files (*)"
+            )
+            default_suffix = ".pdf"
+        else:
+            file_filter = (
+                "Text Files (*.txt);;All Files (*)"
+            )
+            default_suffix = ".txt"
+
         filename, _ = QFileDialog.getSaveFileName(
             self,
             "Save Report As",
             suggested_name,
-            "Text Files (*.txt);;All Files (*)",
+            file_filter,
         )
 
         if not filename:
@@ -170,13 +209,25 @@ class ReportCenterWindow(QDialog):
         destination = Path(filename)
 
         if destination.suffix == "":
-            destination = destination.with_suffix(".txt")
+            destination = destination.with_suffix(
+                default_suffix
+            )
 
         try:
-            destination.write_text(
-                self.report_viewer.toPlainText(),
-                encoding="utf-8",
-            )
+            if (
+                self.current_report_path.suffix.lower()
+                == ".pdf"
+            ):
+                shutil.copy2(
+                    self.current_report_path,
+                    destination,
+                )
+            else:
+                destination.write_text(
+                    self.report_viewer.toPlainText(),
+                    encoding="utf-8",
+                )
+
         except Exception as error:
             QMessageBox.critical(
                 self,
@@ -189,6 +240,36 @@ class ReportCenterWindow(QDialog):
         self.status_label.setText(
             f"Report saved as {destination.name}"
         )
+
+    def open_pdf(self):
+        """
+        Open the currently generated PDF report.
+        """
+
+        if (
+            self.current_report_path is None
+            or self.current_report_path.suffix.lower()
+            != ".pdf"
+        ):
+            QMessageBox.warning(
+                self,
+                "Open PDF",
+                "Generate a PDF report first.",
+            )
+            return
+
+        opened = QDesktopServices.openUrl(
+            QUrl.fromLocalFile(
+                str(self.current_report_path)
+            )
+        )
+
+        if not opened:
+            QMessageBox.warning(
+                self,
+                "Open PDF",
+                "Unable to open the PDF report.",
+            )
 
     def open_reports_folder(self):
         """
@@ -213,7 +294,7 @@ class ReportCenterWindow(QDialog):
 
     def generate_report(self):
         """
-        Generate and display a report for the selected portfolio.
+        Generate a report for the selected portfolio.
         """
 
         filename = self.portfolio_selector.currentData()
@@ -224,17 +305,44 @@ class ReportCenterWindow(QDialog):
             )
             return
 
+        report_format = self.format_selector.currentData()
+
         try:
             portfolio = load_portfolio(filename)
 
             manager = ReportManager()
-            path = manager.create_portfolio_report(
-                portfolio
-            )
 
-            report_text = path.read_text(
-                encoding="utf-8"
-            )
+            if report_format == "pdf":
+                path = (
+                    manager.create_portfolio_pdf_report(
+                        portfolio
+                    )
+                )
+
+                self.report_viewer.setPlainText(
+                    "PDF report generated successfully.\n\n"
+                    f"Portfolio: {portfolio.name}\n"
+                    f"File: {path.name}\n\n"
+                    "Use Open PDF to view the complete "
+                    "graphical report."
+                )
+
+                self.open_pdf_button.setEnabled(True)
+
+            else:
+                path = manager.create_portfolio_report(
+                    portfolio
+                )
+
+                report_text = path.read_text(
+                    encoding="utf-8"
+                )
+
+                self.report_viewer.setPlainText(
+                    report_text
+                )
+
+                self.open_pdf_button.setEnabled(False)
 
         except Exception as error:
             QMessageBox.critical(
@@ -246,7 +354,6 @@ class ReportCenterWindow(QDialog):
             return
 
         self.current_report_path = path
-        self.report_viewer.setPlainText(report_text)
         self.save_as_button.setEnabled(True)
 
         self.status_label.setText(
