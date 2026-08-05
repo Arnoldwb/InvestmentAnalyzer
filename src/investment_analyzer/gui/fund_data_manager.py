@@ -1,9 +1,11 @@
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QUrl
+from PySide6.QtGui import QDesktopServices
 from PySide6.QtWidgets import (
     QDialog,
     QFileDialog,
     QHBoxLayout,
     QLabel,
+    QLineEdit,
     QMessageBox,
     QPushButton,
     QTableWidget,
@@ -54,6 +56,34 @@ class FundDataManagerWindow(QDialog):
             Qt.AlignmentFlag.AlignCenter
         )
         layout.addWidget(description)
+
+        lookup_layout = QHBoxLayout()
+
+        lookup_label = QLabel(
+            "Fund / Stock Symbol:"
+        )
+
+        self.lookup_symbol = QLineEdit()
+        self.lookup_symbol.setPlaceholderText(
+            "Example: VBIAX or AAPL"
+        )
+        self.lookup_symbol.setMaxLength(20)
+
+        self.yahoo_button = QPushButton(
+            "Open Yahoo Finance History"
+        )
+        self.yahoo_button.setMinimumHeight(36)
+
+        lookup_layout.addWidget(lookup_label)
+        lookup_layout.addWidget(
+            self.lookup_symbol,
+            1,
+        )
+        lookup_layout.addWidget(
+            self.yahoo_button
+        )
+
+        layout.addLayout(lookup_layout)
 
         self.table = QTableWidget()
         self.table.setColumnCount(6)
@@ -123,6 +153,17 @@ class FundDataManagerWindow(QDialog):
 
         layout.addLayout(button_layout)
 
+        self.table.itemSelectionChanged.connect(
+            self.use_selected_symbol
+        )
+
+        self.yahoo_button.clicked.connect(
+            self.open_yahoo_history
+        )
+        self.lookup_symbol.returnPressed.connect(
+            self.open_yahoo_history
+        )
+
         self.import_button.clicked.connect(
             self.import_csv
         )
@@ -135,6 +176,80 @@ class FundDataManagerWindow(QDialog):
         close_button.clicked.connect(self.accept)
 
         self.refresh_library()
+
+    def use_selected_symbol(self):
+        """
+        Put the selected fund symbol into the lookup box.
+        """
+
+        row = self.table.currentRow()
+
+        if row < 0:
+            return
+
+        item = self.table.item(
+            row,
+            0,
+        )
+
+        if item is None:
+            return
+
+        self.lookup_symbol.setText(
+            item.text()
+        )
+
+    def open_yahoo_history(self):
+        """
+        Open Yahoo Finance historical data for a symbol.
+        """
+
+        symbol = (
+            self.lookup_symbol.text()
+            .strip()
+            .upper()
+        )
+
+        if not symbol:
+            QMessageBox.warning(
+                self,
+                "Yahoo Finance Lookup",
+                "Enter a fund or stock symbol first.",
+            )
+            return
+
+        allowed = set(
+            "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+            "0123456789.-^="
+        )
+
+        if any(
+            character not in allowed
+            for character in symbol
+        ):
+            QMessageBox.warning(
+                self,
+                "Yahoo Finance Lookup",
+                "The symbol contains unsupported characters.",
+            )
+            return
+
+        self.lookup_symbol.setText(symbol)
+
+        url = QUrl(
+            "https://finance.yahoo.com/quote/"
+            f"{symbol}/history/"
+        )
+
+        opened = QDesktopServices.openUrl(url)
+
+        if not opened:
+            QMessageBox.warning(
+                self,
+                "Yahoo Finance Lookup",
+                "Unable to open Yahoo Finance "
+                "in the web browser.",
+            )
 
     def refresh_library(self):
         """
