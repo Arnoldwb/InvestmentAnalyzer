@@ -37,6 +37,7 @@ from investment_analyzer.core.portfolio_storage import (
 )
 from investment_analyzer.models.portfolio import Portfolio
 from investment_analyzer.gui.chart_viewer import ChartViewerWindow
+from investment_analyzer.gui.fund_data_manager import FundDataManagerWindow
 from investment_analyzer.gui.report_center import ReportCenterWindow
 from investment_analyzer.visualization.chart_generator import (
     ChartGenerator,
@@ -1327,7 +1328,7 @@ class InvestmentAnalyzerWindow(QMainWindow):
         title_font.setBold(True)
         title.setFont(title_font)
 
-        subtitle = QLabel("Version 5.4")
+        subtitle = QLabel("Version 5.5")
         subtitle.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         subtitle_font = subtitle.font()
@@ -1344,6 +1345,9 @@ class InvestmentAnalyzerWindow(QMainWindow):
         layout.addWidget(description)
         layout.addSpacing(30)
 
+        self.fund_data_button = QPushButton(
+            "Fund Data Manager"
+        )
         self.portfolio_builder_button = QPushButton(
             "Portfolio Builder"
         )
@@ -1398,6 +1402,7 @@ class InvestmentAnalyzerWindow(QMainWindow):
         self.exit_button = QPushButton("Exit")
 
         for button in (
+            self.fund_data_button,
             self.portfolio_builder_button,
             self.portfolio_button,
             self.chart_viewer_button,
@@ -1411,11 +1416,14 @@ class InvestmentAnalyzerWindow(QMainWindow):
         layout.addStretch()
 
         status = QLabel(
-            "Version 5.4 Report Center"
+            "Version 5.5 Fund Data Management"
         )
         status.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(status)
 
+        self.fund_data_button.clicked.connect(
+            self.open_fund_data_manager
+        )
         self.portfolio_builder_button.clicked.connect(
             self.open_portfolio_builder
         )
@@ -1429,6 +1437,14 @@ class InvestmentAnalyzerWindow(QMainWindow):
             self.open_report_center
         )
         self.exit_button.clicked.connect(self.close)
+
+    def open_fund_data_manager(self):
+        """
+        Open the Fund Data Manager window.
+        """
+
+        window = FundDataManagerWindow(self)
+        window.exec()
 
     def open_portfolio_builder(self):
         """
