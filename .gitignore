@@ -32,3 +32,6 @@ dist/
 
 # Local secrets
 .env
+
+# Automatic fund data backups
+data_backups/
