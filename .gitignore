@@ -29,3 +29,6 @@ output/
 # PyInstaller build artifacts
 build/
 dist/
+
+# Local secrets
+.env
