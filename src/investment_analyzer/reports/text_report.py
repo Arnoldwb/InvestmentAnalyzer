@@ -1,3 +1,4 @@
+from investment_analyzer import __version__
 from investment_analyzer.analysis.portfolio_analyzer import PortfolioAnalyzer
 from investment_analyzer.analysis.portfolio_comparator import PortfolioComparator
 from investment_analyzer.analysis.monte_carlo_analyzer import MonteCarloAnalyzer
@@ -29,7 +30,7 @@ class TextReport(BaseReport):
         builder = ReportBuilder()
 
         builder.title(
-            "Investment Analyzer\n" "Version 5.4\n" "Portfolio Analysis Report"
+            "Investment Analyzer\n" f"Version {__version__}\n" "Portfolio Analysis Report"
         )
 
         builder.field("Generated:", self.timestamp)
@@ -301,7 +302,7 @@ class TextReport(BaseReport):
 
         builder.title(
             "Investment Analyzer\n"
-            "Version 5.4\n"
+            f"Version {__version__}\n"
             "Monte Carlo Portfolio Analysis Report"
         )
 
@@ -441,7 +442,7 @@ class TextReport(BaseReport):
 
         builder.title(
             "Investment Analyzer\n"
-            "Version 5.4\n"
+            f"Version {__version__}\n"
             "Withdrawal Sustainability Analysis Report"
         )
 
@@ -594,7 +595,7 @@ class TextReport(BaseReport):
 
         builder.title(
             "Investment Analyzer\n"
-            "Version 5.4\n"
+            f"Version {__version__}\n"
             "Sustainable Withdrawal Analysis Report"
         )
 
@@ -718,7 +719,7 @@ class TextReport(BaseReport):
 
         builder.title(
             "Investment Analyzer\n"
-            "Version 5.4\n"
+            f"Version {__version__}\n"
             "Withdrawal Strategy Comparison Report"
         )
 
@@ -836,7 +837,7 @@ class TextReport(BaseReport):
         builder = ReportBuilder()
 
         builder.title(
-            "Investment Analyzer\n" "Version 5.4\n" "Portfolio Comparison Report"
+            "Investment Analyzer\n" f"Version {__version__}\n" "Portfolio Comparison Report"
         )
 
         builder.field("Generated:", self.timestamp)

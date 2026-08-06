@@ -15,6 +15,7 @@ from reportlab.platypus import (
     TableStyle,
 )
 
+from investment_analyzer import __version__
 from investment_analyzer.analysis.portfolio_analyzer import (
     PortfolioAnalyzer,
 )
@@ -108,7 +109,7 @@ class PDFReport(BaseReport):
         )
         story.append(
             Paragraph(
-                "Version 5.4<br/>Portfolio Analysis Report",
+                f"Version {__version__}<br/>Portfolio Analysis Report",
                 subtitle_style,
             )
         )

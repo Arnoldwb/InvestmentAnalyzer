@@ -21,6 +21,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from investment_analyzer import __version__
 from investment_analyzer.analysis.monte_carlo_analyzer import (
     MonteCarloAnalyzer,
 )
@@ -1328,7 +1329,7 @@ class InvestmentAnalyzerWindow(QMainWindow):
         title_font.setBold(True)
         title.setFont(title_font)
 
-        subtitle = QLabel("Version 5.5")
+        subtitle = QLabel(f"Version {__version__}")
         subtitle.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         subtitle_font = subtitle.font()
@@ -1416,7 +1417,7 @@ class InvestmentAnalyzerWindow(QMainWindow):
         layout.addStretch()
 
         status = QLabel(
-            "Version 5.5 Fund Data Management"
+            f"Version {__version__} Fund Data Management"
         )
         status.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(status)
