@@ -21,6 +21,9 @@ from PySide6.QtWidgets import (
 from investment_analyzer.core.fund_data_manager import (
     FundDataManager,
 )
+from investment_analyzer.core.fund_data_updater import (
+    FundDataUpdater,
+)
 from investment_analyzer.core.fund_library import (
     FundLibrary,
 )
@@ -154,6 +157,9 @@ class FundDataManagerWindow(QDialog):
         self.validate_button = QPushButton(
             "Validate All Funds"
         )
+        self.update_button = QPushButton(
+            "Check for Updates"
+        )
         close_button = QPushButton(
             "Return to Investment Analyzer"
         )
@@ -162,6 +168,7 @@ class FundDataManagerWindow(QDialog):
             self.import_button,
             self.remove_button,
             self.validate_button,
+            self.update_button,
             close_button,
         ):
             button.setMinimumHeight(40)
@@ -191,6 +198,9 @@ class FundDataManagerWindow(QDialog):
         )
         self.validate_button.clicked.connect(
             self.validate_all_funds
+        )
+        self.update_button.clicked.connect(
+            self.check_for_updates
         )
         close_button.clicked.connect(self.accept)
 
@@ -582,6 +592,78 @@ class FundDataManagerWindow(QDialog):
             f"{len(entries)} fund(s) available — "
             f"{errors} error(s), "
             f"{warnings} warning(s)"
+        )
+
+    def check_for_updates(self):
+        """
+        Check Tiingo for newer data for the selected fund.
+
+        This operation is read-only and does not modify
+        the fund CSV file.
+        """
+
+        row = self.table.currentRow()
+
+        if row < 0:
+            QMessageBox.warning(
+                self,
+                "Check for Updates",
+                "Select a fund first.",
+            )
+            return
+
+        symbol_item = self.table.item(row, 0)
+
+        if symbol_item is None:
+            return
+
+        symbol = symbol_item.text().strip().upper()
+
+        try:
+            updater = FundDataUpdater()
+            preview = updater.preview_update(symbol)
+
+        except Exception as error:
+            QMessageBox.critical(
+                self,
+                "Update Check Error",
+                f"Unable to check {symbol} for updates:\n\n"
+                f"{error}",
+            )
+            return
+
+        current_date = preview.current_last_date.strftime(
+            "%b %d, %Y"
+        )
+
+        if preview.tiingo_last_date is not None:
+            tiingo_date = preview.tiingo_last_date.strftime(
+                "%b %d, %Y"
+            )
+        else:
+            tiingo_date = "Unknown"
+
+        if preview.update_available:
+            message = (
+                f"Fund: {symbol}\n\n"
+                f"Current data through: {current_date}\n"
+                f"Tiingo data through: {tiingo_date}\n\n"
+                f"New rows available: {preview.new_rows:,}\n\n"
+                "No files have been changed."
+            )
+        else:
+            message = (
+                f"Fund: {symbol}\n\n"
+                f"Current data through: {current_date}\n"
+                f"Tiingo data through: {tiingo_date}\n\n"
+                "This fund is already up to date.\n\n"
+                "No files have been changed."
+            )
+
+        QMessageBox.information(
+            self,
+            "Fund Update Check",
+            message,
         )
 
     def validate_all_funds(self):
