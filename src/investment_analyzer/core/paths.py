@@ -9,6 +9,7 @@ PROJECT_ROOT = Path.home() / "InvestmentAnalyzer"
 
 # Standard application folders.
 DATA_DIR = PROJECT_ROOT / "data"
+DATA_BACKUP_DIR = PROJECT_ROOT / "data_backups"
 PORTFOLIO_DIR = PROJECT_ROOT / "portfolios"
 REPORTS_DIR = PROJECT_ROOT / "reports"
 OUTPUT_DIR = PROJECT_ROOT / "output"
@@ -22,6 +23,7 @@ def ensure_application_directories() -> None:
 
     for directory in (
         DATA_DIR,
+        DATA_BACKUP_DIR,
         PORTFOLIO_DIR,
         REPORTS_DIR,
         OUTPUT_DIR,
