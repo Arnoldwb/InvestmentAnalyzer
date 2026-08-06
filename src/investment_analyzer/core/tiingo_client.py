@@ -10,6 +10,8 @@ from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 
+from investment_analyzer.core.paths import PROJECT_ROOT
+
 
 class TiingoError(Exception):
     """Raised when a Tiingo API request fails."""
@@ -47,7 +49,7 @@ class TiingoClient:
         if token:
             return token
 
-        env_path = Path(".env")
+        env_path = PROJECT_ROOT / ".env"
 
         if not env_path.exists():
             return ""
