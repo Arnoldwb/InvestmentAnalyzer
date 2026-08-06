@@ -81,7 +81,7 @@ class FundDataManagerWindow(QDialog):
         self.lookup_symbol.setMaxLength(20)
 
         self.yahoo_button = QPushButton(
-            "Open Yahoo Finance History"
+            "Open Yahoo History (Manual)"
         )
         self.yahoo_button.setMinimumHeight(36)
 
@@ -160,6 +160,9 @@ class FundDataManagerWindow(QDialog):
         self.update_button = QPushButton(
             "Check for Updates"
         )
+        self.apply_update_button = QPushButton(
+            "Update Selected Fund"
+        )
         close_button = QPushButton(
             "Return to Investment Analyzer"
         )
@@ -169,6 +172,7 @@ class FundDataManagerWindow(QDialog):
             self.remove_button,
             self.validate_button,
             self.update_button,
+            self.apply_update_button,
             close_button,
         ):
             button.setMinimumHeight(40)
@@ -201,6 +205,9 @@ class FundDataManagerWindow(QDialog):
         )
         self.update_button.clicked.connect(
             self.check_for_updates
+        )
+        self.apply_update_button.clicked.connect(
+            self.update_selected_fund
         )
         close_button.clicked.connect(self.accept)
 
@@ -664,6 +671,130 @@ class FundDataManagerWindow(QDialog):
             self,
             "Fund Update Check",
             message,
+        )
+
+    def update_selected_fund(self):
+        """
+        Safely update the selected fund from Tiingo.
+
+        The user sees the prospective update and must
+        explicitly confirm before any fund data is changed.
+        """
+
+        row = self.table.currentRow()
+
+        if row < 0:
+            QMessageBox.warning(
+                self,
+                "Update Fund",
+                "Select a fund first.",
+            )
+            return
+
+        symbol_item = self.table.item(row, 0)
+
+        if symbol_item is None:
+            return
+
+        symbol = symbol_item.text().strip().upper()
+
+        try:
+            updater = FundDataUpdater()
+            preview = updater.preview_update(symbol)
+
+        except Exception as error:
+            QMessageBox.critical(
+                self,
+                "Update Check Error",
+                f"Unable to check {symbol} for updates:\n\n"
+                f"{error}",
+            )
+            return
+
+        if not preview.update_available:
+            QMessageBox.information(
+                self,
+                "Fund Is Up to Date",
+                f"{symbol} is already up to date through "
+                f"{preview.current_last_date.strftime('%b %d, %Y')}.",
+            )
+            return
+
+        current_date = preview.current_last_date.strftime(
+            "%b %d, %Y"
+        )
+
+        if preview.tiingo_last_date is not None:
+            tiingo_date = preview.tiingo_last_date.strftime(
+                "%b %d, %Y"
+            )
+        else:
+            tiingo_date = "Unknown"
+
+        answer = QMessageBox.question(
+            self,
+            "Confirm Fund Update",
+            f"Update {symbol} from Tiingo?\n\n"
+            f"Current data through: {current_date}\n"
+            f"Tiingo data through: {tiingo_date}\n"
+            f"New rows to add: {preview.new_rows:,}\n\n"
+            "Investment Analyzer will create a backup of "
+            "the existing CSV before replacing it.",
+            QMessageBox.StandardButton.Yes
+            | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.No,
+        )
+
+        if answer != QMessageBox.StandardButton.Yes:
+            return
+
+        try:
+            result = updater.apply_update(
+                symbol,
+                preview=preview,
+            )
+
+        except Exception as error:
+            QMessageBox.critical(
+                self,
+                "Fund Update Error",
+                f"Unable to update {symbol}:\n\n{error}",
+            )
+            return
+
+        self.refresh_library()
+
+        if not result.updated:
+            QMessageBox.information(
+                self,
+                "Fund Is Up to Date",
+                f"No new data was added to {symbol}.",
+            )
+            return
+
+        validation = result.validation
+
+        last_date = (
+            validation.last_date.strftime("%b %d, %Y")
+            if validation is not None
+            and validation.last_date is not None
+            else "Unknown"
+        )
+
+        backup_name = (
+            result.backup.name
+            if result.backup is not None
+            else "Unknown"
+        )
+
+        QMessageBox.information(
+            self,
+            "Fund Updated",
+            f"{symbol} was successfully updated.\n\n"
+            f"Rows added: {result.rows_added:,}\n"
+            f"Data now through: {last_date}\n"
+            f"Backup created: {backup_name}\n\n"
+            "The updated fund data passed validation.",
         )
 
     def validate_all_funds(self):
