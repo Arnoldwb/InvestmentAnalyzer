@@ -78,7 +78,7 @@ print("Inflation report file verification passed.")
 inflation_text = inflation_filename.read_text()
 
 inflation_required_text = [
-    "Version 4.7",
+    "Version 5.7",
     "Annual Inflation Rate",
     "3.00%",
     "Withdrawal Sustainability Analysis Report",
