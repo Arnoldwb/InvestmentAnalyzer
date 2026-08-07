@@ -160,6 +160,9 @@ class FundDataManagerWindow(QDialog):
         self.update_button = QPushButton(
             "Check for Updates"
         )
+        self.preview_all_button = QPushButton(
+            "Preview All Updates"
+        )
         self.apply_update_button = QPushButton(
             "Update Selected Fund"
         )
@@ -172,6 +175,7 @@ class FundDataManagerWindow(QDialog):
             self.remove_button,
             self.validate_button,
             self.update_button,
+            self.preview_all_button,
             self.apply_update_button,
             close_button,
         ):
@@ -205,6 +209,9 @@ class FundDataManagerWindow(QDialog):
         )
         self.update_button.clicked.connect(
             self.check_for_updates
+        )
+        self.preview_all_button.clicked.connect(
+            self.preview_all_updates
         )
         self.apply_update_button.clicked.connect(
             self.update_selected_fund
@@ -672,6 +679,124 @@ class FundDataManagerWindow(QDialog):
             "Fund Update Check",
             message,
         )
+    def preview_all_updates(self):
+        """
+        Preview Tiingo updates for every fund.
+
+        This operation is read-only. No fund CSV files or
+        backups are created or modified.
+        """
+
+        try:
+            updater = FundDataUpdater()
+            previews = updater.preview_all()
+
+        except Exception as error:
+            QMessageBox.critical(
+                self,
+                "Preview All Updates Error",
+                "Unable to preview fund updates:\n\n"
+                f"{error}",
+            )
+            return
+
+        if not previews:
+            QMessageBox.information(
+                self,
+                "Preview All Updates",
+                "No fund data files were found.",
+            )
+            return
+
+        lines = [
+            "Tiingo Update Preview",
+            "",
+            "No fund data has been changed.",
+            "",
+        ]
+
+        updates_available = 0
+        already_current = 0
+
+        for symbol in sorted(previews):
+            preview = previews[symbol]
+
+            current_date = (
+                preview.current_last_date.strftime(
+                    "%b %d, %Y"
+                )
+            )
+
+            if preview.tiingo_last_date is not None:
+                tiingo_date = (
+                    preview.tiingo_last_date.strftime(
+                        "%b %d, %Y"
+                    )
+                )
+            else:
+                tiingo_date = "Unknown"
+
+            if preview.update_available:
+                updates_available += 1
+
+                lines.extend(
+                    [
+                        f"{symbol}: UPDATE AVAILABLE",
+                        f"  Current data: {current_date}",
+                        f"  Tiingo data:   {tiingo_date}",
+                        f"  New rows:      {preview.new_rows:,}",
+                        "",
+                    ]
+                )
+
+            else:
+                already_current += 1
+
+                lines.extend(
+                    [
+                        f"{symbol}: Up to date",
+                        f"  Data through: {current_date}",
+                        "",
+                    ]
+                )
+
+        lines.extend(
+            [
+                "Summary",
+                "-------",
+                f"Funds checked: {len(previews)}",
+                f"Updates available: {updates_available}",
+                f"Already up to date: {already_current}",
+                "",
+                "No files were changed.",
+            ]
+        )
+
+        dialog = QDialog(self)
+        dialog.setWindowTitle(
+            "Tiingo Update Preview"
+        )
+        dialog.resize(650, 600)
+
+        layout = QVBoxLayout(dialog)
+
+        message = QPlainTextEdit()
+        message.setReadOnly(True)
+        message.setPlainText(
+            "\n".join(lines)
+        )
+
+        layout.addWidget(message)
+
+        close_button = QPushButton("Close")
+        close_button.setMinimumHeight(40)
+        close_button.clicked.connect(
+            dialog.accept
+        )
+
+        layout.addWidget(close_button)
+
+        dialog.exec()
 
     def update_selected_fund(self):
         """
