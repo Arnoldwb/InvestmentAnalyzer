@@ -257,6 +257,139 @@ def test_invalid_update_does_not_replace_original():
         )
 
 
+def test_preview_all_funds_is_read_only():
+    test_root = Path(
+        tempfile.mkdtemp(
+            prefix="investment_analyzer_test_all_"
+        )
+    )
+
+    try:
+        data_dir = test_root / "data"
+        backup_dir = test_root / "backups"
+
+        data_dir.mkdir()
+        backup_dir.mkdir()
+
+        header = (
+            "Date,Open,High,Low,Close,Adj Close,Volume"
+        )
+
+        for symbol in ("AAA", "BBB", "CCC"):
+            rows = [header]
+
+            start_date = date(2026, 7, 1)
+
+            for number in range(24):
+                current_date = (
+                    start_date
+                    + timedelta(days=number)
+                )
+
+                price = 100 + number
+
+                rows.append(
+                    f"{current_date.strftime('%d-%b-%y')},"
+                    f"{price},{price + 1},{price - 1},"
+                    f"{price},{price},1000"
+                )
+
+            (data_dir / f"{symbol}.csv").write_text(
+                "\n".join(rows) + "\n"
+            )
+
+        before = {
+            path.name: path.read_text()
+            for path in data_dir.glob("*.csv")
+        }
+
+        class BatchFakeTiingoClient:
+            def get_metadata(self, symbol):
+                return {
+                    "endDate": "2026-08-05",
+                }
+
+            def get_prices(
+                self,
+                symbol,
+                start_date=None,
+                end_date=None,
+            ):
+                return [
+                    {
+                        "date": "2026-08-04T00:00:00.000Z",
+                        "open": 124.0,
+                        "high": 125.0,
+                        "low": 123.0,
+                        "close": 124.5,
+                        "adjClose": 124.5,
+                        "volume": 1000,
+                    },
+                    {
+                        "date": "2026-08-05T00:00:00.000Z",
+                        "open": 125.0,
+                        "high": 126.0,
+                        "low": 124.0,
+                        "close": 125.5,
+                        "adjClose": 125.5,
+                        "volume": 1100,
+                    },
+                ]
+
+        updater = FundDataUpdater(
+            client=BatchFakeTiingoClient(),
+            data_dir=data_dir,
+            backup_dir=backup_dir,
+        )
+
+        results = updater.preview_all()
+
+        assert set(results) == {
+            "AAA",
+            "BBB",
+            "CCC",
+        }
+
+        for symbol, preview in results.items():
+            assert preview.symbol == symbol
+            assert preview.update_available
+            assert preview.new_rows == 2
+
+        after = {
+            path.name: path.read_text()
+            for path in data_dir.glob("*.csv")
+        }
+
+        assert after == before
+
+        assert not list(
+            backup_dir.glob("*.csv")
+        )
+
+        print(
+            "PASS: Preview-all discovered all three funds."
+        )
+        print(
+            "PASS: Preview-all detected 2 new rows for each fund."
+        )
+        print(
+            "PASS: Preview-all did not modify any fund CSV."
+        )
+        print(
+            "PASS: Preview-all created no backups."
+        )
+        print(
+            "PASS: Read-only batch preview test completed."
+        )
+
+    finally:
+        shutil.rmtree(
+            test_root,
+            ignore_errors=True,
+        )
+
+
 if __name__ == "__main__":
     test_safe_tiingo_update()
     test_invalid_update_does_not_replace_original()
+    test_preview_all_funds_is_read_only()

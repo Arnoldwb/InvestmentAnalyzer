@@ -235,6 +235,26 @@ class FundDataUpdater:
 
         return pd.DataFrame(rows)
 
+    def preview_all(self) -> dict[str, UpdatePreview]:
+        """
+        Preview Tiingo updates for every fund in the data library.
+
+        This operation is read-only. No fund CSV files or backups
+        are created or modified.
+        """
+
+        results = {}
+
+        for path in sorted(self.data_dir.glob("*.csv")):
+            symbol = path.stem.strip().upper()
+
+            if not symbol:
+                continue
+
+            results[symbol] = self.preview_update(symbol)
+
+        return results
+
     def apply_update(
         self,
         symbol: str,
