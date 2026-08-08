@@ -77,7 +77,7 @@ class TiingoClient:
             headers={
                 "Authorization": f"Token {self.token}",
                 "Accept": "application/json",
-                "User-Agent": "InvestmentAnalyzer/5.7",
+                "User-Agent": "InvestmentAnalyzer/5.13",
             },
         )
 

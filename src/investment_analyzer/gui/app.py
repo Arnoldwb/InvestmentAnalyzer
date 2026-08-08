@@ -1400,7 +1400,17 @@ class InvestmentAnalyzerWindow(QMainWindow):
         )
 
         self.reports_button = QPushButton("Reports")
-        self.exit_button = QPushButton("Exit")
+        self.exit_button = QPushButton("EXIT")
+        self.exit_button.setFixedWidth(120)
+        self.exit_button.setMinimumHeight(48)
+        self.exit_button.setStyleSheet(
+            "QPushButton {"
+            " background-color: black;"
+            " color: white;"
+            " font-weight: bold;"
+            " font-size: 18px;"
+            "}"
+        )
 
         for button in (
             self.fund_data_button,
@@ -1409,10 +1419,14 @@ class InvestmentAnalyzerWindow(QMainWindow):
             self.chart_viewer_button,
             self.monte_carlo_button,
             self.reports_button,
-            self.exit_button,
         ):
             button.setMinimumHeight(48)
             layout.addWidget(button)
+
+        layout.addWidget(
+            self.exit_button,
+            alignment=Qt.AlignmentFlag.AlignHCenter,
+        )
 
         layout.addStretch()
 
