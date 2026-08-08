@@ -44,7 +44,7 @@ class FundDataManagerWindow(QDialog):
         self.library = FundLibrary()
 
         self.setWindowTitle("Fund Data Manager")
-        self.resize(1000, 650)
+        self.resize(900, 650)
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(25, 20, 25, 20)
@@ -104,6 +104,16 @@ class FundDataManagerWindow(QDialog):
 
         layout.addLayout(lookup_layout)
 
+        source_note = QLabel(
+            "Data Sources: Tiingo updates existing funds automatically. "
+            "Yahoo/manual paste is used only for manual historical-data imports."
+        )
+        source_note.setAlignment(
+            Qt.AlignmentFlag.AlignCenter
+        )
+        source_note.setWordWrap(True)
+        layout.addWidget(source_note)
+
         self.table = QTableWidget()
         self.table.setColumnCount(6)
 
@@ -146,7 +156,7 @@ class FundDataManagerWindow(QDialog):
         )
         layout.addWidget(self.status_label)
 
-        button_layout = QHBoxLayout()
+        data_button_layout = QHBoxLayout()
 
         self.import_button = QPushButton(
             "Import CSV..."
@@ -160,6 +170,20 @@ class FundDataManagerWindow(QDialog):
         self.details_button = QPushButton(
             "View Fund Details"
         )
+
+        for button in (
+            self.import_button,
+            self.remove_button,
+            self.validate_button,
+            self.details_button,
+        ):
+            button.setMinimumHeight(40)
+            data_button_layout.addWidget(button)
+
+        layout.addLayout(data_button_layout)
+
+        update_button_layout = QHBoxLayout()
+
         self.update_button = QPushButton(
             "Check for Updates"
         )
@@ -169,24 +193,40 @@ class FundDataManagerWindow(QDialog):
         self.apply_update_button = QPushButton(
             "Update Selected Fund"
         )
-        close_button = QPushButton(
-            "Return to Investment Analyzer"
-        )
 
         for button in (
-            self.import_button,
-            self.remove_button,
-            self.validate_button,
-            self.details_button,
             self.update_button,
             self.preview_all_button,
             self.apply_update_button,
-            close_button,
         ):
             button.setMinimumHeight(40)
-            button_layout.addWidget(button)
+            update_button_layout.addWidget(button)
 
-        layout.addLayout(button_layout)
+        layout.addLayout(update_button_layout)
+
+        navigation_layout = QHBoxLayout()
+
+        close_button = QPushButton(
+            "Return to Investment Analyzer"
+        )
+        close_button.setMinimumHeight(40)
+        close_button.setFixedWidth(260)
+        close_button.setStyleSheet(
+            "QPushButton {"
+            " background-color: black;"
+            " color: white;"
+            " font-weight: bold;"
+            "}"
+            "QPushButton:hover {"
+            " background-color: #333333;"
+            "}"
+        )
+
+        navigation_layout.addStretch()
+        navigation_layout.addWidget(close_button)
+        navigation_layout.addStretch()
+
+        layout.addLayout(navigation_layout)
 
         self.table.itemSelectionChanged.connect(
             self.use_selected_symbol
