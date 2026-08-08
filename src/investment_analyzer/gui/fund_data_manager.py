@@ -389,12 +389,51 @@ class FundDataManagerWindow(QDialog):
         replace = False
 
         if existing is not None:
+            current_first_date = (
+                existing.first_date.strftime("%b %d, %Y")
+                if existing.first_date is not None
+                else "Unknown"
+            )
+
+            current_last_date = (
+                existing.last_date.strftime("%b %d, %Y")
+                if existing.last_date is not None
+                else "Unknown"
+            )
+
+            new_first_date = (
+                validation.first_date.strftime("%b %d, %Y")
+                if validation.first_date is not None
+                else "Unknown"
+            )
+
+            new_last_date = (
+                validation.last_date.strftime("%b %d, %Y")
+                if validation.last_date is not None
+                else "Unknown"
+            )
+
+            message = (
+                f"{validation.symbol} already exists.\n\n"
+                "CURRENT DATA\n"
+                "------------\n"
+                f"Usable rows: {existing.usable_rows:,}\n"
+                f"First date:  {current_first_date}\n"
+                f"Last date:   {current_last_date}\n\n"
+                "NEW DATA\n"
+                "--------\n"
+                f"Usable rows: {validation.usable_rows:,}\n"
+                f"First date:  {new_first_date}\n"
+                f"Last date:   {new_last_date}\n\n"
+                "The existing CSV will be backed up before "
+                "the replacement is made.\n\n"
+                "Replace the existing fund?"
+            )
+
             answer = QMessageBox.question(
                 self,
                 "Replace Existing Fund?",
-                f"{symbol} already exists.\n\n"
-                "Replace its existing historical data "
-                "with the clipboard data?",
+                message,
                 QMessageBox.StandardButton.Yes
                 | QMessageBox.StandardButton.No,
                 QMessageBox.StandardButton.No,
@@ -404,7 +443,6 @@ class FundDataManagerWindow(QDialog):
                 return
 
             replace = True
-
         try:
             with tempfile.TemporaryDirectory() as folder:
                 temporary_csv = (
