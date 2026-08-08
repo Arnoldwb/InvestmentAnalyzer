@@ -157,6 +157,9 @@ class FundDataManagerWindow(QDialog):
         self.validate_button = QPushButton(
             "Validate All Funds"
         )
+        self.details_button = QPushButton(
+            "View Fund Details"
+        )
         self.update_button = QPushButton(
             "Check for Updates"
         )
@@ -174,6 +177,7 @@ class FundDataManagerWindow(QDialog):
             self.import_button,
             self.remove_button,
             self.validate_button,
+            self.details_button,
             self.update_button,
             self.preview_all_button,
             self.apply_update_button,
@@ -206,6 +210,9 @@ class FundDataManagerWindow(QDialog):
         )
         self.validate_button.clicked.connect(
             self.validate_all_funds
+        )
+        self.details_button.clicked.connect(
+            self.show_fund_details
         )
         self.update_button.clicked.connect(
             self.check_for_updates
@@ -607,6 +614,130 @@ class FundDataManagerWindow(QDialog):
             f"{errors} error(s), "
             f"{warnings} warning(s)"
         )
+
+    def show_fund_details(self):
+        """
+        Display read-only details for the selected fund.
+        """
+
+        row = self.table.currentRow()
+
+        if row < 0:
+            QMessageBox.warning(
+                self,
+                "Fund Details",
+                "Select a fund first.",
+            )
+            return
+
+        symbol_item = self.table.item(row, 0)
+
+        if symbol_item is None:
+            return
+
+        symbol = symbol_item.text().strip().upper()
+        entry = self.library.get(symbol)
+
+        if entry is None:
+            QMessageBox.warning(
+                self,
+                "Fund Details",
+                f"{symbol} is no longer available.",
+            )
+            self.refresh_library()
+            return
+
+        lines = [
+            "Fund Details",
+            "",
+            f"Symbol:          {entry.symbol}",
+            f"Status:          {entry.status}",
+            "",
+            "Historical Data",
+            "----------------",
+            f"Usable Rows:     {entry.usable_rows:,}",
+            (
+                "First Date:      "
+                f"{entry.first_date.strftime('%b %d, %Y')}"
+                if entry.first_date is not None
+                else "First Date:      Unknown"
+            ),
+            (
+                "Last Date:       "
+                f"{entry.last_date.strftime('%b %d, %Y')}"
+                if entry.last_date is not None
+                else "Last Date:       Unknown"
+            ),
+            "",
+            "Data File",
+            "---------",
+            f"{entry.path.name}",
+            "",
+            "Portfolio Use",
+            "-------------",
+            f"Used by:         {entry.portfolio_count} portfolio(s)",
+        ]
+
+        if entry.used_by:
+            lines.append("")
+
+            for portfolio in entry.used_by:
+                lines.append(f"• {portfolio}")
+        else:
+            lines.extend(
+                [
+                    "",
+                    "This fund is not currently used by a saved portfolio.",
+                ]
+            )
+
+        if entry.validation.errors:
+            lines.extend(
+                [
+                    "",
+                    "Validation Errors",
+                    "------------------",
+                ]
+            )
+
+            for error in entry.validation.errors:
+                lines.append(f"• {error}")
+
+        if entry.validation.warnings:
+            lines.extend(
+                [
+                    "",
+                    "Validation Warnings",
+                    "--------------------",
+                ]
+            )
+
+            for warning in entry.validation.warnings:
+                lines.append(f"• {warning}")
+
+        dialog = QDialog(self)
+        dialog.setWindowTitle(
+            f"Fund Details — {entry.symbol}"
+        )
+        dialog.resize(600, 500)
+
+        layout = QVBoxLayout(dialog)
+
+        details = QPlainTextEdit()
+        details.setReadOnly(True)
+        details.setPlainText("\n".join(lines))
+
+        layout.addWidget(details)
+
+        close_button = QPushButton("Close")
+        close_button.setMinimumHeight(40)
+        close_button.clicked.connect(
+            dialog.accept
+        )
+
+        layout.addWidget(close_button)
+
+        dialog.exec()
 
     def check_for_updates(self):
         """
