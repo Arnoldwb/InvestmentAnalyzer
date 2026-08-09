@@ -63,7 +63,7 @@ def test_safe_tiingo_update():
 
         fund_file = data_dir / "TEST.csv"
 
-        start_date = date(2026, 7, 11)
+        start_date = date(2024, 8, 1)
 
         rows = [
             "Date,Open,High,Low,Close,Adj Close,Volume"
@@ -71,8 +71,12 @@ def test_safe_tiingo_update():
 
         for number in range(24):
             current_date = (
-                start_date
-                + timedelta(days=number)
+                date(
+                    start_date.year
+                    + (start_date.month - 1 + number) // 12,
+                    (start_date.month - 1 + number) % 12 + 1,
+                    1,
+                )
             )
 
             price = 100 + number
@@ -180,7 +184,7 @@ def test_invalid_update_does_not_replace_original():
 
         fund_file = data_dir / "TEST.csv"
 
-        start_date = date(2026, 7, 11)
+        start_date = date(2024, 8, 1)
 
         rows = [
             "Date,Open,High,Low,Close,Adj Close,Volume"
@@ -188,8 +192,12 @@ def test_invalid_update_does_not_replace_original():
 
         for number in range(24):
             current_date = (
-                start_date
-                + timedelta(days=number)
+                date(
+                    start_date.year
+                    + (start_date.month - 1 + number) // 12,
+                    (start_date.month - 1 + number) % 12 + 1,
+                    1,
+                )
             )
 
             price = 100 + number

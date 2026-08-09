@@ -286,12 +286,24 @@ class PortfolioWindow(QDialog):
             ending_value = growth.iloc[-1]
 
         except Exception as error:
-            QMessageBox.critical(
-                self,
-                "Analysis Error",
-                "Unable to analyze the selected portfolio:"
-                f"\n\n{error}",
-            )
+            if "No common monthly return history" in str(error):
+                QMessageBox.warning(
+                    self,
+                    "Insufficient Historical Data",
+                    "This portfolio cannot be analyzed because "
+                    "one or more funds do not have enough common "
+                    "monthly historical data.\n\n"
+                    "Please import at least 24 months of historical "
+                    "data for each fund in the portfolio, then try "
+                    "again.",
+                )
+            else:
+                QMessageBox.critical(
+                    self,
+                    "Analysis Error",
+                    "Unable to analyze the selected portfolio:"
+                    f"\n\n{error}",
+                )
             return
 
         values = [

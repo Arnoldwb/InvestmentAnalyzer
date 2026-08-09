@@ -44,6 +44,7 @@ class FundDataValidator:
     }
 
     MINIMUM_USABLE_ROWS = 24
+    MINIMUM_HISTORY_MONTHS = 24
 
     def _parse_dates(self, values):
         """
@@ -283,6 +284,24 @@ class FundDataValidator:
                 f"At least {self.MINIMUM_USABLE_ROWS} "
                 "are required."
             )
+
+        if (
+            result.first_date is not None
+            and result.last_date is not None
+        ):
+            history_months = (
+                (result.last_date.year - result.first_date.year) * 12
+                + result.last_date.month
+                - result.first_date.month
+            )
+
+            if history_months < self.MINIMUM_HISTORY_MONTHS:
+                result.errors.append(
+                    "Insufficient historical coverage: "
+                    f"{history_months:,} month(s). "
+                    f"At least {self.MINIMUM_HISTORY_MONTHS} "
+                    "months of history are required."
+                )
 
         if usable_dates.is_monotonic_decreasing:
             result.warnings.append(

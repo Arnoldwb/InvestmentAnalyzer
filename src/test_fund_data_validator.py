@@ -1,22 +1,29 @@
-from datetime import date, timedelta
+from datetime import date
 from pathlib import Path
 import shutil
 import tempfile
+
+import pandas as pd
 
 from investment_analyzer.core.fund_data_validator import (
     FundDataValidator,
 )
 
-
-def make_valid_csv(path, start_date=date(2025, 1, 1), rows=24):
+def make_valid_csv(
+    path,
+    start_date=date(2023, 1, 31),
+    rows=25,
+):
     lines = [
         "Date,Open,High,Low,Close,Adj Close,Volume"
     ]
 
     for number in range(rows):
         current_date = (
-            start_date + timedelta(days=number)
-        )
+            pd.Timestamp(start_date)
+            + pd.DateOffset(months=number)
+        ).date()
+
         price = 100 + number
 
         lines.append(
@@ -42,7 +49,7 @@ def test_valid_csv():
         result = FundDataValidator().validate(file)
 
         assert result.valid
-        assert result.usable_rows == 24
+        assert result.usable_rows == 25
         assert result.first_date is not None
         assert result.last_date is not None
 
@@ -95,8 +102,9 @@ def test_invalid_date():
         make_valid_csv(file)
 
         text = file.read_text()
+
         text = text.replace(
-            "01-Jan-25",
+            "31-Jan-23",
             "NOT-A-DATE",
             1,
         )

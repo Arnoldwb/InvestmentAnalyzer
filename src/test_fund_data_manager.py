@@ -51,7 +51,10 @@ with tempfile.TemporaryDirectory() as folder:
     # Add enough history to satisfy the validator.
     valid_rows = [
         {
-            "Date": f"{month:02d}-Jan-24",
+            "Date": (
+                pd.Timestamp("2023-01-31")
+                + pd.DateOffset(months=month - 1)
+            ).strftime("%d-%b-%y"),
             "Open": 50.00 + month,
             "High": 50.50 + month,
             "Low": 49.50 + month,
@@ -59,7 +62,7 @@ with tempfile.TemporaryDirectory() as folder:
             "Adj Close": 50.00 + month,
             "Volume": "-",
         }
-        for month in range(1, 25)
+        for month in range(1, 26)
     ]
 
     valid_source = root / "TEST.csv"
@@ -123,7 +126,10 @@ with tempfile.TemporaryDirectory() as folder:
 
     replacement_rows = [
         {
-            "Date": f"{month:02d}-Jan-24",
+            "Date": (
+                pd.Timestamp("2023-01-31")
+                + pd.DateOffset(months=month - 1)
+            ).strftime("%d-%b-%y"),
             "Open": 100.00 + month,
             "High": 100.50 + month,
             "Low": 99.50 + month,
@@ -131,7 +137,7 @@ with tempfile.TemporaryDirectory() as folder:
             "Adj Close": 100.00 + month,
             "Volume": "-",
         }
-        for month in range(1, 25)
+        for month in range(1, 26)
     ]
 
     replacement_source = root / "TEST_REPLACEMENT.csv"
