@@ -37,7 +37,41 @@ class PortfolioAnalyzer:
             if fund.data.empty:
                 fund.load_data()
 
-            fund_returns[fund.symbol] = fund.monthly_returns()
+            monthly = fund.monthly_returns()
+            fund_returns[fund.symbol] = monthly
+
+
+        insufficient_history = []
+
+        for holding in self.portfolio.holdings:
+            fund = holding.fund
+            monthly = fund_returns[fund.symbol]
+
+            if len(monthly) < 24:
+                if fund.first_date is not None and fund.last_date is not None:
+                    days = (fund.last_date - fund.first_date).days
+                    months = days / 30.4375
+                    coverage = f"approximately {months:.1f} months"
+                else:
+                    coverage = "insufficient historical coverage"
+
+                insufficient_history.append(
+                    f"{fund.symbol}: {coverage} available; "
+                    "at least 24 months are required."
+                )
+
+        if insufficient_history:
+            details = "\n".join(
+                f"• {message}"
+                for message in insufficient_history
+            )
+
+            raise ValueError(
+                "Insufficient historical data for portfolio analysis.\n\n"
+                f"{details}\n\n"
+                "Please import additional historical data for "
+                "the fund(s) listed above."
+            )
 
         returns = pd.concat(
             fund_returns,
