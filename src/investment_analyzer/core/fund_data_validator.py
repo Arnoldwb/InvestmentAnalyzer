@@ -289,16 +289,16 @@ class FundDataValidator:
             result.first_date is not None
             and result.last_date is not None
         ):
-            history_months = (
-                (result.last_date.year - result.first_date.year) * 12
-                + result.last_date.month
-                - result.first_date.month
-            )
+            history_days = (
+                result.last_date - result.first_date
+            ).days
 
-            if history_months < self.MINIMUM_HISTORY_MONTHS:
+            approximate_months = history_days / 30.4375
+
+            if approximate_months < self.MINIMUM_HISTORY_MONTHS:
                 result.errors.append(
                     "Insufficient historical coverage: "
-                    f"{history_months:,} month(s). "
+                    f"approximately {approximate_months:.1f} month(s). "
                     f"At least {self.MINIMUM_HISTORY_MONTHS} "
                     "months of history are required."
                 )
