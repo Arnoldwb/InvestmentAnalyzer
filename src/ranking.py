@@ -30,10 +30,22 @@ def print_executive_summary(results):
     print("EXECUTIVE SUMMARY")
     print("=" * 80)
 
-    best_return = max(results.items(), key=lambda x: x[1]["CAGR"])
-    lowest_vol = min(results.items(), key=lambda x: x[1]["Volatility"])
-    smallest_dd = max(results.items(), key=lambda x: x[1]["Drawdown"])
-    most_positive = max(results.items(), key=lambda x: x[1]["Positive Years"])
+    best_return = max(
+        results.items(),
+        key=lambda x: x[1]["CAGR"],
+    )
+    lowest_vol = min(
+        results.items(),
+        key=lambda x: x[1]["Volatility"],
+    )
+    smallest_dd = max(
+        results.items(),
+        key=lambda x: x[1]["Drawdown"],
+    )
+    most_positive = max(
+        results.items(),
+        key=lambda x: x[1]["Positive Years"],
+    )
 
     print(
         f"Best Long-Term Performer : "
@@ -52,7 +64,8 @@ def print_executive_summary(results):
 
     print(
         f"Most Positive Years      : "
-        f"{most_positive[0]} ({most_positive[1]['Positive Years']})"
+        f"{most_positive[0]} "
+        f"({most_positive[1]['Positive Years']})"
     )
 
 
@@ -86,24 +99,55 @@ def print_recommendation(results):
     print(f"Positive Years   : {stats['Positive Years']}")
 
     print()
+    print("Reason:")
 
-    if winner == "VGSTX":
-        print("Reason:")
-        print("• Highest long-term growth.")
-        print("• Suitable for investors seeking maximum appreciation.")
-        print("• Accepts somewhat higher volatility for higher returns.")
+    highest_cagr = max(
+        results.values(),
+        key=lambda x: x["CAGR"],
+    )["CAGR"]
 
-    elif winner == "VWENX":
-        print("Reason:")
-        print("• Best balance between return and risk.")
-        print("• Excellent choice for long-term retirement investing.")
+    lowest_volatility = min(
+        results.values(),
+        key=lambda x: x["Volatility"],
+    )["Volatility"]
 
-    elif winner == "VBIAX":
-        print("Reason:")
-        print("• Lowest volatility and smallest drawdown.")
-        print("• Best suited for conservative investors.")
+    smallest_drawdown = max(
+        results.values(),
+        key=lambda x: x["Drawdown"],
+    )["Drawdown"]
 
-    elif winner == "VSMGX":
-        print("Reason:")
-        print("• Good diversification.")
-        print("• Appropriate for moderate growth investors.")
+    most_positive_years = max(
+        results.values(),
+        key=lambda x: x["Positive Years"],
+    )["Positive Years"]
+
+    reasons = []
+
+    if stats["CAGR"] == highest_cagr:
+        reasons.append(
+            "Strongest long-term growth among the funds analyzed."
+        )
+
+    if stats["Volatility"] == lowest_volatility:
+        reasons.append(
+            "Lowest volatility among the funds analyzed."
+        )
+
+    if stats["Drawdown"] == smallest_drawdown:
+        reasons.append(
+            "Smallest maximum drawdown among the funds analyzed."
+        )
+
+    if stats["Positive Years"] == most_positive_years:
+        reasons.append(
+            "Most positive years among the funds analyzed."
+        )
+
+    if not reasons:
+        reasons.append(
+            "Best overall combination of return, risk, "
+            "drawdown, and consistency based on the scoring model."
+        )
+
+    for reason in reasons:
+        print(f"• {reason}")

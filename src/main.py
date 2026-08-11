@@ -2,6 +2,8 @@
 
 from investment_analyzer.analysis.cycle_analyzer import MarketCycleAnalyzer
 from investment_analyzer.core.file_discovery import discover_funds
+from investment_analyzer.core.fund_data_validator import FundDataValidator
+from investment_analyzer.core.paths import DATA_DIR
 from investment_analyzer.core.portfolio_storage import (
     delete_portfolio,
     list_portfolios,
@@ -132,10 +134,28 @@ def analyze_funds(funds):
     """Run the existing performance analysis for every discovered fund."""
     fund_returns = {}
     results = {}
+    validator = FundDataValidator()
 
     print("\nAnalyzing funds...\n")
 
     for symbol in funds:
+        csv_path = DATA_DIR / f"{symbol}.csv"
+        validation = validator.validate(csv_path)
+
+        if not validation.valid:
+            print(f"{symbol}")
+            print("-" * 40)
+            print("SKIPPED - Invalid or insufficient data.")
+
+            for error in validation.errors:
+                print(f"  ERROR: {error}")
+
+            for warning in validation.warnings:
+                print(f"  WARNING: {warning}")
+
+            print()
+            continue
+
         df = load_fund(symbol)
         returns = monthly_returns(df)
         statistics = fund_statistics(returns)
