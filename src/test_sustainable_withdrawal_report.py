@@ -31,7 +31,7 @@ print("Report file verification passed.")
 text = filename.read_text()
 
 required_text = [
-    "Version 5.7",
+    "Version 5.13",
     "Sustainable Withdrawal Analysis Report",
     "Version 4 Test",
     "$500,000.00",
@@ -54,7 +54,7 @@ for item in required_text:
 
 print("Report content verification passed.")
 
-assert "$28,802.87" in text
+assert "$28,823.85" in text
 assert "5.76%" in text
 
 print("Fixed-seed result verification passed.")

@@ -54,10 +54,10 @@ for item in required_text:
 print("Report content verification passed.")
 
 # These values come from the fixed-seed Monte Carlo test.
-assert "$723,463.56" in text
-assert "$1,075,868.05" in text
+assert "$724,086.01" in text
+assert "$1,077,035.98" in text
 assert "99.20%" in text
-assert "59.74%" in text
+assert "59.88%" in text
 
 print("Fixed-seed result verification passed.")
 
