@@ -1,11 +1,26 @@
 from pathlib import Path
+import sys
+
+
+def get_project_root() -> Path:
+    """
+    Return the persistent Investment Analyzer working folder.
+
+    Development runs continue to use the existing project folder.
+    Packaged Mac applications use the dedicated user-data folder.
+
+    This keeps application data independent of the installed
+    application bundle.
+    """
+
+    if getattr(sys, "frozen", False):
+        return Path.home() / "!InvestmentAnalyzer"
+
+    return Path.home() / "InvestmentAnalyzer"
 
 
 # Investment Analyzer's persistent working folder.
-#
-# This location is independent of where the Python source code
-# or packaged Mac application is installed.
-PROJECT_ROOT = Path.home() / "InvestmentAnalyzer"
+PROJECT_ROOT = get_project_root()
 
 # Standard application folders.
 DATA_DIR = PROJECT_ROOT / "data"
