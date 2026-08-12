@@ -182,3 +182,14 @@ class FundLibrary:
             symbol,
             [],
         )
+
+    def usable_symbols(self) -> list[str]:
+        """
+        Return symbols for funds that pass validation.
+        """
+
+        return [
+            entry.symbol
+            for entry in self.entries()
+            if entry.validation.valid
+        ]

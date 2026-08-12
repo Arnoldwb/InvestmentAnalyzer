@@ -28,7 +28,7 @@ from investment_analyzer.analysis.monte_carlo_analyzer import (
 from investment_analyzer.analysis.portfolio_analyzer import (
     PortfolioAnalyzer,
 )
-from investment_analyzer.core.file_discovery import discover_funds
+from investment_analyzer.core.fund_library import FundLibrary
 from investment_analyzer.core.portfolio_storage import (
     delete_portfolio,
     list_portfolios,
@@ -1002,7 +1002,7 @@ class PortfolioBuilderWindow(QDialog):
             ["Fund", "Allocation %"]
         )
 
-        funds = discover_funds()
+        funds = FundLibrary().usable_symbols()
         self.fund_table.setRowCount(len(funds))
 
         for row, symbol in enumerate(funds):
