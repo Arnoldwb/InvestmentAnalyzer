@@ -31,7 +31,7 @@ def test_development_project_root():
 
 def test_packaged_project_root():
     """
-    Packaged Mac applications must use ~/!InvestmentAnalyzer.
+    Packaged Mac applications must use ~/!INVESTMENT_ANALYZER.
     """
 
     original_frozen = getattr(sys, "frozen", None)
@@ -42,7 +42,7 @@ def test_packaged_project_root():
         root = get_project_root()
 
         assert root == (
-            Path.home() / "!InvestmentAnalyzer"
+            Path.home() / "!INVESTMENT_ANALYZER"
         )
 
     finally:

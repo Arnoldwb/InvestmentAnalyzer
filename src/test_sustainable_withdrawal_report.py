@@ -31,7 +31,7 @@ print("Report file verification passed.")
 text = filename.read_text()
 
 required_text = [
-    "Version 5.13",
+    "Version 5.21",
     "Sustainable Withdrawal Analysis Report",
     "Version 4 Test",
     "$500,000.00",
