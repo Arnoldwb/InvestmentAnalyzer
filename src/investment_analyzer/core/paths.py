@@ -14,7 +14,7 @@ def get_project_root() -> Path:
     """
 
     if getattr(sys, "frozen", False):
-        return Path.home() / "!InvestmentAnalyzer"
+        return Path.home() / "!INVESTMENT_ANALYZER"
 
     return Path.home() / "InvestmentAnalyzer"
 
