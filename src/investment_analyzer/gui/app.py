@@ -188,7 +188,46 @@ class PortfolioWindow(QDialog):
         self.interpretation_table.setMaximumHeight(190)
 
         layout.addWidget(self.interpretation_table)
+        stress_title = QLabel("Historical Stress & Drawdowns")
+        stress_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
+        stress_font = stress_title.font()
+        stress_font.setPointSize(16)
+        stress_font.setBold(True)
+        stress_title.setFont(stress_font)
+
+        layout.addWidget(stress_title)
+
+        self.stress_table = QTableWidget()
+        self.stress_table.setColumnCount(2)
+        self.stress_table.setRowCount(4)
+        self.stress_table.setHorizontalHeaderLabels(["Measure", "Historical Result"])
+
+        stress_categories = [
+            "Major Drawdowns",
+            "Largest Historical Decline",
+            "Worst Drawdown Recovery",
+            "Longest Recovery Period",
+        ]
+
+        for row, category in enumerate(stress_categories):
+            self.stress_table.setItem(
+                row,
+                0,
+                QTableWidgetItem(category),
+            )
+            self.stress_table.setItem(
+                row,
+                1,
+                QTableWidgetItem("--"),
+            )
+
+        self.stress_table.horizontalHeader().setStretchLastSection(True)
+        self.stress_table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
+        self.stress_table.setWordWrap(True)
+        self.stress_table.setMaximumHeight(190)
+
+        layout.addWidget(self.stress_table)
         close_button = QPushButton("Return to Investment Analyzer")
         close_button.setMinimumHeight(40)
         close_button.clicked.connect(self.accept)
@@ -267,6 +306,62 @@ class PortfolioWindow(QDialog):
         )
 
         self.display_performance_results(portfolio)
+        self.display_interpretation_results(portfolio)
+        self.display_stress_results(portfolio)
+
+    def display_interpretation_results(self, portfolio):
+        """
+        Display plain-language portfolio interpretation.
+        """
+
+        try:
+            analyzer = PortfolioAnalyzer(portfolio)
+            interpretation = analyzer.interpretation()
+
+        except Exception as error:
+            QMessageBox.critical(
+                self,
+                "Interpretation Error",
+                "Unable to generate portfolio interpretation:" f"\n\n{error}",
+            )
+            return
+
+        self.interpretation_table.setRowCount(4)
+
+        results = [
+            ("Growth", interpretation["growth"]),
+            ("Risk", interpretation["risk"]),
+            ("Drawdown", interpretation["drawdown"]),
+            (
+                "Risk-Adjusted Performance",
+                interpretation["risk_adjusted"],
+            ),
+        ]
+
+        for row, (label, value) in enumerate(results):
+            self.interpretation_table.setItem(
+                row,
+                0,
+                QTableWidgetItem(label),
+            )
+            self.interpretation_table.setItem(
+                row,
+                1,
+                QTableWidgetItem(value),
+            )
+
+        self.interpretation_table.resizeColumnsToContents()
+
+    def clear_stress_results(self):
+        """
+        Clear displayed historical stress results.
+        """
+
+        for row in range(4):
+            item = self.stress_table.item(row, 1)
+
+            if item is not None:
+                item.setText("--")
 
     def clear_interpretation_results(self):
         """
@@ -289,6 +384,59 @@ class PortfolioWindow(QDialog):
 
             if item is not None:
                 item.setText("--")
+
+    def display_stress_results(self, portfolio):
+        """
+        Calculate and display historical stress results.
+        """
+
+        self.clear_stress_results()
+
+        try:
+            analyzer = PortfolioAnalyzer(portfolio)
+            stress = analyzer.stress_interpretation()
+
+        except Exception as error:
+            QMessageBox.critical(
+                self,
+                "Stress Analysis Error",
+                "Unable to generate historical stress analysis:" f"\n\n{error}",
+            )
+            return
+
+        values = [
+            stress.get(
+                "count",
+                "No major drawdowns identified.",
+            ),
+            stress.get(
+                "worst",
+                "No major drawdowns identified.",
+            ),
+            stress.get(
+                "worst_recovery",
+                "No major drawdowns identified.",
+            ),
+            stress.get(
+                "longest_recovery",
+                "No major drawdowns identified.",
+            ),
+        ]
+
+        for row, value in enumerate(values):
+            item = self.stress_table.item(row, 1)
+
+            if item is None:
+                item = QTableWidgetItem()
+                self.stress_table.setItem(
+                    row,
+                    1,
+                    item,
+                )
+
+            item.setText(value)
+
+        self.stress_table.resizeColumnsToContents()
 
     def display_interpretation_results(self, portfolio):
         """
@@ -1108,9 +1256,6 @@ class PortfolioBuilderWindow(QDialog):
         self.total_label.setText(
             f"Total Allocation: " f"{portfolio.total_allocation:.1f}%"
         )
-
-        self.display_performance_results(portfolio)
-        self.display_interpretation_results(portfolio)
 
     def build_portfolio(self):
         """
