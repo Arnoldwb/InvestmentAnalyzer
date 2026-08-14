@@ -1356,7 +1356,16 @@ class InvestmentAnalyzerWindow(QMainWindow):
         layout.addWidget(title)
         layout.addWidget(subtitle)
         layout.addWidget(description)
-        layout.addSpacing(30)
+
+        layout.addSpacing(20)
+
+        fund_section = QLabel("FUND LIBRARY")
+
+        fund_section.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+        fund_section.setStyleSheet("font-weight: bold; font-size: 14px;")
+
+        layout.addWidget(fund_section)
 
         self.fund_data_button = QPushButton(
             "Fund Data Manager"
