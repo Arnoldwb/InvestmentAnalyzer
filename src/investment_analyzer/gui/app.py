@@ -81,9 +81,7 @@ class PortfolioWindow(QDialog):
         layout.addLayout(selector_layout)
 
         self.portfolio_name = QLabel("")
-        self.portfolio_name.setAlignment(
-            Qt.AlignmentFlag.AlignCenter
-        )
+        self.portfolio_name.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         name_font = self.portfolio_name.font()
         name_font.setPointSize(16)
@@ -94,31 +92,19 @@ class PortfolioWindow(QDialog):
 
         self.holdings_table = QTableWidget()
         self.holdings_table.setColumnCount(2)
-        self.holdings_table.setHorizontalHeaderLabels(
-            ["Fund", "Allocation"]
-        )
+        self.holdings_table.setHorizontalHeaderLabels(["Fund", "Allocation"])
 
-        self.holdings_table.horizontalHeader().setStretchLastSection(
-            True
-        )
-        self.holdings_table.setEditTriggers(
-            QTableWidget.EditTrigger.NoEditTriggers
-        )
+        self.holdings_table.horizontalHeader().setStretchLastSection(True)
+        self.holdings_table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
 
         layout.addWidget(self.holdings_table)
 
         self.total_label = QLabel("Total Allocation: --")
-        self.total_label.setAlignment(
-            Qt.AlignmentFlag.AlignRight
-        )
+        self.total_label.setAlignment(Qt.AlignmentFlag.AlignRight)
         layout.addWidget(self.total_label)
 
-        performance_title = QLabel(
-            "Portfolio Performance"
-        )
-        performance_title.setAlignment(
-            Qt.AlignmentFlag.AlignCenter
-        )
+        performance_title = QLabel("Portfolio Performance")
+        performance_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         performance_font = performance_title.font()
         performance_font.setPointSize(16)
@@ -130,9 +116,7 @@ class PortfolioWindow(QDialog):
         self.performance_table = QTableWidget()
         self.performance_table.setColumnCount(2)
         self.performance_table.setRowCount(6)
-        self.performance_table.setHorizontalHeaderLabels(
-            ["Statistic", "Value"]
-        )
+        self.performance_table.setHorizontalHeaderLabels(["Statistic", "Value"])
 
         statistics = [
             "CAGR",
@@ -155,19 +139,57 @@ class PortfolioWindow(QDialog):
                 QTableWidgetItem("--"),
             )
 
-        self.performance_table.horizontalHeader().setStretchLastSection(
-            True
-        )
-        self.performance_table.setEditTriggers(
-            QTableWidget.EditTrigger.NoEditTriggers
-        )
+        self.performance_table.horizontalHeader().setStretchLastSection(True)
+        self.performance_table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
         self.performance_table.setMaximumHeight(235)
 
         layout.addWidget(self.performance_table)
+        interpretation_title = QLabel("Portfolio Risk & Interpretation")
+        interpretation_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-        close_button = QPushButton(
-            "Return to Investment Analyzer"
+        interpretation_font = interpretation_title.font()
+        interpretation_font.setPointSize(16)
+        interpretation_font.setBold(True)
+        interpretation_title.setFont(interpretation_font)
+
+        layout.addWidget(interpretation_title)
+
+        self.interpretation_table = QTableWidget()
+        self.interpretation_table.setColumnCount(2)
+        self.interpretation_table.setRowCount(4)
+        self.interpretation_table.setHorizontalHeaderLabels(
+            ["Category", "Interpretation"]
         )
+
+        interpretation_categories = [
+            "Growth",
+            "Risk",
+            "Drawdown",
+            "Risk-Adjusted Performance",
+        ]
+
+        for row, category in enumerate(interpretation_categories):
+            self.interpretation_table.setItem(
+                row,
+                0,
+                QTableWidgetItem(category),
+            )
+            self.interpretation_table.setItem(
+                row,
+                1,
+                QTableWidgetItem("--"),
+            )
+
+        self.interpretation_table.horizontalHeader().setStretchLastSection(True)
+        self.interpretation_table.setEditTriggers(
+            QTableWidget.EditTrigger.NoEditTriggers
+        )
+        self.interpretation_table.setWordWrap(True)
+        self.interpretation_table.setMaximumHeight(190)
+
+        layout.addWidget(self.interpretation_table)
+
+        close_button = QPushButton("Return to Investment Analyzer")
         close_button.setMinimumHeight(40)
         close_button.clicked.connect(self.accept)
 
@@ -203,9 +225,7 @@ class PortfolioWindow(QDialog):
         filename = self.portfolio_selector.currentData()
 
         if not filename:
-            self.portfolio_name.setText(
-                "No saved portfolios found."
-            )
+            self.portfolio_name.setText("No saved portfolios found.")
             self.holdings_table.setRowCount(0)
             self.total_label.setText("Total Allocation: --")
             self.clear_performance_results()
@@ -223,17 +243,11 @@ class PortfolioWindow(QDialog):
 
         self.portfolio_name.setText(portfolio.name)
 
-        self.holdings_table.setRowCount(
-            len(portfolio.holdings)
-        )
+        self.holdings_table.setRowCount(len(portfolio.holdings))
 
         for row, holding in enumerate(portfolio.holdings):
-            symbol_item = QTableWidgetItem(
-                holding.fund.symbol
-            )
-            allocation_item = QTableWidgetItem(
-                f"{holding.allocation:.1f}%"
-            )
+            symbol_item = QTableWidgetItem(holding.fund.symbol)
+            allocation_item = QTableWidgetItem(f"{holding.allocation:.1f}%")
 
             self.holdings_table.setItem(
                 row,
@@ -249,11 +263,21 @@ class PortfolioWindow(QDialog):
         self.holdings_table.resizeColumnsToContents()
 
         self.total_label.setText(
-            f"Total Allocation: "
-            f"{portfolio.total_allocation:.1f}%"
+            f"Total Allocation: " f"{portfolio.total_allocation:.1f}%"
         )
 
         self.display_performance_results(portfolio)
+
+    def clear_interpretation_results(self):
+        """
+        Clear displayed portfolio interpretation text.
+        """
+
+        for row in range(4):
+            item = self.interpretation_table.item(row, 1)
+
+            if item is not None:
+                item.setText("--")
 
     def clear_performance_results(self):
         """
@@ -265,6 +289,47 @@ class PortfolioWindow(QDialog):
 
             if item is not None:
                 item.setText("--")
+
+    def display_interpretation_results(self, portfolio):
+        """
+        Calculate and display plain-language portfolio interpretation.
+        """
+
+        self.clear_interpretation_results()
+
+        try:
+            analyzer = PortfolioAnalyzer(portfolio)
+            interpretation = analyzer.interpretation()
+
+        except Exception as error:
+            QMessageBox.critical(
+                self,
+                "Interpretation Error",
+                "Unable to generate portfolio interpretation:" f"\n\n{error}",
+            )
+            return
+
+        values = [
+            interpretation["growth"],
+            interpretation["risk"],
+            interpretation["drawdown"],
+            interpretation["risk_adjusted"],
+        ]
+
+        for row, value in enumerate(values):
+            item = self.interpretation_table.item(row, 1)
+
+            if item is None:
+                item = QTableWidgetItem()
+                self.interpretation_table.setItem(
+                    row,
+                    1,
+                    item,
+                )
+
+            item.setText(value)
+
+        self.interpretation_table.resizeColumnsToContents()
 
     def display_performance_results(self, portfolio):
         """
@@ -281,7 +346,7 @@ class PortfolioWindow(QDialog):
             volatility = analyzer.annualized_volatility()
             drawdown = analyzer.max_drawdown()
             sharpe = analyzer.sharpe_ratio()
-
+            interpretation = analyzer.interpretation()
             growth = analyzer.growth_index(10000)
             ending_value = growth.iloc[-1]
 
@@ -301,8 +366,7 @@ class PortfolioWindow(QDialog):
                 QMessageBox.critical(
                     self,
                     "Analysis Error",
-                    "Unable to analyze the selected portfolio:"
-                    f"\n\n{error}",
+                    "Unable to analyze the selected portfolio:" f"\n\n{error}",
                 )
             return
 
@@ -330,6 +394,28 @@ class PortfolioWindow(QDialog):
 
         self.performance_table.resizeColumnsToContents()
 
+        interpretation_values = [
+            interpretation["growth"],
+            interpretation["risk"],
+            interpretation["drawdown"],
+            interpretation["risk_adjusted"],
+        ]
+
+        for row, value in enumerate(interpretation_values):
+            item = self.interpretation_table.item(row, 1)
+
+            if item is None:
+                item = QTableWidgetItem()
+                self.interpretation_table.setItem(
+                    row,
+                    1,
+                    item,
+                )
+
+            item.setText(value)
+
+        self.interpretation_table.resizeColumnsToContents()
+
 
 class MonteCarloWindow(QDialog):
     """
@@ -339,18 +425,14 @@ class MonteCarloWindow(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
 
-        self.setWindowTitle(
-            "Monte Carlo & Withdrawal Analysis"
-        )
+        self.setWindowTitle("Monte Carlo & Withdrawal Analysis")
         self.resize(720, 720)
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(30, 25, 30, 25)
         layout.setSpacing(12)
 
-        title = QLabel(
-            "Monte Carlo & Withdrawal Analysis"
-        )
+        title = QLabel("Monte Carlo & Withdrawal Analysis")
         title.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         title_font = title.font()
@@ -408,9 +490,7 @@ class MonteCarloWindow(QDialog):
 
         # Starting value
         value_layout = QHBoxLayout()
-        value_layout.addWidget(
-            QLabel("Starting Portfolio Value:")
-        )
+        value_layout.addWidget(QLabel("Starting Portfolio Value:"))
 
         self.initial_value = QDoubleSpinBox()
         self.initial_value.setRange(
@@ -430,9 +510,7 @@ class MonteCarloWindow(QDialog):
 
         # Withdrawal
         self.withdrawal_layout = QHBoxLayout()
-        self.withdrawal_label = QLabel(
-            "Annual Withdrawal:"
-        )
+        self.withdrawal_label = QLabel("Annual Withdrawal:")
 
         self.annual_withdrawal = QDoubleSpinBox()
         self.annual_withdrawal.setRange(
@@ -442,38 +520,26 @@ class MonteCarloWindow(QDialog):
         self.annual_withdrawal.setDecimals(2)
         self.annual_withdrawal.setValue(25000.0)
         self.annual_withdrawal.setPrefix("$")
-        self.annual_withdrawal.setGroupSeparatorShown(
-            True
-        )
+        self.annual_withdrawal.setGroupSeparatorShown(True)
         self.annual_withdrawal.setSingleStep(1000.0)
         self.annual_withdrawal.lineEdit().setReadOnly(False)
 
-        self.withdrawal_layout.addWidget(
-            self.withdrawal_label
-        )
-        self.withdrawal_layout.addWidget(
-            self.annual_withdrawal
-        )
+        self.withdrawal_layout.addWidget(self.withdrawal_label)
+        self.withdrawal_layout.addWidget(self.annual_withdrawal)
 
         layout.addLayout(self.withdrawal_layout)
 
         # Withdrawal strategy comparison amounts
         self.comparison_layout = QHBoxLayout()
-        self.comparison_label = QLabel(
-            "Annual Withdrawals:"
-        )
+        self.comparison_label = QLabel("Annual Withdrawals:")
 
         self.comparison_amounts = QLineEdit()
-        self.comparison_amounts.setText(
-            "20000, 25000, 30000, 35000"
-        )
+        self.comparison_amounts.setText("20000, 25000, 30000, 35000")
         self.comparison_amounts.setPlaceholderText(
             "Example: 20000, 25000, 30000, 35000"
         )
 
-        self.comparison_layout.addWidget(
-            self.comparison_label
-        )
+        self.comparison_layout.addWidget(self.comparison_label)
         self.comparison_layout.addWidget(
             self.comparison_amounts,
             1,
@@ -483,9 +549,7 @@ class MonteCarloWindow(QDialog):
 
         # Inflation
         self.inflation_layout = QHBoxLayout()
-        self.inflation_label = QLabel(
-            "Annual Inflation Rate:"
-        )
+        self.inflation_label = QLabel("Annual Inflation Rate:")
 
         self.inflation_rate = QDoubleSpinBox()
         self.inflation_rate.setRange(0.0, 100.0)
@@ -495,20 +559,14 @@ class MonteCarloWindow(QDialog):
         self.inflation_rate.setSingleStep(0.25)
         self.inflation_rate.lineEdit().setReadOnly(False)
 
-        self.inflation_layout.addWidget(
-            self.inflation_label
-        )
-        self.inflation_layout.addWidget(
-            self.inflation_rate
-        )
+        self.inflation_layout.addWidget(self.inflation_label)
+        self.inflation_layout.addWidget(self.inflation_rate)
 
         layout.addLayout(self.inflation_layout)
 
         # Target survival probability
         self.survival_layout = QHBoxLayout()
-        self.survival_label = QLabel(
-            "Target Survival Probability:"
-        )
+        self.survival_label = QLabel("Target Survival Probability:")
 
         self.target_survival = QDoubleSpinBox()
         self.target_survival.setRange(0.01, 100.0)
@@ -518,20 +576,14 @@ class MonteCarloWindow(QDialog):
         self.target_survival.setSingleStep(1.0)
         self.target_survival.lineEdit().setReadOnly(False)
 
-        self.survival_layout.addWidget(
-            self.survival_label
-        )
-        self.survival_layout.addWidget(
-            self.target_survival
-        )
+        self.survival_layout.addWidget(self.survival_label)
+        self.survival_layout.addWidget(self.target_survival)
 
         layout.addLayout(self.survival_layout)
 
         # Projection period
         years_layout = QHBoxLayout()
-        years_layout.addWidget(
-            QLabel("Projection Period:")
-        )
+        years_layout.addWidget(QLabel("Projection Period:"))
 
         self.years = QSpinBox()
         self.years.setRange(1, 100)
@@ -543,9 +595,7 @@ class MonteCarloWindow(QDialog):
 
         # Simulations
         simulations_layout = QHBoxLayout()
-        simulations_layout.addWidget(
-            QLabel("Number of Simulations:")
-        )
+        simulations_layout.addWidget(QLabel("Number of Simulations:"))
 
         self.simulations = QSpinBox()
         self.simulations.setRange(100, 1000000)
@@ -553,27 +603,17 @@ class MonteCarloWindow(QDialog):
         self.simulations.setValue(10000)
         self.simulations.setGroupSeparatorShown(True)
 
-        simulations_layout.addWidget(
-            self.simulations
-        )
+        simulations_layout.addWidget(self.simulations)
         layout.addLayout(simulations_layout)
 
-        self.run_button = QPushButton(
-            "Run Monte Carlo Analysis"
-        )
+        self.run_button = QPushButton("Run Monte Carlo Analysis")
         self.run_button.setMinimumHeight(44)
-        self.run_button.clicked.connect(
-            self.run_analysis
-        )
+        self.run_button.clicked.connect(self.run_analysis)
 
         layout.addWidget(self.run_button)
 
-        self.results_title = QLabel(
-            "Projected Ending Values"
-        )
-        self.results_title.setAlignment(
-            Qt.AlignmentFlag.AlignCenter
-        )
+        self.results_title = QLabel("Projected Ending Values")
+        self.results_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         results_font = self.results_title.font()
         results_font.setPointSize(16)
@@ -584,15 +624,9 @@ class MonteCarloWindow(QDialog):
 
         self.results_table = QTableWidget()
         self.results_table.setColumnCount(2)
-        self.results_table.setHorizontalHeaderLabels(
-            ["Statistic", "Result"]
-        )
-        self.results_table.setEditTriggers(
-            QTableWidget.EditTrigger.NoEditTriggers
-        )
-        self.results_table.horizontalHeader().setStretchLastSection(
-            True
-        )
+        self.results_table.setHorizontalHeaderLabels(["Statistic", "Result"])
+        self.results_table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
+        self.results_table.horizontalHeader().setStretchLastSection(True)
         self.results_table.setMaximumHeight(300)
 
         layout.addWidget(self.results_table)
@@ -607,17 +641,13 @@ class MonteCarloWindow(QDialog):
 
         layout.addWidget(note)
 
-        close_button = QPushButton(
-            "Return to Investment Analyzer"
-        )
+        close_button = QPushButton("Return to Investment Analyzer")
         close_button.setMinimumHeight(40)
         close_button.clicked.connect(self.accept)
 
         layout.addWidget(close_button)
 
-        self.analysis_selector.currentIndexChanged.connect(
-            self.analysis_changed
-        )
+        self.analysis_selector.currentIndexChanged.connect(self.analysis_changed)
 
         self.analysis_changed()
 
@@ -632,71 +662,35 @@ class MonteCarloWindow(QDialog):
         sustainable_mode = analysis == "sustainable"
         comparison_mode = analysis == "comparison"
 
-        self.withdrawal_label.setVisible(
-            withdrawal_mode
-        )
-        self.annual_withdrawal.setVisible(
-            withdrawal_mode
-        )
+        self.withdrawal_label.setVisible(withdrawal_mode)
+        self.annual_withdrawal.setVisible(withdrawal_mode)
 
-        self.comparison_label.setVisible(
-            comparison_mode
-        )
-        self.comparison_amounts.setVisible(
-            comparison_mode
-        )
+        self.comparison_label.setVisible(comparison_mode)
+        self.comparison_amounts.setVisible(comparison_mode)
 
-        show_inflation = (
-            withdrawal_mode
-            or sustainable_mode
-            or comparison_mode
-        )
+        show_inflation = withdrawal_mode or sustainable_mode or comparison_mode
 
-        self.inflation_label.setVisible(
-            show_inflation
-        )
-        self.inflation_rate.setVisible(
-            show_inflation
-        )
+        self.inflation_label.setVisible(show_inflation)
+        self.inflation_rate.setVisible(show_inflation)
 
-        self.survival_label.setVisible(
-            sustainable_mode
-        )
-        self.target_survival.setVisible(
-            sustainable_mode
-        )
+        self.survival_label.setVisible(sustainable_mode)
+        self.target_survival.setVisible(sustainable_mode)
 
         if withdrawal_mode:
-            self.run_button.setText(
-                "Run Withdrawal Analysis"
-            )
-            self.results_title.setText(
-                "Withdrawal Sustainability Results"
-            )
+            self.run_button.setText("Run Withdrawal Analysis")
+            self.results_title.setText("Withdrawal Sustainability Results")
 
         elif sustainable_mode:
-            self.run_button.setText(
-                "Calculate Sustainable Withdrawal"
-            )
-            self.results_title.setText(
-                "Sustainable Withdrawal Results"
-            )
+            self.run_button.setText("Calculate Sustainable Withdrawal")
+            self.results_title.setText("Sustainable Withdrawal Results")
 
         elif comparison_mode:
-            self.run_button.setText(
-                "Compare Withdrawal Strategies"
-            )
-            self.results_title.setText(
-                "Withdrawal Strategy Comparison"
-            )
+            self.run_button.setText("Compare Withdrawal Strategies")
+            self.results_title.setText("Withdrawal Strategy Comparison")
 
         else:
-            self.run_button.setText(
-                "Run Monte Carlo Analysis"
-            )
-            self.results_title.setText(
-                "Projected Ending Values"
-            )
+            self.run_button.setText("Run Monte Carlo Analysis")
+            self.results_title.setText("Projected Ending Values")
 
         self.results_table.setRowCount(0)
 
@@ -707,9 +701,7 @@ class MonteCarloWindow(QDialog):
 
         self.results_table.setRowCount(len(labels))
 
-        for row, (label, value) in enumerate(
-            zip(labels, values)
-        ):
+        for row, (label, value) in enumerate(zip(labels, values)):
             self.results_table.setItem(
                 row,
                 0,
@@ -745,23 +737,15 @@ class MonteCarloWindow(QDialog):
             analysis = self.analysis_selector.currentData()
 
             if analysis == "comparison":
-                amounts_text = (
-                    self.comparison_amounts.text().strip()
-                )
+                amounts_text = self.comparison_amounts.text().strip()
 
                 if not amounts_text:
-                    raise ValueError(
-                        "Enter at least one annual withdrawal amount."
-                    )
+                    raise ValueError("Enter at least one annual withdrawal amount.")
 
                 annual_withdrawals = []
 
                 for item in amounts_text.split(","):
-                    cleaned = (
-                        item.strip()
-                        .replace("$", "")
-                        .replace(" ", "")
-                    )
+                    cleaned = item.strip().replace("$", "").replace(" ", "")
 
                     if not cleaned:
                         continue
@@ -769,37 +753,26 @@ class MonteCarloWindow(QDialog):
                     amount = float(cleaned)
 
                     if amount < 0:
-                        raise ValueError(
-                            "Withdrawal amounts cannot be negative."
-                        )
+                        raise ValueError("Withdrawal amounts cannot be negative.")
 
                     annual_withdrawals.append(amount)
 
                 if not annual_withdrawals:
-                    raise ValueError(
-                        "Enter at least one valid withdrawal amount."
-                    )
+                    raise ValueError("Enter at least one valid withdrawal amount.")
 
-                results = (
-                    analyzer.compare_withdrawal_strategies(
-                        initial_value=self.initial_value.value(),
-                        annual_withdrawals=annual_withdrawals,
-                        years=self.years.value(),
-                        simulations=self.simulations.value(),
-                        inflation_rate=(
-                            self.inflation_rate.value()
-                            / 100.0
-                        ),
-                    )
+                results = analyzer.compare_withdrawal_strategies(
+                    initial_value=self.initial_value.value(),
+                    annual_withdrawals=annual_withdrawals,
+                    years=self.years.value(),
+                    simulations=self.simulations.value(),
+                    inflation_rate=(self.inflation_rate.value() / 100.0),
                 )
 
                 labels = []
                 values = []
 
                 for result in results:
-                    labels.append(
-                        f"${result['annual_withdrawal']:,.2f}"
-                    )
+                    labels.append(f"${result['annual_withdrawal']:,.2f}")
 
                     values.append(
                         f"Rate {result['withdrawal_rate']:.2%} | "
@@ -815,15 +788,9 @@ class MonteCarloWindow(QDialog):
                 summary = analyzer.sustainable_withdrawal(
                     initial_value=self.initial_value.value(),
                     years=self.years.value(),
-                    target_survival_probability=(
-                        self.target_survival.value()
-                        / 100.0
-                    ),
+                    target_survival_probability=(self.target_survival.value() / 100.0),
                     simulations=self.simulations.value(),
-                    inflation_rate=(
-                        self.inflation_rate.value()
-                        / 100.0
-                    ),
+                    inflation_rate=(self.inflation_rate.value() / 100.0),
                 )
 
                 labels = [
@@ -835,31 +802,20 @@ class MonteCarloWindow(QDialog):
                 ]
 
                 values = [
-                    (
-                        f"${summary['annual_withdrawal']:,.2f}"
-                    ),
+                    (f"${summary['annual_withdrawal']:,.2f}"),
                     f"{summary['withdrawal_rate']:.2%}",
-                    (
-                        f"{summary['target_survival_probability']:.2%}"
-                    ),
-                    (
-                        f"{summary['survival_probability']:.2%}"
-                    ),
+                    (f"{summary['target_survival_probability']:.2%}"),
+                    (f"{summary['survival_probability']:.2%}"),
                     f"{summary['inflation_rate']:.2%}",
                 ]
 
             elif analysis == "withdrawal":
                 summary = analyzer.withdrawal_summary(
                     initial_value=self.initial_value.value(),
-                    annual_withdrawal=(
-                        self.annual_withdrawal.value()
-                    ),
+                    annual_withdrawal=(self.annual_withdrawal.value()),
                     years=self.years.value(),
                     simulations=self.simulations.value(),
-                    inflation_rate=(
-                        self.inflation_rate.value()
-                        / 100.0
-                    ),
+                    inflation_rate=(self.inflation_rate.value() / 100.0),
                 )
 
                 labels = [
@@ -876,24 +832,16 @@ class MonteCarloWindow(QDialog):
                 ]
 
                 values = [
-                    (
-                        f"${summary['annual_withdrawal']:,.2f}"
-                    ),
+                    (f"${summary['annual_withdrawal']:,.2f}"),
                     f"{summary['withdrawal_rate']:.2%}",
-                    (
-                        f"{summary['survival_probability']:.2%}"
-                    ),
-                    (
-                        f"{summary['depletion_probability']:.2%}"
-                    ),
+                    (f"{summary['survival_probability']:.2%}"),
+                    (f"{summary['depletion_probability']:.2%}"),
                     f"${summary['percentile_10']:,.2f}",
                     f"${summary['percentile_25']:,.2f}",
                     f"${summary['median']:,.2f}",
                     f"${summary['percentile_75']:,.2f}",
                     f"${summary['percentile_90']:,.2f}",
-                    (
-                        f"${summary['mean_ending_value']:,.2f}"
-                    ),
+                    (f"${summary['mean_ending_value']:,.2f}"),
                 ]
 
             else:
@@ -920,9 +868,7 @@ class MonteCarloWindow(QDialog):
                     f"${summary['percentile_75']:,.2f}",
                     f"${summary['percentile_90']:,.2f}",
                     f"${summary['mean_ending_value']:,.2f}",
-                    (
-                        f"{summary['probability_above_start']:.2%}"
-                    ),
+                    (f"{summary['probability_above_start']:.2%}"),
                 ]
 
             self.populate_results(labels, values)
@@ -931,10 +877,8 @@ class MonteCarloWindow(QDialog):
             QMessageBox.critical(
                 self,
                 "Monte Carlo Error",
-                "Unable to complete the analysis:"
-                f"\n\n{error}",
+                "Unable to complete the analysis:" f"\n\n{error}",
             )
-
 
 
 class PortfolioBuilderWindow(QDialog):
@@ -982,9 +926,7 @@ class PortfolioBuilderWindow(QDialog):
         name_layout.addWidget(QLabel("Portfolio Name:"))
 
         self.name_edit = QLineEdit()
-        self.name_edit.setPlaceholderText(
-            "Enter a name for the portfolio"
-        )
+        self.name_edit.setPlaceholderText("Enter a name for the portfolio")
 
         name_layout.addWidget(self.name_edit, 1)
         layout.addLayout(name_layout)
@@ -998,19 +940,14 @@ class PortfolioBuilderWindow(QDialog):
 
         self.fund_table = QTableWidget()
         self.fund_table.setColumnCount(2)
-        self.fund_table.setHorizontalHeaderLabels(
-            ["Fund", "Allocation %"]
-        )
+        self.fund_table.setHorizontalHeaderLabels(["Fund", "Allocation %"])
 
         funds = FundLibrary().usable_symbols()
         self.fund_table.setRowCount(len(funds))
 
         for row, symbol in enumerate(funds):
             symbol_item = QTableWidgetItem(symbol)
-            symbol_item.setFlags(
-                symbol_item.flags()
-                & ~Qt.ItemFlag.ItemIsEditable
-            )
+            symbol_item.setFlags(symbol_item.flags() & ~Qt.ItemFlag.ItemIsEditable)
             self.fund_table.setItem(row, 0, symbol_item)
 
             allocation = QDoubleSpinBox()
@@ -1018,9 +955,7 @@ class PortfolioBuilderWindow(QDialog):
             allocation.setDecimals(1)
             allocation.setSingleStep(1.0)
             allocation.setSuffix("%")
-            allocation.valueChanged.connect(
-                self.update_total
-            )
+            allocation.valueChanged.connect(self.update_total)
 
             self.fund_table.setCellWidget(
                 row,
@@ -1028,17 +963,13 @@ class PortfolioBuilderWindow(QDialog):
                 allocation,
             )
 
-        self.fund_table.horizontalHeader().setStretchLastSection(
-            True
-        )
+        self.fund_table.horizontalHeader().setStretchLastSection(True)
         self.fund_table.resizeColumnsToContents()
 
         layout.addWidget(self.fund_table)
 
         self.total_label = QLabel("Total Allocation: 0.0%")
-        self.total_label.setAlignment(
-            Qt.AlignmentFlag.AlignRight
-        )
+        self.total_label.setAlignment(Qt.AlignmentFlag.AlignRight)
 
         total_font = self.total_label.font()
         total_font.setBold(True)
@@ -1065,18 +996,10 @@ class PortfolioBuilderWindow(QDialog):
 
         layout.addLayout(button_layout)
 
-        self.open_button.clicked.connect(
-            self.open_selected_portfolio
-        )
-        self.new_button.clicked.connect(
-            self.new_portfolio
-        )
-        self.save_button.clicked.connect(
-            self.save_current_portfolio
-        )
-        self.delete_button.clicked.connect(
-            self.delete_current_portfolio
-        )
+        self.open_button.clicked.connect(self.open_selected_portfolio)
+        self.new_button.clicked.connect(self.new_portfolio)
+        self.save_button.clicked.connect(self.save_current_portfolio)
+        self.delete_button.clicked.connect(self.delete_current_portfolio)
         self.cancel_button.clicked.connect(self.reject)
 
         self.refresh_portfolio_list()
@@ -1147,8 +1070,7 @@ class PortfolioBuilderWindow(QDialog):
         self.clear_allocations()
 
         allocations = {
-            holding.fund.symbol: holding.allocation
-            for holding in portfolio.holdings
+            holding.fund.symbol: holding.allocation for holding in portfolio.holdings
         }
 
         for row in range(self.fund_table.rowCount()):
@@ -1184,8 +1106,11 @@ class PortfolioBuilderWindow(QDialog):
 
         total = self.total_allocation()
         self.total_label.setText(
-            f"Total Allocation: {total:.1f}%"
+            f"Total Allocation: " f"{portfolio.total_allocation:.1f}%"
         )
+
+        self.display_performance_results(portfolio)
+        self.display_interpretation_results(portfolio)
 
     def build_portfolio(self):
         """
@@ -1253,9 +1178,7 @@ class PortfolioBuilderWindow(QDialog):
             self.current_filename = path.name
             self.refresh_portfolio_list()
 
-            index = self.portfolio_selector.findData(
-                self.current_filename
-            )
+            index = self.portfolio_selector.findData(self.current_filename)
             if index >= 0:
                 self.portfolio_selector.setCurrentIndex(index)
 
@@ -1287,8 +1210,7 @@ class PortfolioBuilderWindow(QDialog):
             self,
             "Delete Portfolio",
             "Are you sure you want to delete this portfolio?",
-            QMessageBox.StandardButton.Yes
-            | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
             QMessageBox.StandardButton.No,
         )
 
@@ -1348,9 +1270,7 @@ class InvestmentAnalyzerWindow(QMainWindow):
         subtitle_font.setPointSize(16)
         subtitle.setFont(subtitle_font)
 
-        description = QLabel(
-            "Portfolio Analysis and Retirement Planning"
-        )
+        description = QLabel("Portfolio Analysis and Retirement Planning")
         description.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         layout.addWidget(title)
@@ -1367,32 +1287,16 @@ class InvestmentAnalyzerWindow(QMainWindow):
 
         layout.addWidget(fund_section)
 
-        self.fund_data_button = QPushButton(
-            "Fund Data Manager"
-        )
-        self.portfolio_builder_button = QPushButton(
-            "Portfolio Builder"
-        )
-        self.portfolio_button = QPushButton(
-            "Portfolio Analysis"
-        )
-        self.chart_viewer_button = QPushButton(
-            "Chart Viewer"
-        )
-        self.monte_carlo_button = QPushButton(
-            "Monte Carlo & Withdrawal Analysis"
-        )
+        self.fund_data_button = QPushButton("Fund Data Manager")
+        self.portfolio_builder_button = QPushButton("Portfolio Builder")
+        self.portfolio_button = QPushButton("Portfolio Analysis")
+        self.chart_viewer_button = QPushButton("Chart Viewer")
+        self.monte_carlo_button = QPushButton("Monte Carlo & Withdrawal Analysis")
 
-        self.monte_carlo_menu = QMenu(
-            self.monte_carlo_button
-        )
+        self.monte_carlo_menu = QMenu(self.monte_carlo_button)
 
-        growth_action = self.monte_carlo_menu.addAction(
-            "Portfolio Growth"
-        )
-        withdrawal_action = self.monte_carlo_menu.addAction(
-            "Withdrawal Sustainability"
-        )
+        growth_action = self.monte_carlo_menu.addAction("Portfolio Growth")
+        withdrawal_action = self.monte_carlo_menu.addAction("Withdrawal Sustainability")
         sustainable_action = self.monte_carlo_menu.addAction(
             "Sustainable Withdrawal Calculator"
         )
@@ -1400,9 +1304,7 @@ class InvestmentAnalyzerWindow(QMainWindow):
             "Compare Withdrawal Strategies"
         )
 
-        growth_action.triggered.connect(
-            lambda: self.open_monte_carlo_window("growth")
-        )
+        growth_action.triggered.connect(lambda: self.open_monte_carlo_window("growth"))
         withdrawal_action.triggered.connect(
             lambda: self.open_monte_carlo_window("withdrawal")
         )
@@ -1413,12 +1315,8 @@ class InvestmentAnalyzerWindow(QMainWindow):
             lambda: self.open_monte_carlo_window("comparison")
         )
 
-        self.monte_carlo_button.setMenu(
-            self.monte_carlo_menu
-        )
-        self.monte_carlo_button.setStyleSheet(
-            "QPushButton { text-align: center; }"
-        )
+        self.monte_carlo_button.setMenu(self.monte_carlo_menu)
+        self.monte_carlo_button.setStyleSheet("QPushButton { text-align: center; }")
 
         self.reports_button = QPushButton("Reports")
         self.exit_button = QPushButton("EXIT")
@@ -1451,27 +1349,15 @@ class InvestmentAnalyzerWindow(QMainWindow):
 
         layout.addStretch()
 
-        status = QLabel(
-            f"Version {__version__} Fund Data Management"
-        )
+        status = QLabel(f"Version {__version__} Fund Data Management")
         status.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(status)
 
-        self.fund_data_button.clicked.connect(
-            self.open_fund_data_manager
-        )
-        self.portfolio_builder_button.clicked.connect(
-            self.open_portfolio_builder
-        )
-        self.portfolio_button.clicked.connect(
-            self.open_portfolio_window
-        )
-        self.chart_viewer_button.clicked.connect(
-            self.open_chart_viewer
-        )
-        self.reports_button.clicked.connect(
-            self.open_report_center
-        )
+        self.fund_data_button.clicked.connect(self.open_fund_data_manager)
+        self.portfolio_builder_button.clicked.connect(self.open_portfolio_builder)
+        self.portfolio_button.clicked.connect(self.open_portfolio_window)
+        self.chart_viewer_button.clicked.connect(self.open_chart_viewer)
+        self.reports_button.clicked.connect(self.open_report_center)
         self.exit_button.clicked.connect(self.close)
 
     def open_fund_data_manager(self):
@@ -1524,14 +1410,10 @@ class InvestmentAnalyzerWindow(QMainWindow):
         window = MonteCarloWindow(self)
 
         if analysis is not None:
-            index = window.analysis_selector.findData(
-                analysis
-            )
+            index = window.analysis_selector.findData(analysis)
 
             if index >= 0:
-                window.analysis_selector.setCurrentIndex(
-                    index
-                )
+                window.analysis_selector.setCurrentIndex(index)
 
         window.exec()
 
