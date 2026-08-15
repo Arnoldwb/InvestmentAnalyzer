@@ -82,6 +82,10 @@ class ReportCenterWindow(QDialog):
             "PDF Report",
             "pdf",
         )
+        self.format_selector.addItem(
+            "Excel Report",
+            "excel",
+        )
 
         selector_layout.addWidget(
             self.format_selector
@@ -328,6 +332,23 @@ class ReportCenterWindow(QDialog):
                 )
 
                 self.open_pdf_button.setEnabled(True)
+
+            elif report_format == "excel":
+                path = (
+                    manager.create_portfolio_excel_report(
+                        portfolio
+                    )
+                )
+
+                self.report_viewer.setPlainText(
+                    "Excel report generated successfully.\n\n"
+                    f"Portfolio: {portfolio.name}\n"
+                    f"File: {path.name}\n\n"
+                    "Use Open Reports Folder to view "
+                    "the Excel report."
+                )
+
+                self.open_pdf_button.setEnabled(False)
 
             else:
                 path = manager.create_portfolio_report(

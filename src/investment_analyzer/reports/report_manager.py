@@ -1,6 +1,7 @@
 from .base_report import BaseReport
 from .pdf_report import PDFReport
 from .text_report import TextReport
+from .portfolio_excel_report import PortfolioExcelReport
 
 
 class ReportManager(BaseReport):
@@ -12,12 +13,16 @@ class ReportManager(BaseReport):
         super().__init__()
         self.text = TextReport()
         self.pdf = PDFReport()
+        self.portfolio_excel = PortfolioExcelReport()
 
     def create_portfolio_report(self, portfolio):
         return self.text.create_portfolio_report(portfolio)
 
     def create_portfolio_pdf_report(self, portfolio):
         return self.pdf.create_portfolio_report(portfolio)
+
+    def create_portfolio_excel_report(self, portfolio):
+        return self.portfolio_excel.create_portfolio_report(portfolio)
 
     def create_monte_carlo_report(
         self,
@@ -38,6 +43,7 @@ class ReportManager(BaseReport):
             seed=seed,
             summary=summary,
         )
+
     def create_withdrawal_report(
         self,
         portfolio,
@@ -59,6 +65,7 @@ class ReportManager(BaseReport):
             summary=summary,
             inflation_rate=inflation_rate,
         )
+
     def create_sustainable_withdrawal_report(
         self,
         portfolio,
@@ -74,9 +81,7 @@ class ReportManager(BaseReport):
             portfolio=portfolio,
             initial_value=initial_value,
             years=years,
-            target_survival_probability=(
-                target_survival_probability
-            ),
+            target_survival_probability=(target_survival_probability),
             simulations=simulations,
             seed=seed,
             inflation_rate=inflation_rate,
