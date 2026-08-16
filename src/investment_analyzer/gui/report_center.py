@@ -126,6 +126,9 @@ class ReportCenterWindow(QDialog):
         self.open_pdf_button = QPushButton(
             "Open PDF"
         )
+        self.open_excel_button = QPushButton(
+            "Open Excel"
+        )
         self.open_folder_button = QPushButton(
             "Open Reports Folder"
         )
@@ -135,17 +138,22 @@ class ReportCenterWindow(QDialog):
 
         self.save_as_button.setMinimumHeight(40)
         self.open_pdf_button.setMinimumHeight(40)
+        self.open_excel_button.setMinimumHeight(40)
         self.open_folder_button.setMinimumHeight(40)
         return_button.setMinimumHeight(40)
 
         self.save_as_button.setEnabled(False)
         self.open_pdf_button.setEnabled(False)
+        self.open_excel_button.setEnabled(False)
 
         button_layout.addWidget(
             self.save_as_button
         )
         button_layout.addWidget(
             self.open_pdf_button
+        )
+        button_layout.addWidget(
+            self.open_excel_button
         )
         button_layout.addWidget(
             self.open_folder_button
@@ -162,6 +170,9 @@ class ReportCenterWindow(QDialog):
         )
         self.open_pdf_button.clicked.connect(
             self.open_pdf
+        )
+        self.open_excel_button.clicked.connect(
+            self.open_excel
         )
         self.open_folder_button.clicked.connect(
             self.open_reports_folder
@@ -275,6 +286,36 @@ class ReportCenterWindow(QDialog):
                 "Unable to open the PDF report.",
             )
 
+    def open_excel(self):
+        """
+        Open the currently generated Excel report.
+        """
+
+        if (
+            self.current_report_path is None
+            or self.current_report_path.suffix.lower()
+            != ".xlsx"
+        ):
+            QMessageBox.warning(
+                self,
+                "Open Excel",
+                "Generate an Excel report first.",
+            )
+            return
+
+        opened = QDesktopServices.openUrl(
+            QUrl.fromLocalFile(
+                str(self.current_report_path)
+            )
+        )
+
+        if not opened:
+            QMessageBox.warning(
+                self,
+                "Open Excel",
+                "Unable to open the Excel report.",
+            )
+
     def open_reports_folder(self):
         """
         Open the reports directory in the system file manager.
@@ -349,6 +390,7 @@ class ReportCenterWindow(QDialog):
                 )
 
                 self.open_pdf_button.setEnabled(False)
+                self.open_excel_button.setEnabled(True)
 
             else:
                 path = manager.create_portfolio_report(

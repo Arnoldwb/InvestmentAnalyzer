@@ -123,6 +123,26 @@ class PortfolioExcelReport(BaseReport):
 
         summary.append(["Sharpe Ratio", analyzer.sharpe_ratio()])
         summary.append(["Growth of $10,000", growth.iloc[-1]])
+
+        percentage_labels = {
+            "CAGR",
+            "Annualized Average Return",
+            "Annualized Volatility",
+            "Maximum Drawdown",
+        }
+
+        for row in range(1, summary.max_row + 1):
+            label = summary.cell(row, 1).value
+
+            if label in percentage_labels:
+                summary.cell(row, 2).number_format = "0.00%"
+
+            elif label == "Sharpe Ratio":
+                summary.cell(row, 2).number_format = "0.00"
+
+            elif label == "Growth of $10,000":
+                summary.cell(row, 2).number_format = "$#,##0.00"
+
         interpretation_sheet = workbook.create_sheet("Interpretation")
 
         interpretation_sheet.append(["Portfolio Risk & Interpretation"])
