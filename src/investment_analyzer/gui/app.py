@@ -1253,9 +1253,7 @@ class PortfolioBuilderWindow(QDialog):
         """
 
         total = self.total_allocation()
-        self.total_label.setText(
-            f"Total Allocation: " f"{portfolio.total_allocation:.1f}%"
-        )
+        self.total_label.setText(f"Total Allocation: {total:.1f}%")
 
     def build_portfolio(self):
         """

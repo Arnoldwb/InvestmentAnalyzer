@@ -50,7 +50,8 @@ class FundClipboardParser:
         try:
             data = pd.read_csv(
                 StringIO(text),
-                sep="\t",
+                sep=None,
+                engine="python",
                 dtype=str,
             )
         except Exception as error:
