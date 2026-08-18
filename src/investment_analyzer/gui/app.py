@@ -1086,32 +1086,36 @@ class PortfolioBuilderWindow(QDialog):
         instructions.setWordWrap(True)
         layout.addWidget(instructions)
 
+        add_fund_layout = QHBoxLayout()
+
+        add_fund_layout.addWidget(QLabel("Add Funds:"))
+
+        self.fund_selector = QComboBox()
+        self.fund_selector.setEditable(False)
+
+        for symbol in FundLibrary().usable_symbols():
+            self.fund_selector.addItem(symbol)
+
+        add_fund_layout.addWidget(
+            self.fund_selector,
+            1,
+        )
+
+        self.add_fund_button = QPushButton("Add Fund")
+        self.add_fund_button.setMinimumHeight(36)
+
+        add_fund_layout.addWidget(self.add_fund_button)
+
+        layout.addLayout(add_fund_layout)
+
         self.fund_table = QTableWidget()
         self.fund_table.setColumnCount(2)
         self.fund_table.setHorizontalHeaderLabels(["Fund", "Allocation %"])
 
-        funds = FundLibrary().usable_symbols()
-        self.fund_table.setRowCount(len(funds))
-
-        for row, symbol in enumerate(funds):
-            symbol_item = QTableWidgetItem(symbol)
-            symbol_item.setFlags(symbol_item.flags() & ~Qt.ItemFlag.ItemIsEditable)
-            self.fund_table.setItem(row, 0, symbol_item)
-
-            allocation = QDoubleSpinBox()
-            allocation.setRange(0.0, 100.0)
-            allocation.setDecimals(1)
-            allocation.setSingleStep(1.0)
-            allocation.setSuffix("%")
-            allocation.valueChanged.connect(self.update_total)
-
-            self.fund_table.setCellWidget(
-                row,
-                1,
-                allocation,
-            )
+        self.fund_table.setRowCount(0)
 
         self.fund_table.horizontalHeader().setStretchLastSection(True)
+
         self.fund_table.resizeColumnsToContents()
 
         layout.addWidget(self.fund_table)
@@ -1128,17 +1132,20 @@ class PortfolioBuilderWindow(QDialog):
         button_layout = QHBoxLayout()
 
         self.save_button = QPushButton("Save Portfolio")
+        self.remove_fund_button = QPushButton("Remove Selected Fund")
         self.delete_button = QPushButton("Delete Portfolio")
         self.cancel_button = QPushButton("Return to Investment Analyzer")
 
         for button in (
             self.save_button,
+            self.remove_fund_button,
             self.delete_button,
             self.cancel_button,
         ):
             button.setMinimumHeight(40)
 
         button_layout.addWidget(self.save_button)
+        button_layout.addWidget(self.remove_fund_button)
         button_layout.addWidget(self.delete_button)
         button_layout.addWidget(self.cancel_button)
 
@@ -1147,6 +1154,8 @@ class PortfolioBuilderWindow(QDialog):
         self.open_button.clicked.connect(self.open_selected_portfolio)
         self.new_button.clicked.connect(self.new_portfolio)
         self.save_button.clicked.connect(self.save_current_portfolio)
+        self.remove_fund_button.clicked.connect(self.remove_selected_fund)
+        self.add_fund_button.clicked.connect(self.add_selected_fund)
         self.delete_button.clicked.connect(self.delete_current_portfolio)
         self.cancel_button.clicked.connect(self.reject)
 
@@ -1177,6 +1186,54 @@ class PortfolioBuilderWindow(QDialog):
 
         self.update_total()
 
+    def add_selected_fund(self):
+        """
+        Add the selected fund to the portfolio builder.
+        """
+
+        symbol = self.fund_selector.currentText().strip().upper()
+
+        if not symbol:
+            return
+
+        for row in range(self.fund_table.rowCount()):
+            item = self.fund_table.item(row, 0)
+
+            if item is not None and item.text().strip().upper() == symbol:
+                QMessageBox.information(
+                    self,
+                    "Fund Already Added",
+                    f"{symbol} is already in this portfolio.",
+                )
+                return
+
+        row = self.fund_table.rowCount()
+        self.fund_table.insertRow(row)
+
+        symbol_item = QTableWidgetItem(symbol)
+        symbol_item.setFlags(symbol_item.flags() & ~Qt.ItemFlag.ItemIsEditable)
+
+        self.fund_table.setItem(
+            row,
+            0,
+            symbol_item,
+        )
+
+        allocation = QDoubleSpinBox()
+        allocation.setRange(0.0, 100.0)
+        allocation.setDecimals(1)
+        allocation.setSingleStep(1.0)
+        allocation.setSuffix("%")
+        allocation.valueChanged.connect(self.update_total)
+
+        self.fund_table.setCellWidget(
+            row,
+            1,
+            allocation,
+        )
+
+        self.update_total()
+
     def new_portfolio(self):
         """
         Prepare the builder for a new portfolio.
@@ -1184,7 +1241,8 @@ class PortfolioBuilderWindow(QDialog):
 
         self.current_filename = None
         self.name_edit.clear()
-        self.clear_allocations()
+        self.fund_table.setRowCount(0)
+        self.update_total()
         self.delete_button.setEnabled(False)
         self.name_edit.setFocus()
 
@@ -1215,35 +1273,51 @@ class PortfolioBuilderWindow(QDialog):
 
         self.current_filename = filename
         self.name_edit.setText(portfolio.name)
-        self.clear_allocations()
 
-        allocations = {
-            holding.fund.symbol: holding.allocation for holding in portfolio.holdings
-        }
+        self.fund_table.setRowCount(0)
 
-        for row in range(self.fund_table.rowCount()):
-            symbol = self.fund_table.item(row, 0).text()
+        for holding in portfolio.holdings:
+            row = self.fund_table.rowCount()
+            self.fund_table.insertRow(row)
 
-            if symbol in allocations:
-                allocation = self.fund_table.cellWidget(
-                    row,
-                    1,
-                )
-                allocation.setValue(allocations[symbol])
+            symbol_item = QTableWidgetItem(holding.fund.symbol)
+            symbol_item.setFlags(symbol_item.flags() & ~Qt.ItemFlag.ItemIsEditable)
+
+            self.fund_table.setItem(
+                row,
+                0,
+                symbol_item,
+            )
+
+            allocation = QDoubleSpinBox()
+            allocation.setRange(0.0, 100.0)
+            allocation.setDecimals(1)
+            allocation.setSingleStep(1.0)
+            allocation.setSuffix("%")
+            allocation.setValue(holding.allocation)
+            allocation.valueChanged.connect(self.update_total)
+
+            self.fund_table.setCellWidget(
+                row,
+                1,
+                allocation,
+            )
 
         self.update_total()
         self.delete_button.setEnabled(True)
 
     def total_allocation(self):
         """
-        Return the total allocation currently entered.
+        Return the total allocation currently entered in the fund table.
         """
 
         total = 0.0
 
         for row in range(self.fund_table.rowCount()):
             allocation = self.fund_table.cellWidget(row, 1)
-            total += allocation.value()
+
+            if allocation is not None:
+                total += allocation.value()
 
         return total
 
@@ -1340,6 +1414,42 @@ class PortfolioBuilderWindow(QDialog):
             "Portfolio Saved",
             f"Portfolio saved successfully:\n\n{path.name}",
         )
+
+    def remove_selected_fund(self):
+        """
+        Remove the selected fund from the portfolio builder.
+        """
+
+        row = self.fund_table.currentRow()
+
+        if row < 0:
+            QMessageBox.warning(
+                self,
+                "Remove Fund",
+                "Select a fund to remove first.",
+            )
+            return
+
+        item = self.fund_table.item(row, 0)
+
+        if item is None:
+            return
+
+        symbol = item.text().strip()
+
+        answer = QMessageBox.question(
+            self,
+            "Remove Fund",
+            f"Remove {symbol} from this portfolio?",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.No,
+        )
+
+        if answer != QMessageBox.StandardButton.Yes:
+            return
+
+        self.fund_table.removeRow(row)
+        self.update_total()
 
     def delete_current_portfolio(self):
         """

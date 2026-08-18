@@ -18,7 +18,8 @@ __pycache__/
 # Virtual environments
 .venv/
 venv/
-
+# Personal charts and spreadsheets
+charts/
 # Generated charts and reports
 output/
 /reports/
