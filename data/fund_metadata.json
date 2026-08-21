@@ -1,0 +1,65 @@
+{
+    "AOM": {
+        "name": "ISHARES CORE 40/60 MODERATE ALLOCATION ETF"
+    },
+    "AVEM": {
+        "name": "AVANTIS EMERGING MARKETS EQUITY ETF"
+    },
+    "AVRE": {
+        "name": "AVANTIS REAL ESTATE ETF"
+    },
+    "DFAC": {
+        "name": "DIMENSIONAL U.S. CORE EQUITY 2 ETF"
+    },
+    "DFIC": {
+        "name": "DIMENSIONAL INTERNATIONAL CORE EQUITY 2 ETF"
+    },
+    "DFNM": {
+        "name": "DIMENSIONAL NATIONAL MUNICIPAL BOND ETF"
+    },
+    "FMFIX": {
+        "name": "FREE MARKET FIXED INCOME FUND INSTITUTIONAL CLASS"
+    },
+    "FMNEX": {
+        "name": "FREE MARKET INTERNATIONAL EQUITY FUND INSTITUTIONAL CLASS"
+    },
+    "FMUEX": {
+        "name": "FREE MARKET U.S. EQUITY FUND INSTITUTIONAL CLASS"
+    },
+    "GOODX": {
+        "name": "GOODHAVEN FUND"
+    },
+    "GSIE": {
+        "name": "GOLDMAN SACHS ACTIVEBETA(R) INTERNATIONAL EQUITY ETF"
+    },
+    "GSLC": {
+        "name": "GOLDMAN SACHS ACTIVEBETA(R) U.S. LARGE CAP EQUITY ETF"
+    },
+    "SMLF": {
+        "name": "ISHARES U.S. SMALL-CAP EQUITY FACTOR ETF"
+    },
+    "VBIAX": {
+        "name": "VANGUARD BALANCED INDEX FUND ADMIRAL SHARES"
+    },
+    "VGHAX": {
+        "name": "VANGUARD HEALTH CARE FUND ADMIRAL SHARES"
+    },
+    "VGSTX": {
+        "name": "VANGUARD STAR FUND INVESTOR SHARES"
+    },
+    "VSMGX": {
+        "name": "VANGUARD LIFESTRATEGY MODERATE GROWTH FUND INVESTOR SHARES"
+    },
+    "VTEB": {
+        "name": "VANGUARD TAX-EXEMPT BOND INDEX FUND ETF SHARES"
+    },
+    "VTMFX": {
+        "name": "VANGUARD TAX-MANAGED BALANCED FUND ADMIRAL SHARES"
+    },
+    "VTTVX": {
+        "name": "VANGUARD TARGET RETIREMENT 2025 FUND INVESTOR SHARES"
+    },
+    "VWENX": {
+        "name": "VANGUARD WELLINGTON FUND ADMIRAL SHARES"
+    }
+}

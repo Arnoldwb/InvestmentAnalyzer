@@ -91,8 +91,10 @@ class PortfolioWindow(QDialog):
         layout.addWidget(self.portfolio_name)
 
         self.holdings_table = QTableWidget()
-        self.holdings_table.setColumnCount(2)
-        self.holdings_table.setHorizontalHeaderLabels(["Fund", "Allocation"])
+        self.holdings_table.setColumnCount(3)
+        self.holdings_table.setHorizontalHeaderLabels(
+            ["Fund", "Fund Name", "Allocation"]
+        )
 
         self.holdings_table.horizontalHeader().setStretchLastSection(True)
         self.holdings_table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
@@ -286,8 +288,8 @@ class PortfolioWindow(QDialog):
 
         for row, holding in enumerate(portfolio.holdings):
             symbol_item = QTableWidgetItem(holding.fund.symbol)
+            name_item = QTableWidgetItem(holding.fund.name)
             allocation_item = QTableWidgetItem(f"{holding.allocation:.1f}%")
-
             self.holdings_table.setItem(
                 row,
                 0,
@@ -296,6 +298,11 @@ class PortfolioWindow(QDialog):
             self.holdings_table.setItem(
                 row,
                 1,
+                name_item,
+            )
+            self.holdings_table.setItem(
+                row,
+                2,
                 allocation_item,
             )
 
@@ -574,7 +581,8 @@ class MonteCarloWindow(QDialog):
         super().__init__(parent)
 
         self.setWindowTitle("Monte Carlo & Withdrawal Analysis")
-        self.resize(720, 720)
+        self.resize(950, 900)
+        self.setMinimumSize(900, 850)
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(30, 25, 30, 25)
@@ -775,9 +783,11 @@ class MonteCarloWindow(QDialog):
         self.results_table.setHorizontalHeaderLabels(["Statistic", "Result"])
         self.results_table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
         self.results_table.horizontalHeader().setStretchLastSection(True)
-        self.results_table.setMaximumHeight(300)
+        self.results_table.setMaximumHeight(250)
 
         layout.addWidget(self.results_table)
+        self.chart_layout = QVBoxLayout()
+        layout.addLayout(self.chart_layout, 1)
 
         note = QLabel(
             "Monte Carlo results are simulations based on "
@@ -991,8 +1001,13 @@ class MonteCarloWindow(QDialog):
                     f"${summary['percentile_90']:,.2f}",
                     (f"${summary['mean_ending_value']:,.2f}"),
                 ]
-
             else:
+                ending_values = analyzer.simulate(
+                    initial_value=self.initial_value.value(),
+                    years=self.years.value(),
+                    simulations=self.simulations.value(),
+                )
+
                 summary = analyzer.summary(
                     initial_value=self.initial_value.value(),
                     years=self.years.value(),
@@ -1016,10 +1031,23 @@ class MonteCarloWindow(QDialog):
                     f"${summary['percentile_75']:,.2f}",
                     f"${summary['percentile_90']:,.2f}",
                     f"${summary['mean_ending_value']:,.2f}",
-                    (f"{summary['probability_above_start']:.2%}"),
+                    f"{summary['probability_above_start']:.2%}",
                 ]
 
             self.populate_results(labels, values)
+            if analysis == "growth":
+                generator = ChartGenerator()
+
+            figure = generator.monte_carlo_distribution_chart(
+                ending_values,
+                self.years.value(),
+                self.simulations.value(),
+                self.initial_value.value(),
+            )
+
+            canvas = FigureCanvasQTAgg(figure)
+            self.chart_layout.addWidget(canvas)
+            canvas.draw()
 
         except Exception as error:
             QMessageBox.critical(
@@ -1116,7 +1144,7 @@ class PortfolioBuilderWindow(QDialog):
 
         self.fund_table.horizontalHeader().setStretchLastSection(True)
 
-        self.fund_table.resizeColumnsToContents()
+        self.fund_table.setColumnWidth(0, 160)
 
         layout.addWidget(self.fund_table)
 

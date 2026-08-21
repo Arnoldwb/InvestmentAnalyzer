@@ -40,7 +40,6 @@ class PortfolioAnalyzer:
             monthly = fund.monthly_returns()
             fund_returns[fund.symbol] = monthly
 
-
         insufficient_history = []
 
         for holding in self.portfolio.holdings:
@@ -61,10 +60,7 @@ class PortfolioAnalyzer:
                 )
 
         if insufficient_history:
-            details = "\n".join(
-                f"• {message}"
-                for message in insufficient_history
-            )
+            details = "\n".join(f"• {message}" for message in insufficient_history)
 
             raise ValueError(
                 "Insufficient historical data for portfolio analysis.\n\n"
@@ -104,6 +100,54 @@ class PortfolioAnalyzer:
         returns = self.monthly_returns()
 
         return initial_value * (1.0 + returns).cumprod()
+
+    def fund_growth_indices(
+        self,
+        initial_value: float = 10000.0,
+    ) -> pd.DataFrame:
+        """
+        Calculate allocation-weighted growth for each fund
+        in the portfolio.
+
+        Each fund begins with the portion of the initial
+        investment represented by its portfolio allocation.
+        Only months common to all holdings are included.
+        """
+
+        self.portfolio.validate()
+
+        fund_returns = {}
+
+        for holding in self.portfolio.holdings:
+            fund = holding.fund
+
+            if fund.data.empty:
+                fund.load_data()
+
+            fund_returns[fund.symbol] = fund.monthly_returns()
+
+        returns = pd.concat(
+            fund_returns,
+            axis=1,
+            join="inner",
+        ).dropna()
+
+        if returns.empty:
+            raise ValueError(
+                "No common monthly return history exists for the portfolio."
+            )
+
+        growth = pd.DataFrame(index=returns.index)
+
+        for holding in self.portfolio.holdings:
+            symbol = holding.fund.symbol
+            weight = holding.allocation / 100.0
+
+            starting_value = initial_value * weight
+
+            growth[symbol] = starting_value * (1.0 + returns[symbol]).cumprod()
+
+        return growth
 
     def cagr(self) -> float:
         """
