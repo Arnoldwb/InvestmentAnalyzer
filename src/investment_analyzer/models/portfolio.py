@@ -17,7 +17,12 @@ class Portfolio:
 
     holdings: list[Holding] = field(default_factory=list)
 
-    def add_fund(self, symbol: str, allocation: float) -> None:
+    def add_fund(
+        self,
+        symbol: str,
+        allocation: float,
+        shares: float = 0.0,
+    ) -> None:
         """Add a fund to the portfolio."""
 
         symbol = symbol.upper()
@@ -30,7 +35,13 @@ class Portfolio:
 
         fund = Fund(symbol)
 
-        self.holdings.append(Holding(fund=fund, allocation=allocation))
+        self.holdings.append(
+            Holding(
+                fund=fund,
+                allocation=allocation,
+                shares=shares,
+            )
+        )
 
     def update_allocation(self, symbol: str, allocation: float) -> None:
         """Change the allocation of an existing fund."""

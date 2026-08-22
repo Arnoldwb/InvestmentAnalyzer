@@ -91,9 +91,16 @@ class PortfolioWindow(QDialog):
         layout.addWidget(self.portfolio_name)
 
         self.holdings_table = QTableWidget()
-        self.holdings_table.setColumnCount(3)
+        self.holdings_table.setColumnCount(6)
         self.holdings_table.setHorizontalHeaderLabels(
-            ["Fund", "Fund Name", "Allocation"]
+            [
+                "Fund",
+                "Fund Name",
+                "Shares",
+                "Price",
+                "Current Value",
+                "Allocation",
+            ]
         )
 
         self.holdings_table.horizontalHeader().setStretchLastSection(True)
@@ -104,6 +111,9 @@ class PortfolioWindow(QDialog):
         self.total_label = QLabel("Total Allocation: --")
         self.total_label.setAlignment(Qt.AlignmentFlag.AlignRight)
         layout.addWidget(self.total_label)
+        self.value_label = QLabel("Portfolio Current Value: --")
+        self.value_label.setAlignment(Qt.AlignmentFlag.AlignRight)
+        layout.addWidget(self.value_label)
 
         performance_title = QLabel("Portfolio Performance")
         performance_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -269,6 +279,7 @@ class PortfolioWindow(QDialog):
             self.portfolio_name.setText("No saved portfolios found.")
             self.holdings_table.setRowCount(0)
             self.total_label.setText("Total Allocation: --")
+            self.value_label.setText("Portfolio Current Value: --")
             self.clear_performance_results()
             return
 
@@ -287,22 +298,53 @@ class PortfolioWindow(QDialog):
         self.holdings_table.setRowCount(len(portfolio.holdings))
 
         for row, holding in enumerate(portfolio.holdings):
+            holding.fund.load_data()
+
             symbol_item = QTableWidgetItem(holding.fund.symbol)
+
             name_item = QTableWidgetItem(holding.fund.name)
+
+            shares_item = QTableWidgetItem(f"{holding.shares:,.2f}")
+
+            price_item = QTableWidgetItem(f"${holding.current_price:,.2f}")
+
+            value_item = QTableWidgetItem(f"${holding.current_value:,.2f}")
+
             allocation_item = QTableWidgetItem(f"{holding.allocation:.1f}%")
+
             self.holdings_table.setItem(
                 row,
                 0,
                 symbol_item,
             )
+
             self.holdings_table.setItem(
                 row,
                 1,
                 name_item,
             )
+
             self.holdings_table.setItem(
                 row,
                 2,
+                shares_item,
+            )
+
+            self.holdings_table.setItem(
+                row,
+                3,
+                price_item,
+            )
+
+            self.holdings_table.setItem(
+                row,
+                4,
+                value_item,
+            )
+
+            self.holdings_table.setItem(
+                row,
+                5,
                 allocation_item,
             )
 
@@ -312,6 +354,9 @@ class PortfolioWindow(QDialog):
             f"Total Allocation: " f"{portfolio.total_allocation:.1f}%"
         )
 
+        portfolio_value = sum(holding.current_value for holding in portfolio.holdings)
+
+        self.value_label.setText(f"Portfolio Current Value: ${portfolio_value:,.2f}")
         self.display_performance_results(portfolio)
         self.display_interpretation_results(portfolio)
         self.display_stress_results(portfolio)

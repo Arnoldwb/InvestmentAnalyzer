@@ -1,10 +1,8 @@
-
 import json
 from pathlib import Path
 
 from investment_analyzer.core.paths import PORTFOLIO_DIR
 from investment_analyzer.models.portfolio import Portfolio
-
 
 
 def ensure_portfolio_directory() -> Path:
@@ -45,6 +43,7 @@ def save_portfolio(portfolio: Portfolio, filename: str | None = None) -> Path:
             {
                 "symbol": holding.fund.symbol,
                 "allocation": holding.allocation,
+                "shares": holding.shares,
             }
             for holding in portfolio.holdings
         ],
@@ -79,6 +78,7 @@ def load_portfolio(filename: str) -> Portfolio:
         portfolio.add_fund(
             holding["symbol"],
             float(holding["allocation"]),
+            float(holding.get("shares", 0.0)),
         )
 
     portfolio.validate()
@@ -92,10 +92,7 @@ def list_portfolios() -> list[str]:
     """
     directory = ensure_portfolio_directory()
 
-    return sorted(
-        path.name
-        for path in directory.glob("*.json")
-    )
+    return sorted(path.name for path in directory.glob("*.json"))
 
 
 def rename_portfolio(filename: str, new_name: str) -> Path:
@@ -125,9 +122,7 @@ def rename_portfolio(filename: str, new_name: str) -> Path:
     old_path = directory / old_filename
 
     if new_path.exists() and new_path != old_path:
-        raise FileExistsError(
-            f"A saved portfolio named '{new_name}' already exists."
-        )
+        raise FileExistsError(f"A saved portfolio named '{new_name}' already exists.")
 
     save_portfolio(portfolio, new_path.name)
 
