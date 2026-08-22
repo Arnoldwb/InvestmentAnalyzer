@@ -111,9 +111,14 @@ class PortfolioWindow(QDialog):
         self.total_label = QLabel("Total Allocation: --")
         self.total_label.setAlignment(Qt.AlignmentFlag.AlignRight)
         layout.addWidget(self.total_label)
+
         self.value_label = QLabel("Portfolio Current Value: --")
         self.value_label.setAlignment(Qt.AlignmentFlag.AlignRight)
         layout.addWidget(self.value_label)
+
+        self.edit_shares_button = QPushButton("Edit Shares")
+        self.edit_shares_button.clicked.connect(self.edit_shares)
+        layout.addWidget(self.edit_shares_button)
 
         performance_title = QLabel("Portfolio Performance")
         performance_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -360,6 +365,144 @@ class PortfolioWindow(QDialog):
         self.display_performance_results(portfolio)
         self.display_interpretation_results(portfolio)
         self.display_stress_results(portfolio)
+
+    def edit_shares(self):
+        """
+        Edit the actual number of shares held for each fund
+        in the selected portfolio.
+        """
+
+        filename = self.portfolio_selector.currentData()
+
+        if not filename:
+            QMessageBox.information(
+                self,
+                "Edit Shares",
+                "Please select a portfolio first.",
+            )
+            return
+
+        try:
+            portfolio = load_portfolio(filename)
+        except Exception as error:
+            QMessageBox.critical(
+                self,
+                "Portfolio Error",
+                f"Unable to load portfolio:\n\n{error}",
+            )
+            return
+
+        dialog = QDialog(self)
+        dialog.setWindowTitle("Edit Actual Shares")
+
+        layout = QVBoxLayout(dialog)
+
+        title = QLabel("EDIT ACTUAL SHARES")
+        title.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+        title_font = title.font()
+        title_font.setBold(True)
+        title_font.setPointSize(14)
+        title.setFont(title_font)
+
+        layout.addWidget(title)
+
+        table = QTableWidget()
+        table.setColumnCount(3)
+        table.setHorizontalHeaderLabels(
+            [
+                "Fund",
+                "Fund Name",
+                "Shares",
+            ]
+        )
+
+        table.setRowCount(len(portfolio.holdings))
+        table.setEditTriggers(QTableWidget.EditTrigger.AllEditTriggers)
+
+        for row, holding in enumerate(portfolio.holdings):
+            symbol_item = QTableWidgetItem(holding.fund.symbol)
+            symbol_item.setFlags(symbol_item.flags() & ~Qt.ItemFlag.ItemIsEditable)
+
+            name_item = QTableWidgetItem(holding.fund.name)
+            name_item.setFlags(name_item.flags() & ~Qt.ItemFlag.ItemIsEditable)
+
+            shares_item = QTableWidgetItem(f"{holding.shares:.2f}")
+
+            table.setItem(row, 0, symbol_item)
+            table.setItem(row, 1, name_item)
+            table.setItem(row, 2, shares_item)
+
+        table.resizeColumnsToContents()
+        table.horizontalHeader().setStretchLastSection(True)
+
+        layout.addWidget(table)
+
+        button_layout = QHBoxLayout()
+
+        cancel_button = QPushButton("Cancel")
+        save_button = QPushButton("Save Shares")
+
+        button_layout.addWidget(cancel_button)
+        button_layout.addWidget(save_button)
+
+        layout.addLayout(button_layout)
+
+        cancel_button.clicked.connect(dialog.reject)
+
+        def save_shares():
+            """
+            Validate and save the edited share counts.
+            """
+
+            for row, holding in enumerate(portfolio.holdings):
+                item = table.item(row, 2)
+
+                if item is None:
+                    QMessageBox.warning(
+                        dialog,
+                        "Invalid Shares",
+                        f"No share value was entered for " f"{holding.fund.symbol}.",
+                    )
+                    return
+
+                try:
+                    shares = float(item.text().strip())
+                except ValueError:
+                    QMessageBox.warning(
+                        dialog,
+                        "Invalid Shares",
+                        f"Shares for {holding.fund.symbol} " "must be a number.",
+                    )
+                    return
+
+                if shares < 0:
+                    QMessageBox.warning(
+                        dialog,
+                        "Invalid Shares",
+                        f"Shares for {holding.fund.symbol} " "cannot be negative.",
+                    )
+                    return
+
+                holding.shares = shares
+
+            try:
+                save_portfolio(portfolio, filename)
+            except Exception as error:
+                QMessageBox.critical(
+                    dialog,
+                    "Save Error",
+                    f"Unable to save portfolio:\n\n{error}",
+                )
+                return
+
+            dialog.accept()
+
+        save_button.clicked.connect(save_shares)
+
+        dialog.exec()
+
+        self.display_selected_portfolio()
 
     def display_interpretation_results(self, portfolio):
         """
