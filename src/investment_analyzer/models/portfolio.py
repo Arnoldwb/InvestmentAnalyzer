@@ -3,19 +3,16 @@ from dataclasses import dataclass, field
 from .fund import Fund
 
 from .holding import Holding
+from .transaction import Transaction
 
 
 @dataclass
 class Portfolio:
-    """
-
-    Represents a portfolio consisting of multiple funds.
-
-    """
-
     name: str = "Portfolio"
 
     holdings: list[Holding] = field(default_factory=list)
+
+    transactions: list[Transaction] = field(default_factory=list)
 
     def add_fund(
         self,
@@ -42,6 +39,59 @@ class Portfolio:
                 shares=shares,
             )
         )
+
+    def add_transaction(
+        self,
+        transaction: Transaction,
+    ) -> None:
+        """
+        Add a transaction to the portfolio.
+
+        BUY transactions increase shares.
+        SELL transactions decrease shares.
+        """
+
+        symbol = transaction.symbol.strip().upper()
+
+        if not symbol:
+            raise ValueError("Transaction symbol cannot be empty.")
+
+        if transaction.action.upper() not in {"BUY", "SELL"}:
+            raise ValueError("Transaction action must be BUY or SELL.")
+
+        if transaction.shares <= 0:
+            raise ValueError("Transaction shares must be greater than zero.")
+
+        if transaction.price < 0:
+            raise ValueError("Transaction price cannot be negative.")
+
+        holding = next(
+            (holding for holding in self.holdings if holding.fund.symbol == symbol),
+            None,
+        )
+
+        if holding is None:
+            raise ValueError(f"{symbol} is not in the portfolio.")
+
+        action = transaction.action.upper()
+
+        if action == "BUY":
+            holding.shares += transaction.shares
+
+        elif action == "SELL":
+            if transaction.shares > holding.shares:
+                raise ValueError(
+                    f"Cannot sell {transaction.shares:.2f} shares "
+                    f"of {symbol}; only {holding.shares:.2f} shares "
+                    "are currently held."
+                )
+
+            holding.shares -= transaction.shares
+
+        transaction.action = action
+        transaction.symbol = symbol
+
+        self.transactions.append(transaction)
 
     def update_allocation(self, symbol: str, allocation: float) -> None:
         """Change the allocation of an existing fund."""

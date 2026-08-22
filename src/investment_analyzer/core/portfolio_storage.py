@@ -1,8 +1,10 @@
 import json
+from datetime import date
 from pathlib import Path
 
 from investment_analyzer.core.paths import PORTFOLIO_DIR
 from investment_analyzer.models.portfolio import Portfolio
+from investment_analyzer.models.transaction import Transaction
 
 
 def ensure_portfolio_directory() -> Path:
@@ -47,6 +49,17 @@ def save_portfolio(portfolio: Portfolio, filename: str | None = None) -> Path:
             }
             for holding in portfolio.holdings
         ],
+        "transactions": [
+            {
+                "date": transaction.date.isoformat(),
+                "symbol": transaction.symbol,
+                "action": transaction.action,
+                "shares": transaction.shares,
+                "price": transaction.price,
+                "note": transaction.note,
+            }
+            for transaction in portfolio.transactions
+        ],
     }
 
     with path.open("w", encoding="utf-8") as file:
@@ -80,6 +93,18 @@ def load_portfolio(filename: str) -> Portfolio:
             float(holding["allocation"]),
             float(holding.get("shares", 0.0)),
         )
+
+    for transaction_data in data.get("transactions", []):
+        transaction = Transaction(
+            date=date.fromisoformat(transaction_data["date"]),
+            symbol=transaction_data["symbol"],
+            action=transaction_data["action"],
+            shares=float(transaction_data["shares"]),
+            price=float(transaction_data["price"]),
+            note=transaction_data.get("note", ""),
+        )
+
+        portfolio.transactions.append(transaction)
 
     portfolio.validate()
 
