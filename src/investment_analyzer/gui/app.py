@@ -91,7 +91,7 @@ class PortfolioWindow(QDialog):
         layout.addWidget(self.portfolio_name)
 
         self.holdings_table = QTableWidget()
-        self.holdings_table.setColumnCount(6)
+        self.holdings_table.setColumnCount(7)
         self.holdings_table.setHorizontalHeaderLabels(
             [
                 "Fund",
@@ -99,7 +99,8 @@ class PortfolioWindow(QDialog):
                 "Shares",
                 "Price",
                 "Current Value",
-                "Allocation",
+                "Target",
+                "Actual",
             ]
         )
 
@@ -301,10 +302,12 @@ class PortfolioWindow(QDialog):
         self.portfolio_name.setText(portfolio.name)
 
         self.holdings_table.setRowCount(len(portfolio.holdings))
-
-        for row, holding in enumerate(portfolio.holdings):
+        for holding in portfolio.holdings:
             holding.fund.load_data()
 
+        portfolio_value = sum(holding.current_value for holding in portfolio.holdings)
+
+        for row, holding in enumerate(portfolio.holdings):
             symbol_item = QTableWidgetItem(holding.fund.symbol)
 
             name_item = QTableWidgetItem(holding.fund.name)
@@ -315,7 +318,14 @@ class PortfolioWindow(QDialog):
 
             value_item = QTableWidgetItem(f"${holding.current_value:,.2f}")
 
-            allocation_item = QTableWidgetItem(f"{holding.allocation:.1f}%")
+            target_item = QTableWidgetItem(f"{holding.allocation:.1f}%")
+
+            if portfolio_value > 0:
+                actual_allocation = (holding.current_value / portfolio_value) * 100.0
+
+                actual_item = QTableWidgetItem(f"{actual_allocation:.1f}%")
+            else:
+                actual_item = QTableWidgetItem("—")
 
             self.holdings_table.setItem(
                 row,
@@ -350,7 +360,13 @@ class PortfolioWindow(QDialog):
             self.holdings_table.setItem(
                 row,
                 5,
-                allocation_item,
+                target_item,
+            )
+
+            self.holdings_table.setItem(
+                row,
+                6,
+                actual_item,
             )
 
         self.holdings_table.resizeColumnsToContents()
@@ -358,8 +374,6 @@ class PortfolioWindow(QDialog):
         self.total_label.setText(
             f"Total Allocation: " f"{portfolio.total_allocation:.1f}%"
         )
-
-        portfolio_value = sum(holding.current_value for holding in portfolio.holdings)
 
         self.value_label.setText(f"Portfolio Current Value: ${portfolio_value:,.2f}")
         self.display_performance_results(portfolio)
