@@ -1,11 +1,14 @@
 import sys
-
-from PySide6.QtCore import Qt
+from datetime import date
+from PySide6.QtCore import QDate, Qt
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg
+
 from PySide6.QtWidgets import (
     QApplication,
     QComboBox,
+    QDateEdit,
     QDialog,
+    QFormLayout,
     QHBoxLayout,
     QLabel,
     QLineEdit,
@@ -28,6 +31,7 @@ from investment_analyzer.analysis.monte_carlo_analyzer import (
 from investment_analyzer.analysis.portfolio_analyzer import (
     PortfolioAnalyzer,
 )
+from investment_analyzer.models.transaction import Transaction
 from investment_analyzer.core.fund_library import FundLibrary
 from investment_analyzer.core.portfolio_storage import (
     delete_portfolio,
@@ -36,6 +40,7 @@ from investment_analyzer.core.portfolio_storage import (
     rename_portfolio,
     save_portfolio,
 )
+from investment_analyzer.core.fund_metadata import get_fund_name
 from investment_analyzer.models.portfolio import Portfolio
 from investment_analyzer.gui.chart_viewer import ChartViewerWindow
 from investment_analyzer.gui.fund_data_manager import FundDataManagerWindow
@@ -116,11 +121,43 @@ class PortfolioWindow(QDialog):
         self.value_label = QLabel("Portfolio Current Value: --")
         self.value_label.setAlignment(Qt.AlignmentFlag.AlignRight)
         layout.addWidget(self.value_label)
-
         self.edit_shares_button = QPushButton("Edit Shares")
         self.edit_shares_button.clicked.connect(self.edit_shares)
         layout.addWidget(self.edit_shares_button)
 
+        self.add_transaction_button = QPushButton("Add Transaction")
+        self.add_transaction_button.clicked.connect(self.add_transaction)
+        layout.addWidget(self.add_transaction_button)
+
+        transaction_title = QLabel("Transaction History")
+        transaction_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+        transaction_font = transaction_title.font()
+        transaction_font.setPointSize(16)
+        transaction_font.setBold(True)
+        transaction_title.setFont(transaction_font)
+
+        layout.addWidget(transaction_title)
+
+        self.transaction_table = QTableWidget()
+        self.transaction_table.setColumnCount(7)
+        self.transaction_table.setHorizontalHeaderLabels(
+            [
+                "Date",
+                "Fund",
+                "Fund Name",
+                "Action",
+                "Shares",
+                "Price",
+                "Value",
+            ]
+        )
+
+        self.transaction_table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
+
+        self.transaction_table.horizontalHeader().setStretchLastSection(True)
+
+        layout.addWidget(self.transaction_table)
         performance_title = QLabel("Portfolio Performance")
         performance_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
@@ -376,9 +413,261 @@ class PortfolioWindow(QDialog):
         )
 
         self.value_label.setText(f"Portfolio Current Value: ${portfolio_value:,.2f}")
+
+        self.display_transaction_history(portfolio)
         self.display_performance_results(portfolio)
         self.display_interpretation_results(portfolio)
         self.display_stress_results(portfolio)
+
+    def display_transaction_history(self, portfolio):
+        """
+        Display the transaction history for the selected portfolio.
+        """
+
+        self.transaction_table.setRowCount(len(portfolio.transactions))
+
+        if not portfolio.transactions:
+            self.transaction_table.setRowCount(1)
+
+            message_item = QTableWidgetItem("No transactions recorded.")
+
+            self.transaction_table.setItem(
+                0,
+                0,
+                message_item,
+            )
+
+            self.transaction_table.setSpan(0, 0, 1, 7)
+
+            self.transaction_table.resizeColumnsToContents()
+
+            return
+
+        transactions = sorted(
+            portfolio.transactions,
+            key=lambda transaction: transaction.date,
+        )
+
+        for row, transaction in enumerate(transactions):
+            date_item = QTableWidgetItem(transaction.date.strftime("%m/%d/%y"))
+
+            symbol_item = QTableWidgetItem(transaction.symbol)
+
+            fund_name = get_fund_name(transaction.symbol)
+
+            name_item = QTableWidgetItem(fund_name)
+
+            action_item = QTableWidgetItem(transaction.action)
+
+            shares_item = QTableWidgetItem(f"{transaction.shares:,.2f}")
+
+            price_item = QTableWidgetItem(f"${transaction.price:,.2f}")
+
+            value_item = QTableWidgetItem(f"${transaction.value:,.2f}")
+
+            self.transaction_table.setItem(
+                row,
+                0,
+                date_item,
+            )
+
+            self.transaction_table.setItem(
+                row,
+                1,
+                symbol_item,
+            )
+
+            self.transaction_table.setItem(
+                row,
+                2,
+                name_item,
+            )
+
+            self.transaction_table.setItem(
+                row,
+                3,
+                action_item,
+            )
+
+            self.transaction_table.setItem(
+                row,
+                4,
+                shares_item,
+            )
+
+            self.transaction_table.setItem(
+                row,
+                5,
+                price_item,
+            )
+
+            self.transaction_table.setItem(
+                row,
+                6,
+                value_item,
+            )
+
+        self.transaction_table.resizeColumnsToContents()
+
+    def add_transaction(self):
+        """
+        Add a BUY or SELL transaction to the selected portfolio.
+        """
+
+        filename = self.portfolio_selector.currentData()
+
+        if not filename:
+            QMessageBox.information(
+                self,
+                "Add Transaction",
+                "Please select a portfolio first.",
+            )
+            return
+
+        try:
+            portfolio = load_portfolio(filename)
+        except Exception as error:
+            QMessageBox.critical(
+                self,
+                "Portfolio Error",
+                f"Unable to load portfolio:\n\n{error}",
+            )
+            return
+
+        dialog = QDialog(self)
+        dialog.setWindowTitle("Add Transaction")
+
+        layout = QFormLayout(dialog)
+
+        fund_selector = QComboBox()
+
+        for holding in portfolio.holdings:
+            fund_selector.addItem(
+                holding.fund.symbol,
+                holding.fund.symbol,
+            )
+
+        action_selector = QComboBox()
+        action_selector.addItems(["BUY", "SELL"])
+
+        date_edit = QDateEdit()
+        date_edit.setCalendarPopup(True)
+        date_edit.setDate(QDate.currentDate())
+
+        shares_edit = QLineEdit()
+        shares_edit.setPlaceholderText("Number of shares")
+
+        price_edit = QLineEdit()
+        price_edit.setPlaceholderText("Price per share")
+
+        note_edit = QLineEdit()
+        note_edit.setPlaceholderText("Optional note")
+
+        layout.addRow("Fund:", fund_selector)
+        layout.addRow("Action:", action_selector)
+        layout.addRow("Date:", date_edit)
+        layout.addRow("Shares:", shares_edit)
+        layout.addRow("Price:", price_edit)
+        layout.addRow("Note:", note_edit)
+
+        button_layout = QHBoxLayout()
+
+        cancel_button = QPushButton("Cancel")
+        add_button = QPushButton("Add Transaction")
+
+        button_layout.addWidget(cancel_button)
+        button_layout.addWidget(add_button)
+
+        layout.addRow(button_layout)
+
+        cancel_button.clicked.connect(dialog.reject)
+
+        def save_transaction():
+            """
+            Validate and save the transaction.
+            """
+
+            symbol = fund_selector.currentData()
+            action = action_selector.currentText()
+
+            try:
+                shares = float(shares_edit.text().strip())
+            except ValueError:
+                QMessageBox.warning(
+                    dialog,
+                    "Invalid Shares",
+                    "Please enter a valid number of shares.",
+                )
+                return
+
+            try:
+                price = float(price_edit.text().strip())
+            except ValueError:
+                QMessageBox.warning(
+                    dialog,
+                    "Invalid Price",
+                    "Please enter a valid transaction price.",
+                )
+                return
+
+            if shares <= 0:
+                QMessageBox.warning(
+                    dialog,
+                    "Invalid Shares",
+                    "Shares must be greater than zero.",
+                )
+                return
+
+            if price < 0:
+                QMessageBox.warning(
+                    dialog,
+                    "Invalid Price",
+                    "Price cannot be negative.",
+                )
+                return
+
+            transaction_date = date(
+                date_edit.date().year(),
+                date_edit.date().month(),
+                date_edit.date().day(),
+            )
+
+            transaction = Transaction(
+                date=transaction_date,
+                symbol=symbol,
+                action=action,
+                shares=shares,
+                price=price,
+                note=note_edit.text().strip(),
+            )
+
+            try:
+                portfolio.add_transaction(transaction)
+            except ValueError as error:
+                QMessageBox.warning(
+                    dialog,
+                    "Transaction Error",
+                    str(error),
+                )
+                return
+
+            try:
+                save_portfolio(portfolio, filename)
+            except Exception as error:
+                QMessageBox.critical(
+                    dialog,
+                    "Save Error",
+                    f"Unable to save portfolio:\n\n{error}",
+                )
+                return
+
+            dialog.accept()
+
+        add_button.clicked.connect(save_transaction)
+
+        dialog.exec()
+
+        self.display_selected_portfolio()
 
     def edit_shares(self):
         """
