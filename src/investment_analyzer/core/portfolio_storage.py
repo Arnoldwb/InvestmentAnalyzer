@@ -105,7 +105,15 @@ def load_portfolio(filename: str) -> Portfolio:
         )
 
         portfolio.transactions.append(transaction)
-
+    for holding in portfolio.holdings:
+        if holding.symbol in {
+            transaction.symbol for transaction in portfolio.transactions
+        }:
+            holding.opening_shares = (
+                holding.shares - portfolio.transaction_share_balance(holding.symbol)
+            )
+        else:
+            holding.opening_shares = holding.shares
     portfolio.validate()
 
     return portfolio

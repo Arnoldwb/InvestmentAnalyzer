@@ -158,6 +158,46 @@ class PortfolioWindow(QDialog):
         self.transaction_table.horizontalHeader().setStretchLastSection(True)
 
         layout.addWidget(self.transaction_table)
+        transaction_button_layout = QHBoxLayout()
+
+        self.edit_transaction_button = QPushButton("Edit Transaction")
+        self.edit_transaction_button.clicked.connect(self.edit_transaction)
+
+        self.delete_transaction_button = QPushButton("Delete Transaction")
+        self.delete_transaction_button.clicked.connect(self.delete_transaction)
+
+        transaction_button_layout.addWidget(self.edit_transaction_button)
+        transaction_button_layout.addWidget(self.delete_transaction_button)
+
+        layout.addLayout(transaction_button_layout)
+        reconciliation_title = QLabel("Share Reconciliation")
+        reconciliation_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+        reconciliation_font = reconciliation_title.font()
+        reconciliation_font.setPointSize(16)
+        reconciliation_font.setBold(True)
+        reconciliation_title.setFont(reconciliation_font)
+
+        layout.addWidget(reconciliation_title)
+
+        self.reconciliation_table = QTableWidget()
+        self.reconciliation_table.setColumnCount(4)
+        self.reconciliation_table.setHorizontalHeaderLabels(
+            [
+                "Fund",
+                "Opening Shares",
+                "Transaction Activity",
+                "Current Shares",
+            ]
+        )
+
+        self.reconciliation_table.setEditTriggers(
+            QTableWidget.EditTrigger.NoEditTriggers
+        )
+
+        self.reconciliation_table.horizontalHeader().setStretchLastSection(True)
+
+        layout.addWidget(self.reconciliation_table)
         performance_title = QLabel("Portfolio Performance")
         performance_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
@@ -415,6 +455,7 @@ class PortfolioWindow(QDialog):
         self.value_label.setText(f"Portfolio Current Value: ${portfolio_value:,.2f}")
 
         self.display_transaction_history(portfolio)
+        self.display_share_reconciliation(portfolio)
         self.display_performance_results(portfolio)
         self.display_interpretation_results(portfolio)
         self.display_stress_results(portfolio)
@@ -666,6 +707,358 @@ class PortfolioWindow(QDialog):
         add_button.clicked.connect(save_transaction)
 
         dialog.exec()
+
+        self.display_selected_portfolio()
+
+    def display_share_reconciliation(self, portfolio):
+        """
+        Display share reconciliation for each fund.
+        """
+
+        self.reconciliation_table.setRowCount(len(portfolio.holdings))
+
+        for row, holding in enumerate(portfolio.holdings):
+            opening_item = QTableWidgetItem(
+                f"{portfolio.opening_shares(holding.symbol):,.2f}"
+            )
+
+            activity = portfolio.transaction_share_balance(holding.symbol)
+
+            activity_item = QTableWidgetItem(f"{activity:+,.2f}")
+
+            current_item = QTableWidgetItem(f"{holding.shares:,.2f}")
+
+            self.reconciliation_table.setItem(
+                row,
+                0,
+                QTableWidgetItem(holding.symbol),
+            )
+
+            self.reconciliation_table.setItem(
+                row,
+                1,
+                opening_item,
+            )
+
+            self.reconciliation_table.setItem(
+                row,
+                2,
+                activity_item,
+            )
+
+            self.reconciliation_table.setItem(
+                row,
+                3,
+                current_item,
+            )
+
+        self.reconciliation_table.resizeColumnsToContents()
+
+    def edit_transaction(self):
+        """
+        Edit the selected transaction.
+        """
+
+        filename = self.portfolio_selector.currentData()
+
+        if not filename:
+            QMessageBox.information(
+                self,
+                "Edit Transaction",
+                "Please select a portfolio first.",
+            )
+            return
+
+        selected_row = self.transaction_table.currentRow()
+
+        if selected_row < 0:
+            QMessageBox.information(
+                self,
+                "Edit Transaction",
+                "Please select a transaction first.",
+            )
+            return
+
+        try:
+            portfolio = load_portfolio(filename)
+        except Exception as error:
+            QMessageBox.critical(
+                self,
+                "Portfolio Error",
+                f"Unable to load portfolio:\n\n{error}",
+            )
+            return
+
+        transactions = sorted(
+            portfolio.transactions,
+            key=lambda transaction: transaction.date,
+        )
+
+        if selected_row >= len(transactions):
+            QMessageBox.warning(
+                self,
+                "Edit Transaction",
+                "The selected transaction could not be found.",
+            )
+            return
+
+        selected_transaction = transactions[selected_row]
+
+        try:
+            transaction_index = portfolio.transactions.index(selected_transaction)
+        except ValueError:
+            QMessageBox.warning(
+                self,
+                "Edit Transaction",
+                "The selected transaction could not be found.",
+            )
+            return
+
+        dialog = QDialog(self)
+        dialog.setWindowTitle("Edit Transaction")
+
+        layout = QFormLayout(dialog)
+
+        fund_selector = QComboBox()
+
+        for holding in portfolio.holdings:
+            fund_selector.addItem(
+                holding.fund.symbol,
+                holding.fund.symbol,
+            )
+
+        fund_index = fund_selector.findData(selected_transaction.symbol)
+
+        if fund_index >= 0:
+            fund_selector.setCurrentIndex(fund_index)
+
+        action_selector = QComboBox()
+        action_selector.addItems(["BUY", "SELL"])
+
+        action_index = action_selector.findText(selected_transaction.action)
+
+        if action_index >= 0:
+            action_selector.setCurrentIndex(action_index)
+
+        date_edit = QDateEdit()
+        date_edit.setCalendarPopup(True)
+        date_edit.setDate(
+            QDate(
+                selected_transaction.date.year,
+                selected_transaction.date.month,
+                selected_transaction.date.day,
+            )
+        )
+
+        shares_edit = QLineEdit(f"{selected_transaction.shares:.2f}")
+
+        price_edit = QLineEdit(f"{selected_transaction.price:.2f}")
+
+        note_edit = QLineEdit(selected_transaction.note)
+
+        layout.addRow("Fund:", fund_selector)
+        layout.addRow("Action:", action_selector)
+        layout.addRow("Date:", date_edit)
+        layout.addRow("Shares:", shares_edit)
+        layout.addRow("Price:", price_edit)
+        layout.addRow("Note:", note_edit)
+
+        button_layout = QHBoxLayout()
+
+        cancel_button = QPushButton("Cancel")
+        save_button = QPushButton("Save Changes")
+
+        button_layout.addWidget(cancel_button)
+        button_layout.addWidget(save_button)
+
+        layout.addRow(button_layout)
+
+        cancel_button.clicked.connect(dialog.reject)
+
+        def save_changes():
+            """
+            Validate and save the edited transaction.
+            """
+
+            symbol = fund_selector.currentData()
+            action = action_selector.currentText()
+
+            try:
+                shares = float(shares_edit.text().strip())
+            except ValueError:
+                QMessageBox.warning(
+                    dialog,
+                    "Invalid Shares",
+                    "Please enter a valid number of shares.",
+                )
+                return
+
+            try:
+                price = float(price_edit.text().strip())
+            except ValueError:
+                QMessageBox.warning(
+                    dialog,
+                    "Invalid Price",
+                    "Please enter a valid transaction price.",
+                )
+                return
+
+            if shares <= 0:
+                QMessageBox.warning(
+                    dialog,
+                    "Invalid Shares",
+                    "Shares must be greater than zero.",
+                )
+                return
+
+            if price < 0:
+                QMessageBox.warning(
+                    dialog,
+                    "Invalid Price",
+                    "Price cannot be negative.",
+                )
+                return
+
+            edited_transaction = Transaction(
+                date=date(
+                    date_edit.date().year(),
+                    date_edit.date().month(),
+                    date_edit.date().day(),
+                ),
+                symbol=symbol,
+                action=action,
+                shares=shares,
+                price=price,
+                note=note_edit.text().strip(),
+            )
+
+            try:
+                portfolio.edit_transaction(
+                    transaction_index,
+                    edited_transaction,
+                )
+            except (ValueError, IndexError) as error:
+                QMessageBox.warning(
+                    dialog,
+                    "Transaction Error",
+                    str(error),
+                )
+                return
+
+            try:
+                save_portfolio(portfolio, filename)
+            except Exception as error:
+                QMessageBox.critical(
+                    dialog,
+                    "Save Error",
+                    f"Unable to save portfolio:\n\n{error}",
+                )
+                return
+
+            dialog.accept()
+
+        save_button.clicked.connect(save_changes)
+
+        dialog.exec()
+
+        self.display_selected_portfolio()
+
+    def delete_transaction(self):
+        """
+        Delete the selected transaction after confirmation.
+        """
+
+        filename = self.portfolio_selector.currentData()
+
+        if not filename:
+            QMessageBox.information(
+                self,
+                "Delete Transaction",
+                "Please select a portfolio first.",
+            )
+            return
+
+        selected_row = self.transaction_table.currentRow()
+
+        if selected_row < 0:
+            QMessageBox.information(
+                self,
+                "Delete Transaction",
+                "Please select a transaction first.",
+            )
+            return
+
+        try:
+            portfolio = load_portfolio(filename)
+        except Exception as error:
+            QMessageBox.critical(
+                self,
+                "Portfolio Error",
+                f"Unable to load portfolio:\n\n{error}",
+            )
+            return
+
+        transactions = sorted(
+            portfolio.transactions,
+            key=lambda transaction: transaction.date,
+        )
+
+        if selected_row >= len(transactions):
+            QMessageBox.warning(
+                self,
+                "Delete Transaction",
+                "The selected transaction could not be found.",
+            )
+            return
+
+        selected_transaction = transactions[selected_row]
+
+        try:
+            transaction_index = portfolio.transactions.index(selected_transaction)
+        except ValueError:
+            QMessageBox.warning(
+                self,
+                "Delete Transaction",
+                "The selected transaction could not be found.",
+            )
+            return
+
+        confirmation = QMessageBox.question(
+            self,
+            "Delete Transaction",
+            (
+                "Delete this transaction?\n\n"
+                f"{selected_transaction.date.strftime('%m/%d/%y')}  "
+                f"{selected_transaction.symbol}  "
+                f"{selected_transaction.action}  "
+                f"{selected_transaction.shares:.2f} shares"
+            ),
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.No,
+        )
+
+        if confirmation != QMessageBox.StandardButton.Yes:
+            return
+
+        try:
+            portfolio.delete_transaction(transaction_index)
+        except (ValueError, IndexError) as error:
+            QMessageBox.warning(
+                self,
+                "Transaction Error",
+                str(error),
+            )
+            return
+
+        try:
+            save_portfolio(portfolio, filename)
+        except Exception as error:
+            QMessageBox.critical(
+                self,
+                "Save Error",
+                f"Unable to save portfolio:\n\n{error}",
+            )
+            return
 
         self.display_selected_portfolio()
 
