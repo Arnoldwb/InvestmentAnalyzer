@@ -166,8 +166,8 @@ class FundDataValidator:
                 parsed_dates.notna()
                 & adjusted_close.isna()
                 & open_text.str.contains(
-                    "distribution",
-                    regex=False,
+                    "distribution|dividend",
+                    regex=True,
                 )
             )
         else:

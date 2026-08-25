@@ -33,6 +33,14 @@ class SchwabTransactionImporter:
 
         name = str(name).upper().strip()
 
+        name = re.sub(r"\(R\)", "", name)
+
+        name = name.replace("ACTIVEBETAEMERGING", "ACTIVEBETA EMERGING")
+        name = name.replace("ACTIVEBETAINTERNATIONAL", "ACTIVEBETA INTERNATIONAL")
+        name = name.replace("ACTIVEBETAU.S.", "ACTIVEBETA U.S.")
+        name = name.replace("MARKETSEQUITY", "MARKETS EQUITY")
+        name = name.replace("BONDINDEX", "BOND INDEX")
+
         replacements = {
             "U.S.": "US",
             "U.S": "US",
