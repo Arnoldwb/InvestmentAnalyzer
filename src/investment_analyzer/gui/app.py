@@ -45,6 +45,9 @@ from investment_analyzer.models.portfolio import Portfolio
 from investment_analyzer.gui.chart_viewer import ChartViewerWindow
 from investment_analyzer.gui.fund_data_manager import FundDataManagerWindow
 from investment_analyzer.gui.report_center import ReportCenterWindow
+from investment_analyzer.gui.schwab_import_dialog import (
+    SchwabImportDialog,
+)
 from investment_analyzer.visualization.chart_generator import (
     ChartGenerator,
 )
@@ -128,6 +131,10 @@ class PortfolioWindow(QDialog):
         self.add_transaction_button = QPushButton("Add Transaction")
         self.add_transaction_button.clicked.connect(self.add_transaction)
         layout.addWidget(self.add_transaction_button)
+
+        self.import_transactions_button = QPushButton("Import Schwab Transactions")
+        self.import_transactions_button.clicked.connect(self.import_schwab_transactions)
+        layout.addWidget(self.import_transactions_button)
 
         transaction_title = QLabel("Transaction History")
         transaction_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -709,6 +716,57 @@ class PortfolioWindow(QDialog):
         dialog.exec()
 
         self.display_selected_portfolio()
+
+    def import_schwab_transactions(self):
+        """
+        Open the Schwab transaction import dialog.
+        """
+
+        filename = self.portfolio_selector.currentData()
+
+        if not filename:
+            QMessageBox.information(
+                self,
+                "Import Schwab Transactions",
+                "Please select a portfolio first.",
+            )
+            return
+
+        try:
+            portfolio = load_portfolio(filename)
+        except Exception as error:
+            QMessageBox.critical(
+                self,
+                "Portfolio Error",
+                f"Unable to load portfolio:\n\n{error}",
+            )
+            return
+
+        dialog = SchwabImportDialog(
+            portfolio,
+            self,
+        )
+
+        if dialog.exec() != QDialog.DialogCode.Accepted:
+            return
+
+        try:
+            save_portfolio(portfolio, filename)
+        except Exception as error:
+            QMessageBox.critical(
+                self,
+                "Save Error",
+                f"Unable to save portfolio:\n\n{error}",
+            )
+            return
+
+        self.display_selected_portfolio()
+
+        QMessageBox.information(
+            self,
+            "Import Complete",
+            (f"Successfully imported " f"{len(dialog.transactions)} transaction(s)."),
+        )
 
     def display_share_reconciliation(self, portfolio):
         """
