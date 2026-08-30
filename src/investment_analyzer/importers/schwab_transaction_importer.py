@@ -5,6 +5,7 @@ from pathlib import Path
 import pandas as pd
 
 from investment_analyzer.core.fund_metadata import load_fund_metadata
+from investment_analyzer.core.paths import TRANSACTION_DIR
 from investment_analyzer.models.transaction import Transaction
 
 
@@ -150,6 +151,9 @@ class SchwabTransactionImporter:
         """
 
         path = Path(csv_path)
+
+        if not path.is_absolute():
+            path = TRANSACTION_DIR / path
 
         if not path.exists():
             raise FileNotFoundError(f"Schwab CSV file not found: {path}")

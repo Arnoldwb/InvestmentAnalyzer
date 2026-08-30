@@ -26,6 +26,7 @@ PROJECT_ROOT = get_project_root()
 DATA_DIR = PROJECT_ROOT / "data"
 DATA_BACKUP_DIR = PROJECT_ROOT / "data_backups"
 PORTFOLIO_DIR = PROJECT_ROOT / "portfolios"
+TRANSACTION_DIR = PROJECT_ROOT / "transactions"
 REPORTS_DIR = PROJECT_ROOT / "reports"
 OUTPUT_DIR = PROJECT_ROOT / "output"
 DOCS_DIR = PROJECT_ROOT / "docs"
@@ -40,6 +41,7 @@ def ensure_application_directories() -> None:
         DATA_DIR,
         DATA_BACKUP_DIR,
         PORTFOLIO_DIR,
+        TRANSACTION_DIR,
         REPORTS_DIR,
         OUTPUT_DIR,
         DOCS_DIR,
