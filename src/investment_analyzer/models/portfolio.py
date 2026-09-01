@@ -5,6 +5,7 @@ from .fund import Fund
 from .holding import Holding
 from .transaction import Transaction
 from .historical_starting_position import HistoricalStartingPosition
+from .historical_event import HistoricalEvent
 
 
 @dataclass
@@ -16,6 +17,10 @@ class Portfolio:
     transactions: list[Transaction] = field(default_factory=list)
 
     historical_starting_positions: list[HistoricalStartingPosition] = field(
+        default_factory=list
+    )
+
+    historical_events: list[HistoricalEvent] = field(
         default_factory=list
     )
 
