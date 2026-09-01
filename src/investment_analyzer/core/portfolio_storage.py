@@ -5,6 +5,9 @@ from pathlib import Path
 from investment_analyzer.core.paths import PORTFOLIO_DIR
 from investment_analyzer.models.portfolio import Portfolio
 from investment_analyzer.models.transaction import Transaction
+from investment_analyzer.models.historical_starting_position import (
+    HistoricalStartingPosition,
+)
 
 
 def ensure_portfolio_directory() -> Path:
@@ -60,6 +63,15 @@ def save_portfolio(portfolio: Portfolio, filename: str | None = None) -> Path:
             }
             for transaction in portfolio.transactions
         ],
+        "historical_starting_positions": [
+            {
+                "date": position.date.isoformat(),
+                "symbol": position.symbol,
+                "shares": position.shares,
+                "source": position.source,
+            }
+            for position in portfolio.historical_starting_positions
+        ],
     }
 
     with path.open("w", encoding="utf-8") as file:
@@ -105,6 +117,17 @@ def load_portfolio(filename: str) -> Portfolio:
         )
 
         portfolio.transactions.append(transaction)
+
+    for position_data in data.get("historical_starting_positions", []):
+        position = HistoricalStartingPosition(
+            date=date.fromisoformat(position_data["date"]),
+            symbol=position_data["symbol"],
+            shares=float(position_data["shares"]),
+            source=position_data.get("source", ""),
+        )
+
+        portfolio.historical_starting_positions.append(position)
+
     for holding in portfolio.holdings:
         if holding.symbol in {
             transaction.symbol for transaction in portfolio.transactions
