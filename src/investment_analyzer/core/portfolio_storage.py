@@ -8,6 +8,7 @@ from investment_analyzer.models.transaction import Transaction
 from investment_analyzer.models.historical_starting_position import (
     HistoricalStartingPosition,
 )
+from investment_analyzer.models.historical_event import HistoricalEvent
 
 
 def ensure_portfolio_directory() -> Path:
@@ -72,6 +73,18 @@ def save_portfolio(portfolio: Portfolio, filename: str | None = None) -> Path:
             }
             for position in portfolio.historical_starting_positions
         ],
+        "historical_events": [
+            {
+                "date": event.date.isoformat(),
+                "symbol": event.symbol,
+                "event_type": event.event_type,
+                "shares": event.shares,
+                "price": event.price,
+                "amount": event.amount,
+                "note": event.note,
+            }
+            for event in portfolio.historical_events
+        ],
     }
 
     with path.open("w", encoding="utf-8") as file:
@@ -127,6 +140,19 @@ def load_portfolio(filename: str) -> Portfolio:
         )
 
         portfolio.historical_starting_positions.append(position)
+
+    for event_data in data.get("historical_events", []):
+        event = HistoricalEvent(
+            date=date.fromisoformat(event_data["date"]),
+            symbol=event_data["symbol"],
+            event_type=event_data["event_type"],
+            shares=float(event_data.get("shares", 0.0)),
+            price=float(event_data.get("price", 0.0)),
+            amount=float(event_data.get("amount", 0.0)),
+            note=event_data.get("note", ""),
+        )
+
+        portfolio.historical_events.append(event)
 
     for holding in portfolio.holdings:
         if holding.symbol in {
