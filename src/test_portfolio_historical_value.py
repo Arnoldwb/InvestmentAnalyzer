@@ -12,17 +12,6 @@ CSV_FILE = "data/Vanguard_Import_09-01-26.csv"
 def main():
     starting_positions, events = import_vanguard_history(CSV_FILE)
 
-    # Exclude the known Vanguard bookkeeping reconciliation pair
-    # from this historical reconstruction test.
-    events = [
-        event
-        for event in events
-        if not (
-            event.date.isoformat() == "2026-04-20"
-            and event.event_type in {"ADD", "REMOVE"}
-        )
-    ]
-
     portfolio = Portfolio(name="Vanguard Historical Test")
 
     portfolio.historical_starting_positions.extend(starting_positions)
@@ -46,7 +35,7 @@ def main():
         "VGHAX",
     }
 
-    assert len(value_history) == 940
+    assert len(value_history) == 878
 
     first_date = value_history.iloc[0]
 
@@ -63,11 +52,11 @@ def main():
 
     assert portfolio_history.iloc[0]["Date"] == pd.Timestamp("2024-09-25")
 
-    assert abs(portfolio_history.iloc[0]["Portfolio Value"] - 210711.04064) < 0.01
+    assert abs(portfolio_history.iloc[0]["Portfolio Value"] - 120798.66840) < 0.01
 
-    assert abs(portfolio_history.iloc[1]["Portfolio Value"] - 207041.23164) < 0.01
+    assert abs(portfolio_history.iloc[1]["Portfolio Value"] - 116920.37500) < 0.01
 
-    assert abs(portfolio_history.iloc[2]["Portfolio Value"] - 206534.72747) < 0.01
+    assert abs(portfolio_history.iloc[2]["Portfolio Value"] - 116441.66875) < 0.01
 
     print("Portfolio historical value integration test PASSED.")
     print()

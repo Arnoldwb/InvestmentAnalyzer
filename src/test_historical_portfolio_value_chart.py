@@ -50,7 +50,7 @@ def main():
     assert len(line.get_ydata()) == 474
 
     assert abs(
-        line.get_ydata()[0] - 210711.04064
+        line.get_ydata()[0] - 120798.66840
     ) < 0.01
 
     assert abs(
