@@ -6,6 +6,12 @@ from .holding import Holding
 from .transaction import Transaction
 from .historical_starting_position import HistoricalStartingPosition
 from .historical_event import HistoricalEvent
+from investment_analyzer.core.historical_share_history import (
+    reconstruct_share_history,
+)
+from investment_analyzer.core.historical_value_history import (
+    calculate_historical_value_history,
+)
 
 
 @dataclass
@@ -278,6 +284,18 @@ class Portfolio:
             raise ValueError(f"Portfolio allocations total {total:.2f}%, not 100%.")
 
         return True
+
+    def historical_value_history(self):
+        """Return the reconstructed daily historical holding values."""
+
+        share_history = reconstruct_share_history(
+            self.historical_starting_positions,
+            self.historical_events,
+        )
+
+        return calculate_historical_value_history(
+            share_history
+        )
 
     def summary(self) -> None:
 
