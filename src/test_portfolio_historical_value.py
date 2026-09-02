@@ -6,7 +6,6 @@ from investment_analyzer.core.vanguard_historical_importer import (
     import_vanguard_history,
 )
 
-
 CSV_FILE = "data/Vanguard_Import_09-01-26.csv"
 
 
@@ -26,9 +25,7 @@ def main():
 
     portfolio = Portfolio(name="Vanguard Historical Test")
 
-    portfolio.historical_starting_positions.extend(
-        starting_positions
-    )
+    portfolio.historical_starting_positions.extend(starting_positions)
 
     portfolio.historical_events.extend(events)
 
@@ -54,6 +51,23 @@ def main():
     first_date = value_history.iloc[0]
 
     assert first_date["Date"] == pd.Timestamp("2024-09-25")
+
+    portfolio_history = portfolio.historical_portfolio_value()
+
+    assert list(portfolio_history.columns) == [
+        "Date",
+        "Portfolio Value",
+    ]
+
+    assert len(portfolio_history) == 474
+
+    assert portfolio_history.iloc[0]["Date"] == pd.Timestamp("2024-09-25")
+
+    assert abs(portfolio_history.iloc[0]["Portfolio Value"] - 210711.04064) < 0.01
+
+    assert abs(portfolio_history.iloc[1]["Portfolio Value"] - 207041.23164) < 0.01
+
+    assert abs(portfolio_history.iloc[2]["Portfolio Value"] - 206534.72747) < 0.01
 
     print("Portfolio historical value integration test PASSED.")
     print()

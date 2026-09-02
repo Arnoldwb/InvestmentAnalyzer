@@ -297,6 +297,19 @@ class Portfolio:
             share_history
         )
 
+    def historical_portfolio_value(self):
+        """Return the reconstructed daily historical portfolio values."""
+
+        from investment_analyzer.core.historical_portfolio_value import (
+            calculate_historical_portfolio_value,
+        )
+
+        value_history = self.historical_value_history()
+
+        return calculate_historical_portfolio_value(
+            value_history
+        )
+
     def summary(self) -> None:
 
         print()
