@@ -106,6 +106,39 @@ class ChartGenerator:
 
         return figure
 
+    def historical_fund_value_chart(self, portfolio) -> Figure:
+        """
+        Create a historical value chart showing each fund
+        held in the reconstructed historical portfolio.
+        """
+
+        history = portfolio.historical_value_history()
+
+        figure = Figure(figsize=(9, 5.5))
+        axes = figure.subplots()
+
+        if not history.empty:
+            for symbol, fund_history in history.groupby("Symbol"):
+                axes.plot(
+                    fund_history["Date"],
+                    fund_history["Value"],
+                    linewidth=1.8,
+                    label=symbol,
+                )
+
+        axes.set_title(f"{portfolio.name} — Historical Fund Values")
+        axes.set_xlabel("Date")
+        axes.set_ylabel("Holding Value ($)")
+        axes.grid(True)
+
+        axes.yaxis.set_major_formatter(lambda value, position: f"${value:,.0f}")
+
+        axes.legend()
+
+        figure.tight_layout()
+
+        return figure
+
     def portfolio_monthly_returns_chart(self, portfolio) -> Figure:
         """
         Create a monthly portfolio returns chart.
