@@ -28,15 +28,7 @@ def main():
         "Shares",
     ]
 
-    # The two starting positions must establish the first balances.
-    first_wellington = history[
-        (history["Symbol"] == "Vanguard Wellington Admiral")
-        & (history["Date"] == "2024-09-25")
-    ]
-
-    assert len(first_wellington) == 1
-    assert abs(first_wellington.iloc[0]["Shares"] - 1389.896) < 0.001
-
+    # The Health Care placeholder establishes the initial balance.
     first_health = history[
         (history["Symbol"] == "Vanguard Health Care-Admiral")
         & (history["Date"] == "2024-09-25")
@@ -45,29 +37,24 @@ def main():
     assert len(first_health) == 1
     assert abs(first_health.iloc[0]["Shares"] - 1502.471) < 0.001
 
-    # Verify the final chronological balances, excluding the April
-    # reconciliation pair just as the importer regression test does.
-    investment_events = [
-        event
-        for event in events
-        if not (
-            event.date.isoformat() == "2026-04-20"
-            and event.symbol == "Vanguard Wellington Admiral"
-            and event.event_type in {"ADD", "REMOVE"}
-        )
+    # Wellington enters the historical record through its actual
+    # December 23, 2024 purchase.
+    first_wellington = history[
+        (history["Symbol"] == "Vanguard Wellington Admiral")
+        & (history["Date"] == "2024-12-23")
     ]
 
+    assert len(first_wellington) == 1
+    assert abs(first_wellington.iloc[0]["Shares"] - 1384.153) < 0.001
+
+    # The importer now handles the April 2026 reconciliation pair,
+    # so the reconstructed history can be used directly.
     expected_balances = reconstruct_shares(
         starting_positions,
-        investment_events,
+        events,
     )
 
-    # Rebuild the history without the reconciliation pair so the final
-    # history row represents the same investment history being tested.
-    clean_history = reconstruct_share_history(
-        starting_positions,
-        investment_events,
-    )
+    clean_history = history
 
     for symbol, expected in expected_balances.items():
         symbol_history = clean_history[
@@ -79,8 +66,7 @@ def main():
         actual = symbol_history.iloc[-1]["Shares"]
 
         assert abs(actual - expected) < 0.001, (
-            f"{symbol}: expected {expected:.3f}, "
-            f"got {actual:.3f}"
+            f"{symbol}: expected {expected:.3f}, " f"got {actual:.3f}"
         )
 
     print("Historical share history regression test PASSED.")
@@ -93,7 +79,9 @@ def main():
         symbol_history = clean_history[
             clean_history["Symbol"] == symbol
         ]
+
         actual = symbol_history.iloc[-1]["Shares"]
+
         print(f"  {symbol}: {actual:,.3f}")
 
 
