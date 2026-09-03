@@ -86,6 +86,10 @@ class ChartViewerWindow(QDialog):
             "Portfolio Allocation",
             "allocation",
         )
+        self.chart_type_selector.addItem(
+            "Historical Fund Values",
+            "historical_fund_value",
+        )
         selector_layout.addWidget(self.chart_type_selector)
 
         self.refresh_button = QPushButton("Refresh Chart")
@@ -285,6 +289,10 @@ class ChartViewerWindow(QDialog):
             elif chart_type == "allocation":
                 figure = generator.portfolio_allocation_chart(portfolio)
                 description = "Portfolio Allocation"
+
+            elif chart_type == "historical_fund_value":
+                figure = generator.historical_fund_value_chart(portfolio)
+                description = "Historical Fund Values"
 
             else:
                 figure = generator.portfolio_growth_chart(
