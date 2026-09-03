@@ -28,7 +28,7 @@ def main():
     assert len(axes.lines) == 2
 
     lines = {
-        line.get_label(): line
+        line.get_label().split(" — ", 1)[0]: line
         for line in axes.lines
     }
 
@@ -37,7 +37,7 @@ def main():
         "VWENX",
     }
 
-    assert len(lines["VGHAX"].get_xdata()) == 474
+    assert len(lines["VGHAX"].get_xdata()) == 486
     assert len(lines["VWENX"].get_xdata()) == 404
 
     # VGHAX begins with the September 25, 2024 historical

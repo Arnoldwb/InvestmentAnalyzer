@@ -123,7 +123,7 @@ class ChartGenerator:
                     fund_history["Date"],
                     fund_history["Value"],
                     linewidth=1.8,
-                    label=symbol,
+                    label=f"{symbol} — {get_fund_name(symbol)}",
                 )
 
         axes.set_title(f"{portfolio.name} — Historical Fund Values")
@@ -133,7 +133,10 @@ class ChartGenerator:
 
         axes.yaxis.set_major_formatter(lambda value, position: f"${value:,.0f}")
 
-        axes.legend()
+        axes.legend(
+            loc="upper right",
+            ncol=1,
+        )
 
         figure.tight_layout()
 

@@ -211,7 +211,7 @@ class ChartViewerWindow(QDialog):
                 if nearest_date is None:
                     nearest_date = date_value
 
-                label = line.get_label()
+                label = line.get_label().split(" — ", 1)[0]
 
                 values.append(
                     (
@@ -227,7 +227,8 @@ class ChartViewerWindow(QDialog):
             self.crosshair.set_xdata([target_date, target_date])
             self.crosshair.set_visible(True)
 
-            date_text = str(nearest_date).split(" ")[0]
+            date_text = str(nearest_date)[:10]
+            date_text = f"{date_text[5:7]}/{date_text[8:10]}/{date_text[:4]}"
 
             text_lines = [
                 f"Date: {date_text}",
@@ -245,10 +246,10 @@ class ChartViewerWindow(QDialog):
             )
 
             if event.x < axes.bbox.x0 + axes.bbox.width * 0.65:
-                self.annotation.set_position((15, 15))
+                self.annotation.set_position((15, -75))
                 self.annotation.set_ha("left")
             else:
-                self.annotation.set_position((-15, 15))
+                self.annotation.set_position((-15, -75))
                 self.annotation.set_ha("right")
 
             self.annotation.set_visible(True)
@@ -316,7 +317,7 @@ class ChartViewerWindow(QDialog):
         self.canvas = FigureCanvasQTAgg(figure)
         self.chart_layout.addWidget(self.canvas)
 
-        if chart_type == "growth":
+        if chart_type in {"growth", "historical_fund_value"}:
             self.enable_growth_interaction(figure)
 
         self.canvas.draw()
