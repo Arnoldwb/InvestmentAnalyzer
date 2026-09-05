@@ -31,7 +31,7 @@ from investment_analyzer.analysis.monte_carlo_analyzer import (
 from investment_analyzer.analysis.portfolio_analyzer import (
     PortfolioAnalyzer,
 )
-from investment_analyzer.models.transaction import Transaction
+from investment_analyzer.models.transaction import Transaction, TransactionAction
 from investment_analyzer.core.fund_library import FundLibrary
 from investment_analyzer.core.portfolio_storage import (
     delete_portfolio,
@@ -596,7 +596,19 @@ class PortfolioWindow(QDialog):
             )
 
         action_selector = QComboBox()
-        action_selector.addItems(["BUY", "SELL"])
+        action_selector.addItems(
+            [
+                TransactionAction.BUY,
+                TransactionAction.SELL,
+                TransactionAction.DIVIDEND,
+                TransactionAction.REINVEST_DIVIDEND,
+                TransactionAction.CAPITAL_GAIN,
+                TransactionAction.REINVEST_CAPITAL_GAIN,
+                TransactionAction.MANAGEMENT_FEE,
+                TransactionAction.ADD_SHARES,
+                TransactionAction.REMOVE_SHARES,
+            ]
+        )
 
         date_edit = QDateEdit()
         date_edit.setCalendarPopup(True)
@@ -611,12 +623,36 @@ class PortfolioWindow(QDialog):
         note_edit = QLineEdit()
         note_edit.setPlaceholderText("Optional note")
 
+        amount_edit = QLineEdit()
+        amount_edit.setPlaceholderText("Transaction amount")
+        amount_edit.setVisible(False)
+
         layout.addRow("Fund:", fund_selector)
         layout.addRow("Action:", action_selector)
         layout.addRow("Date:", date_edit)
         layout.addRow("Shares:", shares_edit)
         layout.addRow("Price:", price_edit)
+        layout.addRow("Amount:", amount_edit)
         layout.addRow("Note:", note_edit)
+
+        cash_actions = {
+            TransactionAction.DIVIDEND,
+            TransactionAction.CAPITAL_GAIN,
+            TransactionAction.MANAGEMENT_FEE,
+        }
+
+        def update_transaction_fields():
+            is_cash_transaction = action_selector.currentText() in cash_actions
+
+            shares_edit.setVisible(not is_cash_transaction)
+            price_edit.setVisible(not is_cash_transaction)
+            amount_edit.setVisible(is_cash_transaction)
+
+        action_selector.currentTextChanged.connect(
+            update_transaction_fields
+        )
+
+        update_transaction_fields()
 
         button_layout = QHBoxLayout()
 
