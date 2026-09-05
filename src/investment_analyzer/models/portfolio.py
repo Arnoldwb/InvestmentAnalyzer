@@ -99,8 +99,8 @@ class Portfolio:
         """
         Add a transaction to the portfolio.
 
-        BUY transactions increase shares.
-        SELL transactions decrease shares.
+        Share-affecting transactions update the current holding.
+        Cash-only transactions do not change shares.
         """
 
         symbol = transaction.symbol.strip().upper()
@@ -108,11 +108,10 @@ class Portfolio:
         if not symbol:
             raise ValueError("Transaction symbol cannot be empty.")
 
-        if transaction.action.upper() not in {"BUY", "SELL"}:
-            raise ValueError("Transaction action must be BUY or SELL.")
+        action = transaction.action.upper()
 
-        if transaction.shares <= 0:
-            raise ValueError("Transaction shares must be greater than zero.")
+        if transaction.shares < 0:
+            raise ValueError("Transaction shares cannot be negative.")
 
         if transaction.price < 0:
             raise ValueError("Transaction price cannot be negative.")
@@ -125,23 +124,19 @@ class Portfolio:
         if holding is None:
             raise ValueError(f"{symbol} is not in the portfolio.")
 
-        action = transaction.action.upper()
-
-        if action == "BUY":
-            holding.shares += transaction.shares
-
-        elif action == "SELL":
-            if transaction.shares > holding.shares:
-                raise ValueError(
-                    f"Cannot sell {transaction.shares:.2f} shares "
-                    f"of {symbol}; only {holding.shares:.2f} shares "
-                    "are currently held."
-                )
-
-            holding.shares -= transaction.shares
-
-        transaction.action = action
         transaction.symbol = symbol
+        transaction.action = action
+
+        share_effect = self._transaction_share_effect(transaction)
+
+        if share_effect < 0 and -share_effect > holding.shares:
+            raise ValueError(
+                f"Cannot remove {-share_effect:.2f} shares "
+                f"of {symbol}; only {holding.shares:.2f} shares "
+                "are currently held."
+            )
+
+        holding.shares += share_effect
 
         self.transactions.append(transaction)
 
