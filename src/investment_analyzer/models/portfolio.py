@@ -193,13 +193,7 @@ class Portfolio:
                 if transaction.symbol.upper() != holding.symbol:
                     continue
 
-                action = transaction.action.upper()
-
-                if action == "BUY":
-                    shares += transaction.shares
-
-                elif action == "SELL":
-                    shares -= transaction.shares
+                shares += self._transaction_share_effect(transaction)
 
             if shares < 0:
                 raise ValueError(
