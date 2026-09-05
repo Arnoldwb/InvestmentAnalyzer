@@ -57,6 +57,41 @@ class Portfolio:
             )
         )
 
+    @staticmethod
+    def _transaction_share_effect(transaction: Transaction) -> float:
+        """
+        Return the change in shares caused by a transaction.
+
+        Positive values add shares.
+        Negative values remove shares.
+        Zero means the transaction does not affect shares.
+        """
+
+        action = transaction.action.upper()
+
+        if action in {
+            "BUY",
+            "REINVEST DIVIDEND",
+            "REINVEST CAPITAL GAIN",
+            "ADD SHARES",
+        }:
+            return transaction.shares
+
+        if action in {
+            "SELL",
+            "REMOVE SHARES",
+        }:
+            return -transaction.shares
+
+        if action in {
+            "DIVIDEND",
+            "CAPITAL GAIN",
+            "MANAGEMENT FEE",
+        }:
+            return 0.0
+
+        raise ValueError(f"Unsupported transaction action: {action}")
+
     def add_transaction(
         self,
         transaction: Transaction,
