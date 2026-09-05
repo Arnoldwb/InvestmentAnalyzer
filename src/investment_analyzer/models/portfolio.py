@@ -154,11 +154,7 @@ class Portfolio:
             if transaction.symbol.upper() != symbol:
                 continue
 
-            if transaction.action.upper() == "BUY":
-                balance += transaction.shares
-
-            elif transaction.action.upper() == "SELL":
-                balance -= transaction.shares
+            balance += self._transaction_share_effect(transaction)
 
         return balance
 
