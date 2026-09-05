@@ -2,6 +2,20 @@ from dataclasses import dataclass
 from datetime import date
 
 
+class TransactionAction:
+    """Standard transaction action names."""
+
+    BUY = "BUY"
+    SELL = "SELL"
+    DIVIDEND = "DIVIDEND"
+    REINVEST_DIVIDEND = "REINVEST DIVIDEND"
+    CAPITAL_GAIN = "CAPITAL GAIN"
+    REINVEST_CAPITAL_GAIN = "REINVEST CAPITAL GAIN"
+    MANAGEMENT_FEE = "MANAGEMENT FEE"
+    ADD_SHARES = "ADD SHARES"
+    REMOVE_SHARES = "REMOVE SHARES"
+
+
 @dataclass
 class Transaction:
     """
