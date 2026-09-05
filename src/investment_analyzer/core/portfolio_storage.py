@@ -60,6 +60,7 @@ def save_portfolio(portfolio: Portfolio, filename: str | None = None) -> Path:
                 "action": transaction.action,
                 "shares": transaction.shares,
                 "price": transaction.price,
+                "amount": transaction.amount,
                 "note": transaction.note,
             }
             for transaction in portfolio.transactions
@@ -126,6 +127,7 @@ def load_portfolio(filename: str) -> Portfolio:
             action=transaction_data["action"],
             shares=float(transaction_data["shares"]),
             price=float(transaction_data["price"]),
+            amount=float(transaction_data.get("amount", 0.0)),
             note=transaction_data.get("note", ""),
         )
 
