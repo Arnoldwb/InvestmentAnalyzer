@@ -35,7 +35,7 @@ def main():
         "VGHAX",
     }
 
-    assert len(value_history) == 878
+    assert len(value_history) == 890
 
     first_date = value_history.iloc[0]
 
@@ -48,7 +48,7 @@ def main():
         "Portfolio Value",
     ]
 
-    assert len(portfolio_history) == 474
+    assert len(portfolio_history) == 486
 
     assert portfolio_history.iloc[0]["Date"] == pd.Timestamp("2024-09-25")
 

@@ -3,17 +3,22 @@ import tempfile
 
 from investment_analyzer.core.file_discovery import discover_funds
 
-
 with tempfile.TemporaryDirectory() as folder:
     data_dir = Path(folder)
 
-    # Create several CSV files in deliberately unsorted order.
+    # Create several valid fund CSV files in deliberately unsorted order.
     for symbol in ["ZZZZ", "AAAA", "MMMM"]:
         (data_dir / f"{symbol}.csv").write_text(
-            "Date,Adj Close\n"
-            "01-Jan-24,100.00\n",
+            "Date,Adj Close\n" "01-Jan-24,100.00\n",
             encoding="utf-8",
         )
+
+    # Transaction/import CSV must not be treated as a fund.
+    (data_dir / "Vanguard_Import.csv").write_text(
+        "Date,Type,Security/Payee,Description/Category,Invest Amt,Amount,Balance\n"
+        "9/25/24,Placeholder,Vanguard Wellington Admiral,Test,,0,0\n",
+        encoding="utf-8",
+    )
 
     # Non-CSV files must not be treated as funds.
     (data_dir / "README.txt").write_text(
@@ -37,10 +42,12 @@ with tempfile.TemporaryDirectory() as folder:
         funds = discover_funds()
 
         assert funds == ["AAAA", "MMMM", "ZZZZ"]
+        assert "Vanguard_Import" not in funds
         assert "README" not in funds
         assert "notes" not in funds
 
-        print("PASS: Fund discovery finds CSV files dynamically.")
+        print("PASS: Fund discovery finds valid fund CSV files dynamically.")
+        print("PASS: Transaction/import CSV files are ignored.")
         print("PASS: Fund discovery returns symbols in sorted order.")
 
     finally:

@@ -1,24 +1,17 @@
-from pathlib import Path
-
 from investment_analyzer.models.fund import Fund
 from investment_analyzer.analysis.cycle_analyzer import MarketCycleAnalyzer
 from investment_analyzer.reports.excel_report import ExcelReport
-
+from investment_analyzer.core.file_discovery import discover_funds
 
 report = ExcelReport()
-
-project_root = Path(__file__).resolve().parents[1]
-data_folder = project_root / "data"
-
-csv_files = sorted(data_folder.glob("*.csv"))
 
 print()
 print("Creating Excel report...")
 print()
 
-for csv_file in csv_files:
+funds = discover_funds()
 
-    symbol = csv_file.stem
+for symbol in funds:
 
     print(f"Processing {symbol}...")
 
