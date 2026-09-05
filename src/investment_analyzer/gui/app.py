@@ -471,7 +471,7 @@ class PortfolioWindow(QDialog):
         """
         Display the transaction history for the selected portfolio.
         """
-
+        self.transaction_table.clearContents()
         self.transaction_table.setRowCount(len(portfolio.transactions))
 
         if not portfolio.transactions:
@@ -648,9 +648,7 @@ class PortfolioWindow(QDialog):
             price_edit.setVisible(not is_cash_transaction)
             amount_edit.setVisible(is_cash_transaction)
 
-        action_selector.currentTextChanged.connect(
-            update_transaction_fields
-        )
+        action_selector.currentTextChanged.connect(update_transaction_fields)
 
         update_transaction_fields()
 
@@ -658,6 +656,7 @@ class PortfolioWindow(QDialog):
 
         cancel_button = QPushButton("Cancel")
         add_button = QPushButton("Add Transaction")
+        add_button.setDefault(True)
 
         button_layout.addWidget(cancel_button)
         button_layout.addWidget(add_button)
@@ -673,42 +672,71 @@ class PortfolioWindow(QDialog):
 
             symbol = fund_selector.currentData()
             action = action_selector.currentText()
+            cash_actions = {
+                TransactionAction.DIVIDEND,
+                TransactionAction.CAPITAL_GAIN,
+                TransactionAction.MANAGEMENT_FEE,
+            }
 
-            try:
-                shares = float(shares_edit.text().strip())
-            except ValueError:
-                QMessageBox.warning(
-                    dialog,
-                    "Invalid Shares",
-                    "Please enter a valid number of shares.",
-                )
-                return
+            if action in cash_actions:
+                try:
+                    amount = float(amount_edit.text().strip())
+                except ValueError:
+                    QMessageBox.warning(
+                        dialog,
+                        "Invalid Amount",
+                        "Please enter a valid transaction amount.",
+                    )
+                    return
 
-            try:
-                price = float(price_edit.text().strip())
-            except ValueError:
-                QMessageBox.warning(
-                    dialog,
-                    "Invalid Price",
-                    "Please enter a valid transaction price.",
-                )
-                return
+                if amount <= 0:
+                    QMessageBox.warning(
+                        dialog,
+                        "Invalid Amount",
+                        "Amount must be greater than zero.",
+                    )
+                    return
 
-            if shares <= 0:
-                QMessageBox.warning(
-                    dialog,
-                    "Invalid Shares",
-                    "Shares must be greater than zero.",
-                )
-                return
+                shares = 0.0
+                price = 0.0
+            else:
+                try:
+                    shares = float(shares_edit.text().strip())
+                except ValueError:
+                    QMessageBox.warning(
+                        dialog,
+                        "Invalid Shares",
+                        "Please enter a valid number of shares.",
+                    )
+                    return
 
-            if price < 0:
-                QMessageBox.warning(
-                    dialog,
-                    "Invalid Price",
-                    "Price cannot be negative.",
-                )
-                return
+                try:
+                    price = float(price_edit.text().strip())
+                except ValueError:
+                    QMessageBox.warning(
+                        dialog,
+                        "Invalid Price",
+                        "Please enter a valid transaction price.",
+                    )
+                    return
+
+                if shares <= 0:
+                    QMessageBox.warning(
+                        dialog,
+                        "Invalid Shares",
+                        "Shares must be greater than zero.",
+                    )
+                    return
+
+                if price < 0:
+                    QMessageBox.warning(
+                        dialog,
+                        "Invalid Price",
+                        "Price cannot be negative.",
+                    )
+                    return
+
+                amount = 0.0
 
             transaction_date = date(
                 date_edit.date().year(),
@@ -723,6 +751,7 @@ class PortfolioWindow(QDialog):
                 shares=shares,
                 price=price,
                 note=note_edit.text().strip(),
+                amount=amount,
             )
 
             try:
