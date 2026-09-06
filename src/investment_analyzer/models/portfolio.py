@@ -305,6 +305,31 @@ class Portfolio:
 
         return True
 
+    def transaction_historical_events(self) -> list[HistoricalEvent]:
+        """
+        Convert the portfolio's recorded transactions into
+        historical events.
+
+        Cash-only transactions are excluded because they do not
+        change share balances.
+        """
+
+        cash_only_actions = {
+            "DIVIDEND",
+            "CAPITAL GAIN",
+            "MANAGEMENT FEE",
+        }
+
+        events = []
+
+        for transaction in self.transactions:
+            if transaction.action.upper() in cash_only_actions:
+                continue
+
+            events.append(transaction.to_historical_event())
+
+        return events
+
     def historical_value_history(self):
         """Return the reconstructed daily historical holding values."""
 
