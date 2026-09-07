@@ -87,6 +87,10 @@ class Portfolio:
             "DIVIDEND",
             "CAPITAL GAIN",
             "MANAGEMENT FEE",
+            "DEPOSIT",
+            "WITHDRAWAL",
+            "CASH INTEREST",
+            "CASH ADJUSTMENT",
         }:
             return 0.0
 
@@ -318,6 +322,10 @@ class Portfolio:
             "DIVIDEND",
             "CAPITAL GAIN",
             "MANAGEMENT FEE",
+            "DEPOSIT",
+            "WITHDRAWAL",
+            "CASH INTEREST",
+            "CASH ADJUSTMENT",
         }
 
         events = []

@@ -38,6 +38,42 @@ def main():
             amount=100.00,
             note="Test dividend",
         ),
+        Transaction(
+            date=date(2026, 4, 2),
+            symbol="",
+            action=TransactionAction.DEPOSIT,
+            shares=0.0,
+            price=0.0,
+            amount=1000.00,
+            note="Test deposit",
+        ),
+        Transaction(
+            date=date(2026, 4, 3),
+            symbol="",
+            action=TransactionAction.WITHDRAWAL,
+            shares=0.0,
+            price=0.0,
+            amount=250.00,
+            note="Test withdrawal",
+        ),
+        Transaction(
+            date=date(2026, 4, 4),
+            symbol="",
+            action=TransactionAction.CASH_INTEREST,
+            shares=0.0,
+            price=0.0,
+            amount=5.00,
+            note="Test interest",
+        ),
+        Transaction(
+            date=date(2026, 4, 5),
+            symbol="",
+            action=TransactionAction.CASH_ADJUSTMENT,
+            shares=0.0,
+            price=0.0,
+            amount=10.00,
+            note="Test adjustment",
+        ),
     ]
 
     portfolio.transactions.extend(transactions)
@@ -67,6 +103,10 @@ def main():
             "DIVIDEND",
             "CAPITAL GAIN",
             "MANAGEMENT FEE",
+            "DEPOSIT",
+            "WITHDRAWAL",
+            "CASH INTEREST",
+            "CASH ADJUSTMENT",
         }
         for event in events
     )
