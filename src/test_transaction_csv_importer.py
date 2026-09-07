@@ -114,16 +114,52 @@ def test_import_all_supported_transaction_actions(tmp_path):
             "Amount": "",
             "Note": "Administrative adjustment",
         },
+        {
+            "Date": "2026-08-28",
+            "Symbol": "",
+            "Action": "DEPOSIT",
+            "Shares": "0",
+            "Price": "0",
+            "Amount": "1000",
+            "Note": "Cash deposit",
+        },
+        {
+            "Date": "2026-08-27",
+            "Symbol": "",
+            "Action": "WITHDRAWAL",
+            "Shares": "0",
+            "Price": "0",
+            "Amount": "250",
+            "Note": "Cash withdrawal",
+        },
+        {
+            "Date": "2026-08-26",
+            "Symbol": "",
+            "Action": "CASH INTEREST",
+            "Shares": "0",
+            "Price": "0",
+            "Amount": "3.75",
+            "Note": "Cash interest",
+        },
+        {
+            "Date": "2026-08-25",
+            "Symbol": "",
+            "Action": "CASH ADJUSTMENT",
+            "Shares": "0",
+            "Price": "0",
+            "Amount": "7.50",
+            "Note": "Cash adjustment",
+        },
     ]
 
     write_csv(csv_path, rows)
 
     transactions = TransactionCSVImporter.import_file(csv_path)
 
-    assert len(transactions) == 9
+    assert len(transactions) == 13
 
     # Importer sorts transactions chronologically.
-    assert transactions[0].date.isoformat() == "2026-08-29"
+    assert transactions[0].date.isoformat() == "2026-08-25"
     assert transactions[-1].date.isoformat() == "2026-09-06"
 
     actions = {transaction.action for transaction in transactions}
@@ -138,6 +174,10 @@ def test_import_all_supported_transaction_actions(tmp_path):
         TransactionAction.MANAGEMENT_FEE,
         TransactionAction.ADD_SHARES,
         TransactionAction.REMOVE_SHARES,
+        TransactionAction.DEPOSIT,
+        TransactionAction.WITHDRAWAL,
+        TransactionAction.CASH_INTEREST,
+        TransactionAction.CASH_ADJUSTMENT,
     }
 
 

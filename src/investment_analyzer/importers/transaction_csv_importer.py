@@ -35,6 +35,10 @@ class TransactionCSVImporter:
         TransactionAction.DIVIDEND,
         TransactionAction.CAPITAL_GAIN,
         TransactionAction.MANAGEMENT_FEE,
+        TransactionAction.DEPOSIT,
+        TransactionAction.WITHDRAWAL,
+        TransactionAction.CASH_INTEREST,
+        TransactionAction.CASH_ADJUSTMENT,
     }
 
     @classmethod
@@ -95,12 +99,6 @@ class TransactionCSVImporter:
             ) from exc
 
         symbol = row["Symbol"].strip().upper()
-
-        if not symbol:
-            raise ValueError(
-                f"Transaction symbol cannot be empty on CSV line {line_number}."
-            )
-
         action = row["Action"].strip().upper()
 
         valid_actions = cls.SHARE_ACTIONS | cls.CASH_ACTIONS
@@ -109,6 +107,11 @@ class TransactionCSVImporter:
             raise ValueError(
                 f"Unsupported transaction action on CSV line {line_number}: "
                 f"{action!r}"
+            )
+
+        if not symbol and action in cls.SHARE_ACTIONS:
+            raise ValueError(
+                f"Transaction symbol cannot be empty on CSV line {line_number}."
             )
 
         shares = cls._parse_number(
