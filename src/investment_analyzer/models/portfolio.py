@@ -16,6 +16,9 @@ from investment_analyzer.core.historical_cash_history import (
 from investment_analyzer.core.historical_value_history import (
     calculate_historical_value_history,
 )
+from investment_analyzer.core.historical_portfolio_value import (
+    calculate_historical_portfolio_value,
+)
 
 
 @dataclass
@@ -370,16 +373,18 @@ class Portfolio:
         )
 
     def historical_portfolio_value(self):
-        """Return the reconstructed daily historical portfolio values."""
-
-        from investment_analyzer.core.historical_portfolio_value import (
-            calculate_historical_portfolio_value,
-        )
+        """Return the historical total portfolio value."""
 
         value_history = self.historical_value_history()
 
+        if self.historical_starting_cash is None:
+            return calculate_historical_portfolio_value(value_history)
+
+        cash_history = self.historical_cash_history()
+
         return calculate_historical_portfolio_value(
-            value_history
+            value_history,
+            cash_history,
         )
 
     def summary(self) -> None:
