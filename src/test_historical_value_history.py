@@ -36,6 +36,7 @@ def main():
     assert set(value_history["Symbol"]) == {
         "VWENX",
         "VGHAX",
+        "VMFXX",
     }
 
     assert value_history["Shares"].notna().all()

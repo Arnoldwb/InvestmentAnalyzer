@@ -2,10 +2,10 @@
 Mapping between imported historical security names and fund symbols.
 """
 
-
 HISTORICAL_SECURITY_SYMBOLS = {
     "Vanguard Wellington Admiral": "VWENX",
     "Vanguard Health Care-Admiral": "VGHAX",
+    "Vanguard Federal Money Market Fund": "VMFXX",
 }
 
 

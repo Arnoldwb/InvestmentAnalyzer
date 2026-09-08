@@ -5,7 +5,6 @@ from investment_analyzer.core.vanguard_historical_importer import (
 from investment_analyzer.models.portfolio import Portfolio
 from investment_analyzer.visualization.chart_generator import ChartGenerator
 
-
 CSV_FILE = DATA_DIR / "Vanguard_Import_09-01-26.csv"
 
 
@@ -17,29 +16,25 @@ def main():
     portfolio.historical_starting_positions = starting_positions
     portfolio.historical_events = events
 
-    figure = ChartGenerator().historical_fund_value_chart(
-        portfolio
-    )
+    figure = ChartGenerator().historical_fund_value_chart(portfolio)
 
     assert len(figure.axes) == 1
 
     axes = figure.axes[0]
 
-    assert len(axes.lines) == 2
+    assert len(axes.lines) == 3
 
-    lines = {
-        line.get_label().split(" — ", 1)[0]: line
-        for line in axes.lines
-    }
+    lines = {line.get_label().split(" — ", 1)[0]: line for line in axes.lines}
 
     assert set(lines) == {
         "VGHAX",
+        "VMFXX",
         "VWENX",
     }
 
     assert len(lines["VGHAX"].get_xdata()) == 486
+    assert len(lines["VMFXX"].get_xdata()) == 2
     assert len(lines["VWENX"].get_xdata()) == 404
-
     # VGHAX begins with the September 25, 2024 historical
     # starting position.
     vghax = lines["VGHAX"]

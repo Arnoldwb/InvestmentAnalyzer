@@ -35,9 +35,7 @@ class Portfolio:
 
     historical_starting_cash: HistoricalStartingCash | None = None
 
-    historical_events: list[HistoricalEvent] = field(
-        default_factory=list
-    )
+    historical_events: list[HistoricalEvent] = field(default_factory=list)
 
     def add_fund(
         self,
@@ -116,12 +114,34 @@ class Portfolio:
         Cash-only transactions do not change shares.
         """
 
-        symbol = transaction.symbol.strip().upper()
-
-        if not symbol:
-            raise ValueError("Transaction symbol cannot be empty.")
-
         action = transaction.action.upper()
+
+        cash_actions = {
+            "DIVIDEND",
+            "CAPITAL GAIN",
+            "MANAGEMENT FEE",
+            "DEPOSIT",
+            "WITHDRAWAL",
+            "CASH INTEREST",
+            "CASH ADJUSTMENT",
+        }
+
+        if action in cash_actions:
+            if transaction.shares != 0:
+                raise ValueError(f"{action} must have zero shares.")
+
+            if transaction.price != 0:
+                raise ValueError(f"{action} must have zero price.")
+
+            if transaction.amount <= 0:
+                raise ValueError(f"{action} must have a positive amount.")
+
+            transaction.symbol = ""
+            transaction.action = action
+            self.transactions.append(transaction)
+            return
+
+        symbol = transaction.symbol.strip().upper()
 
         if transaction.shares < 0:
             raise ValueError("Transaction shares cannot be negative.")
@@ -351,9 +371,7 @@ class Portfolio:
         """Return the reconstructed historical cash balance."""
 
         if self.historical_starting_cash is None:
-            raise ValueError(
-                "Historical starting cash has not been established."
-            )
+            raise ValueError("Historical starting cash has not been established.")
 
         return reconstruct_cash_history(
             self.historical_starting_cash,
@@ -368,9 +386,7 @@ class Portfolio:
             self.historical_events,
         )
 
-        return calculate_historical_value_history(
-            share_history
-        )
+        return calculate_historical_value_history(share_history)
 
     def historical_portfolio_value(self):
         """Return the historical total portfolio value."""

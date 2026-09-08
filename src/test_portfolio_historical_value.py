@@ -30,12 +30,9 @@ def main():
         "Value",
     ]
 
-    assert set(value_history["Symbol"]) == {
-        "VWENX",
-        "VGHAX",
-    }
+    assert set(value_history["Symbol"]) == {"VWENX", "VGHAX", "VMFXX"}
 
-    assert len(value_history) == 890
+    assert len(value_history) == 892
 
     first_date = value_history.iloc[0]
 

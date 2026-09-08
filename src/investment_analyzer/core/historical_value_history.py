@@ -32,15 +32,11 @@ def calculate_historical_value_history(
     """
 
     if share_history.empty:
-        return pd.DataFrame(
-            columns=["Date", "Symbol", "Shares", "Price", "Value"]
-        )
+        return pd.DataFrame(columns=["Date", "Symbol", "Shares", "Price", "Value"])
 
     history = share_history.copy()
 
-    history["Date"] = pd.to_datetime(history["Date"]).astype(
-        "datetime64[ns]"
-    )
+    history["Date"] = pd.to_datetime(history["Date"]).astype("datetime64[ns]")
 
     results = []
 
@@ -50,25 +46,25 @@ def calculate_historical_value_history(
         if symbol is None:
             continue
 
-        fund = Fund(symbol).load_data()
+        share_history_for_security = security_history.sort_values("Date")[
+            ["Date", "Shares"]
+        ].drop_duplicates(subset=["Date"], keep="last")
 
-        share_history_for_security = (
-            security_history
-            .sort_values("Date")
-            [["Date", "Shares"]]
-            .drop_duplicates(subset=["Date"], keep="last")
-        )
+        if symbol == "VMFXX":
+            prices = share_history_for_security[["Date"]].copy()
+            prices["Price"] = 1.00
+        else:
+            fund = Fund(symbol).load_data()
+            prices = (
+                fund.data[["Date", "Adj Close"]]
+                .rename(columns={"Adj Close": "Price"})
+                .sort_values("Date")
+                .copy()
+            )
 
-        prices = (
-            fund.data[["Date", "Adj Close"]]
-            .rename(columns={"Adj Close": "Price"})
-            .sort_values("Date")
-            .copy()
-        )
+        prices["Date"] = pd.to_datetime(prices["Date"]).astype("datetime64[ns]")
 
-        prices["Date"] = pd.to_datetime(prices["Date"]).astype(
-            "datetime64[ns]"
-        )
+        assert prices["Date"].dtype == "datetime64[ns]"
 
         start_date = share_history_for_security["Date"].min()
 
@@ -89,16 +85,10 @@ def calculate_historical_value_history(
         daily["Symbol"] = symbol
         daily["Value"] = daily["Shares"] * daily["Price"]
 
-        results.append(
-            daily[
-                ["Date", "Symbol", "Shares", "Price", "Value"]
-            ]
-        )
+        results.append(daily[["Date", "Symbol", "Shares", "Price", "Value"]])
 
     if not results:
-        return pd.DataFrame(
-            columns=["Date", "Symbol", "Shares", "Price", "Value"]
-        )
+        return pd.DataFrame(columns=["Date", "Symbol", "Shares", "Price", "Value"])
 
     return (
         pd.concat(results, ignore_index=True)

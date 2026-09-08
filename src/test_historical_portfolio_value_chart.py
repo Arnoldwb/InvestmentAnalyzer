@@ -8,7 +8,6 @@ from investment_analyzer.visualization.chart_generator import (
     ChartGenerator,
 )
 
-
 CSV_FILE = "data/Vanguard_Import_09-01-26.csv"
 
 
@@ -28,15 +27,11 @@ def main():
 
     portfolio = Portfolio(name="Vanguard Historical Test")
 
-    portfolio.historical_starting_positions.extend(
-        starting_positions
-    )
+    portfolio.historical_starting_positions.extend(starting_positions)
 
     portfolio.historical_events.extend(events)
 
-    figure = ChartGenerator().historical_portfolio_value_chart(
-        portfolio
-    )
+    figure = ChartGenerator().historical_portfolio_value_chart(portfolio)
 
     assert len(figure.axes) == 1
 
@@ -46,16 +41,12 @@ def main():
 
     line = axes.lines[0]
 
-    assert len(line.get_xdata()) == 474
-    assert len(line.get_ydata()) == 474
+    assert len(line.get_xdata()) == 486
+    assert len(line.get_ydata()) == 486
 
-    assert abs(
-        line.get_ydata()[0] - 120798.66840
-    ) < 0.01
+    assert abs(line.get_ydata()[0] - 120798.66840) < 0.01
 
-    assert abs(
-        line.get_ydata()[-1] - 0.0
-    ) < 0.01
+    assert abs(line.get_ydata()[-1] - 0.0) < 0.01
 
     print("Historical portfolio value chart regression test PASSED.")
     print()
