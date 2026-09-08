@@ -10,6 +10,9 @@ from .historical_event import HistoricalEvent
 from investment_analyzer.core.historical_share_history import (
     reconstruct_share_history,
 )
+from investment_analyzer.core.historical_cash_history import (
+    reconstruct_cash_history,
+)
 from investment_analyzer.core.historical_value_history import (
     calculate_historical_value_history,
 )
@@ -340,6 +343,19 @@ class Portfolio:
             events.append(transaction.to_historical_event())
 
         return events
+
+    def historical_cash_history(self):
+        """Return the reconstructed historical cash balance."""
+
+        if self.historical_starting_cash is None:
+            raise ValueError(
+                "Historical starting cash has not been established."
+            )
+
+        return reconstruct_cash_history(
+            self.historical_starting_cash,
+            self.transactions,
+        )
 
     def historical_value_history(self):
         """Return the reconstructed daily historical holding values."""
