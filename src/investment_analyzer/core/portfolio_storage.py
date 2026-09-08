@@ -8,6 +8,9 @@ from investment_analyzer.models.transaction import Transaction
 from investment_analyzer.models.historical_starting_position import (
     HistoricalStartingPosition,
 )
+from investment_analyzer.models.historical_starting_cash import (
+    HistoricalStartingCash,
+)
 from investment_analyzer.models.historical_event import HistoricalEvent
 
 
@@ -74,6 +77,15 @@ def save_portfolio(portfolio: Portfolio, filename: str | None = None) -> Path:
             }
             for position in portfolio.historical_starting_positions
         ],
+        "historical_starting_cash": (
+            {
+                "date": portfolio.historical_starting_cash.date.isoformat(),
+                "amount": portfolio.historical_starting_cash.amount,
+                "source": portfolio.historical_starting_cash.source,
+            }
+            if portfolio.historical_starting_cash is not None
+            else None
+        ),
         "historical_events": [
             {
                 "date": event.date.isoformat(),
@@ -142,6 +154,15 @@ def load_portfolio(filename: str) -> Portfolio:
         )
 
         portfolio.historical_starting_positions.append(position)
+
+    starting_cash_data = data.get("historical_starting_cash")
+
+    if starting_cash_data is not None:
+        portfolio.historical_starting_cash = HistoricalStartingCash(
+            date=date.fromisoformat(starting_cash_data["date"]),
+            amount=float(starting_cash_data["amount"]),
+            source=starting_cash_data.get("source", ""),
+        )
 
     for event_data in data.get("historical_events", []):
         event = HistoricalEvent(

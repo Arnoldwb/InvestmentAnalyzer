@@ -5,6 +5,7 @@ from .fund import Fund
 from .holding import Holding
 from .transaction import Transaction
 from .historical_starting_position import HistoricalStartingPosition
+from .historical_starting_cash import HistoricalStartingCash
 from .historical_event import HistoricalEvent
 from investment_analyzer.core.historical_share_history import (
     reconstruct_share_history,
@@ -25,6 +26,8 @@ class Portfolio:
     historical_starting_positions: list[HistoricalStartingPosition] = field(
         default_factory=list
     )
+
+    historical_starting_cash: HistoricalStartingCash | None = None
 
     historical_events: list[HistoricalEvent] = field(
         default_factory=list
