@@ -90,6 +90,10 @@ class ChartViewerWindow(QDialog):
             "Historical Fund Values",
             "historical_fund_value",
         )
+        self.chart_type_selector.addItem(
+            "Historical Portfolio Value",
+            "historical_portfolio_value",
+        )
         selector_layout.addWidget(self.chart_type_selector)
 
         self.refresh_button = QPushButton("Refresh Chart")
@@ -295,6 +299,10 @@ class ChartViewerWindow(QDialog):
                 figure = generator.historical_fund_value_chart(portfolio)
                 description = "Historical Fund Values"
 
+            elif chart_type == "historical_portfolio_value":
+                figure = generator.historical_portfolio_value_chart(portfolio)
+                description = "Historical Portfolio Value"
+
             else:
                 figure = generator.portfolio_growth_chart(
                     portfolio,
@@ -317,7 +325,11 @@ class ChartViewerWindow(QDialog):
         self.canvas = FigureCanvasQTAgg(figure)
         self.chart_layout.addWidget(self.canvas)
 
-        if chart_type in {"growth", "historical_fund_value"}:
+        if chart_type in {
+            "growth",
+            "historical_fund_value",
+            "historical_portfolio_value",
+        }:
             self.enable_growth_interaction(figure)
 
         self.canvas.draw()
