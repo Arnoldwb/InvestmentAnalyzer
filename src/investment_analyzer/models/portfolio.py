@@ -381,9 +381,14 @@ class Portfolio:
     def historical_value_history(self):
         """Return the reconstructed daily historical holding values."""
 
+        events = self.historical_events
+
+        if not events:
+            events = self.transaction_historical_events()
+
         share_history = reconstruct_share_history(
             self.historical_starting_positions,
-            self.historical_events,
+            events,
         )
 
         return calculate_historical_value_history(share_history)

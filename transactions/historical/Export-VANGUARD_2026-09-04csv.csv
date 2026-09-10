@@ -1,0 +1,42 @@
+﻿Date,Type,Security/Payee,Description/Category,Shares Out,Shares In,Shares,Cash Out,Cash In,Invest Amt,Amount,Balance
+9/25/24,Placeholder,Vanguard Wellington Admiral,"+1,389.896 shares (to reach 1,389.896 on 09/01/26)",,"1,389.90","1,389.90",,,,0,0
+9/25/24,Placeholder,Vanguard Health Care-Admiral,"+1,502.471 shares (to reach 0 on 03/18/26)",,"1,502.47","1,502.47",,,,0,0
+9/26/24,Sell,Vanguard Health Care-Admiral,51.846 shares @ 96.43945531,51.846,,-51.846,,"5,000.00","-5,000.00","5,000.00","5,000.00"
+9/27/24,Payment/Deposit,CHECK,Uncategorized,,,,"5,000.00",,,"-5,000.00",0
+12/23/24,Payment/Deposit,CHECK,Uncategorized,,,,"9,262.69",,,"-9,262.69","-9,262.69"
+12/23/24,Payment/Deposit,CHECK,Uncategorized,,,,498.06,,,-498.06,"-9,760.75"
+12/23/24,Payment/Deposit,CHECK,Uncategorized,,,,"1,084.63",,,"-1,084.63","-10,845.38"
+12/23/24,Buy,Vanguard Wellington Admiral,"1,384.153 shares @ 81.39998974",,"1,384.15","1,384.15","112,670.04",,"112,670.04","-112,670.04","-123,515.42"
+12/23/24,Sell,Vanguard Health Care-Admiral,"1,450.625 shares @ 77.66999741","1,450.63",,"-1,450.63",,"112,670.04","-112,670.04","112,670.04","-10,845.38"
+12/23/24,Long-term Capital Gain,Vanguard Health Care-Admiral,Investments:Long-term Capital Gain,,,,,"9,262.69",,"9,262.69","-1,582.69"
+12/23/24,Dividend Income,Vanguard Health Care-Admiral,Investments:Dividend Income,,,,,"1,084.63",,"1,084.63",-498.06
+12/23/24,Short-term Capital Gain,Vanguard Health Care-Admiral,Investments:Short-term Capital Gain,,,,,498.06,,498.06,0
+12/31/24,Buy,Vanguard Federal Money Market Fund,"9,341.56 shares @ 1.00",,"9,341.56","9,341.56","9,341.56",,"9,341.56","-9,341.56","-9,341.56"
+12/31/24,Dividend Income,Vanguard Wellington Admiral,Investments:Dividend Income,,,,,648.2,,648.2,"-8,693.36"
+12/31/24,Short-term Capital Gain,Vanguard Wellington Admiral,Investments:Short-term Capital Gain,,,,,491.78,,491.78,"-8,201.58"
+12/31/24,Long-term Capital Gain,Vanguard Wellington Admiral,Investments:Long-term Capital Gain,,,,,"8,201.58",,"8,201.58",0
+12/31/24,Reinvest Dividend,Vanguard Federal Money Market Fund,1.12 shares @ 1.00,,1.12,1.12,,,1.12,0,0
+1/8/25,Buy,Vanguard Wellington Admiral,125.743 shares @ 74.29980198,,125.743,125.743,"9,342.68",,"9,342.68","-9,342.68","-9,342.68"
+1/10/25,Sell,Vanguard Federal Money Market Fund,"9,342.68 shares @ 1.00","9,342.68",,"-9,342.68",,"9,342.68","-9,342.68","9,342.68",0
+1/10/25,Sell,Vanguard Wellington Admiral,120 shares @ 73.43,120,,-120,,"8,811.60","-8,811.60","8,811.60","8,811.60"
+1/10/25,Dividend Income,Vanguard Federal Money Market Fund,Investments:Dividend Income,,,,,9.91,,9.91,"8,821.51"
+1/13/25,Payment/Deposit,CHECK,Uncategorized,,,,"8,811.60",,,"-8,811.60",9.91
+1/13/25,Payment/Deposit,CHECK,Uncategorized,,,,9.91,,,-9.91,0
+3/24/25,Payment/Deposit,CHECK,Uncategorized,,,,587.93,,,-587.93,-587.93
+3/24/25,Dividend Income,Vanguard Wellington Admiral,Investments:Dividend Income,,,,,587.93,,587.93,0
+6/23/25,Payment/Deposit,CHECK,Uncategorized,,,,629.34,,,-629.34,-629.34
+6/23/25,Dividend Income,Vanguard Wellington Admiral,Investments:Dividend Income,,,,,629.34,,629.34,0
+9/22/25,Payment/Deposit,CHECK,Uncategorized,,,,550.68,,,-550.68,-550.68
+9/22/25,Dividend Income,Vanguard Wellington Admiral,Investments:Dividend Income,,,,,550.68,,550.68,0
+12/24/25,Payment/Deposit,CHECK,Uncategorized,,,,"1,717.30",,,"-1,717.30","-1,717.30"
+12/24/25,Payment/Deposit,CHECK,Uncategorized,,,,741.23,,,-741.23,"-2,458.53"
+12/24/25,Payment/Deposit,CHECK,Uncategorized,,,,"8,160.63",,,"-8,160.63","-10,619.16"
+12/24/25,Long-term Capital Gain,Vanguard Wellington Admiral,Investments:Long-term Capital Gain,,,,,"8,160.63",,"8,160.63","-2,458.53"
+12/24/25,Dividend Income,Vanguard Wellington Admiral,Investments:Dividend Income,,,,,741.23,,741.23,"-1,717.30"
+12/24/25,Short-term Capital Gain,Vanguard Wellington Admiral,Investments:Short-term Capital Gain,,,,,"1,717.30",,"1,717.30",0
+3/23/26,Payment/Deposit,CHECK,Uncategorized,,,,586.26,,,-586.26,-586.26
+3/23/26,Dividend Income,Vanguard Wellington Admiral,Investments:Dividend Income,,,,,586.26,,586.26,0
+4/20/26,Add Shares,Vanguard Wellington Fund Admiral Shares,"1,389.89 shares",,"1,389.89","1,389.89",,,,0,0
+4/20/26,Remove Shares,Vanguard Wellington Admiral,"1,389.896 shares @ 78.86","1,389.90",,"-1,389.90",,,"-109,607.20",0,0
+6/22/26,Payment/Deposit,CASH - Withdrawal,Uncategorized,,,,616,,,-616,-616
+6/22/26,Dividend Income,,Investments:Dividend Income,,,,,616,,616,0

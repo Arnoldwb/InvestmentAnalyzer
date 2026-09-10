@@ -1,0 +1,85 @@
+﻿Date,Type,Security/Payee,Description/Category,Shares Out,Shares In,Shares,Share Balance,Cash Out,Cash In,Invest Amt,Balance
+5/4/22,Payment/Deposit,Live Opening Balance,Adjustment,,,,,,"3,783.02",,"3,783.02"
+5/5/22,Placeholder,ISHRS CORE MOD ALLO,+192 shares (to reach 192 on 09/12/23),,192,192,192,,,,"3,783.02"
+5/6/22,Dividend Income,,Investments:Dividend Income,,,,,,7.31,,"3,790.33"
+5/20/22,Buy,,0 shares,,,0,,"3,854.79",,"3,854.79",-64.46
+6/7/22,Dividend Income,,Investments:Dividend Income,,,,,,14.88,,-49.58
+7/8/22,Dividend Income,,Investments:Dividend Income,,,,,,13.88,,-35.7
+8/5/22,Dividend Income,,Investments:Dividend Income,,,,,,15.78,,-19.92
+9/8/22,Dividend Income,,Investments:Dividend Income,,,,,,16.1,,-3.82
+9/30/22,Buy,,0 shares,,,0,,44.69,,44.69,-48.51
+10/7/22,Dividend Income,,Investments:Dividend Income,,,,,,16.69,,-31.82
+11/7/22,Dividend Income,,Investments:Dividend Income,,,,,,16.44,,-15.38
+12/7/22,Dividend Income,,Investments:Dividend Income,,,,,,18.52,,3.14
+12/21/22,Dividend Income,,Investments:Dividend Income,,,,,,19.06,,22.2
+12/28/22,Buy,,0 shares,,,0,,44.98,,44.98,-22.78
+2/7/23,Dividend Income,,Investments:Dividend Income,,,,,,20.04,,-2.74
+3/7/23,Dividend Income,,Investments:Dividend Income,,,,,,20.08,,17.34
+4/10/23,Dividend Income,,Investments:Dividend Income,,,,,,20.42,,37.76
+5/5/23,Sell,,0 shares,,,0,,,"7,552.50","-7,552.50","7,590.26"
+5/5/23,Buy,,0 shares,,,0,,"7,587.65",,"7,587.65",2.61
+5/5/23,Dividend Income,,Investments:Dividend Income,,,,,,21.1,,23.71
+7/11/23,Dividend Income,,Investments:Dividend Income,,,,,,57.21,,80.92
+7/27/23,Buy,,0 shares,,,0,,80.92,,80.92,0
+9/5/23,Payment/Deposit,TDA TO CS&CO TRANSFER,Transfer,,,,,,77.78,,77.78
+9/5/23,Add Shares,,0 shares,,,0,,,,,77.78
+9/15/23,Payment/Deposit,Bank Int Xx,Personal Income,,,,,,0.01,,77.79
+10/10/23,Dividend Income,ISHRS CORE MOD ALLO,Investments:Dividend Income,,,,,,41.35,,119.14
+10/10/23,Miscellaneous Expense,,Advisor Fee,,,,,19.48,,,99.66
+10/15/23,Payment/Deposit,Bank Int Xx,Personal Income,,,,,,0.03,,99.69
+11/15/23,Payment/Deposit,Bank Int Xx,Personal Income,,,,,,0.04,,99.73
+11/17/23,Buy,,0 shares,,,0,,,,,99.73
+12/15/23,Payment/Deposit,Bank Int Xx,Personal Income,,,,,,0.04,,99.77
+12/29/23,Dividend Income,ISHRS CORE MOD ALLO,Investments:Dividend Income,,,,,,86.1,,185.87
+1/10/24,Miscellaneous Expense,,Advisor Fee,,,,,20.74,,,165.13
+1/15/24,Payment/Deposit,Bank Int Xx,Personal Income,,,,,,0.05,,165.18
+1/26/24,Buy,ISHRS CORE MOD ALLO,2 shares @ 41.375,,2,2,194,82.75,,82.75,82.43
+2/15/24,Payment/Deposit,Bank Int Xx,Personal Income,,,,,,0.05,,82.48
+3/15/24,Payment/Deposit,Bank Int Xx,Personal Income,,,,,,0.03,,82.51
+4/8/24,Dividend Income,ISHRS CORE MOD ALLO,Investments:Dividend Income,,,,,,42.96,,125.47
+4/9/24,Miscellaneous Expense,,Advisor Fee,,,,,21.31,,,104.16
+4/15/24,Payment/Deposit,Bank Int Xx,Personal Income,,,,,,0.03,,104.19
+5/15/24,Payment/Deposit,Bank Int Xx,Personal Income,,,,,,0.04,,104.23
+6/15/24,Payment/Deposit,Bank Int Xx,Personal Income,,,,,,0.04,,104.27
+7/8/24,Dividend Income,ISHRS CORE MOD ALLO,Investments:Dividend Income,,,,,,65.44,,169.71
+7/10/24,Miscellaneous Expense,,Advisor Fee,,,,,21.6,,,148.11
+7/15/24,Payment/Deposit,Bank Int Xx,Personal Income,,,,,,0.04,,148.15
+7/18/24,Buy,ISHRS CORE MOD ALLO,1 share @ 43.40,,1,1,195,43.4,,43.4,104.75
+8/14/24,Payment/Deposit,Bank Int Xx,Personal Income,,,,,,0.04,,104.79
+9/14/24,Payment/Deposit,Bank Int Xx,Personal Income,,,,,,0.04,,104.83
+10/6/24,Dividend Income,ISHRS CORE MOD ALLO,Investments:Dividend Income,,,,,,50.82,,155.65
+10/8/24,Miscellaneous Expense,MGMTFEE TO ADVISOR,Uncategorized,,,,,22.76,,,132.89
+10/14/24,Payment/Deposit,Bank Int Xx,Personal Income,,,,,,0.02,,132.91
+11/14/24,Payment/Deposit,Bank Int Xx,Personal Income,,,,,,0.02,,132.93
+12/15/24,Payment/Deposit,Bank Int Xx,Personal Income,,,,,,0.01,,132.94
+12/26/24,Dividend Income,ISHRS CORE MOD ALLO,Investments:Dividend Income,,,,,,102.8,,235.74
+1/10/25,Miscellaneous Expense,MGMTFEE TO ADVISOR,Advisor Fee,,,,,22.27,,,213.47
+1/15/25,Payment/Deposit,Bank Int Xx,Personal Income,,,,,,0.01,,213.48
+2/15/25,Payment/Deposit,Bank Int Xx,Personal Income,,,,,,0.01,,213.49
+3/15/25,Payment/Deposit,Bank Int Xx,Personal Income,,,,,,0.01,,213.5
+4/3/25,Buy,ISHRS CORE MOD ALLO,2 shares @ 43.385,,2,2,197,86.77,,86.77,126.73
+4/7/25,Dividend Income,ISHRS CORE MOD ALLO,Investments:Dividend Income,,,,,,48.24,,174.97
+4/10/25,Miscellaneous Expense,MGMTFEE TO ADVISOR,Advisor Fee,,,,,22.43,,,152.54
+4/15/25,Payment/Deposit,Bank Int Xx,Personal Income,,,,,,0.01,,152.55
+5/15/25,Payment/Deposit,Bank Int Xx,Personal Income,,,,,,0.01,,152.56
+6/15/25,Payment/Deposit,Bank Int Xx,Personal Income,,,,,,0.01,,152.57
+7/8/25,Dividend Income,ISHRS CORE MOD ALLO,Investments:Dividend Income,,,,,,73.59,,226.16
+7/9/25,Miscellaneous Expense,MGMTFEE TO ADVISOR,Uncategorized,,,,,23.59,,,202.57
+7/15/25,Payment/Deposit,Bank Int Xx,Personal Income,,,,,,0.01,,202.58
+8/15/25,Payment/Deposit,Bank Int Xx,Personal Income,,,,,,0.01,,202.59
+9/15/25,Payment/Deposit,Bank Int Xx,Personal Income,,,,,,0.01,,202.6
+9/29/25,Buy,ISHRS CORE MOD ALLO,2 shares @ 47.48,,2,2,199,94.96,,94.96,107.64
+10/7/25,Dividend Income,ISHRS CORE MOD ALLO,Investments:Dividend Income,,,,,,53.41,,161.05
+10/9/25,Miscellaneous Expense,MGMTFEE TO ADVISOR,Advisor Fee,,,,,24.48,,,136.57
+10/15/25,Payment/Deposit,Bank Int Xx,Personal Income,,,,,,0.01,,136.58
+11/15/25,Payment/Deposit,Bank Int Xx,Personal Income,,,,,,0.01,,136.59
+12/22/25,Payment/Deposit,Journal Frm,Personal Income,,,,,,28.59,,165.18
+12/22/25,Add Shares,ISHRS CORE MOD ALLO,4 shares @ 48.24,,4,4,203,,,192.96,165.18
+12/29/25,Dividend Income,ISHRS CORE MOD ALLO,Investments:Dividend Income,,,,,,108.11,,273.29
+1/12/26,Miscellaneous Expense,MGMTFEE TO ADVISOR,Advisor Fee,,,,,24.91,,,248.38
+1/23/26,Buy,ISHRS CORE MOD ALLO,3 shares @ 48.25,,3,3,206,144.75,,144.75,103.63
+4/8/26,Dividend Income,ISHRS CORE MOD ALLO,Investments:Dividend Income,,,,,,63.89,,167.52
+4/9/26,Miscellaneous Expense,MGMTFEE TO ADVISOR,Advisor Fee,,,,,24.65,,,142.87
+7/8/26,Dividend Income,ISHRS CORE MOD ALLO,Investments:Dividend Income,,,,,,83.94,,226.81
+7/9/26,Miscellaneous Expense,MGMTFEE TO ADVISOR,Uncategorized,,,,,26.05,,,200.76
+8/4/26,Buy,ISHRS CORE MOD ALLO,1 share @ 49.81,,1,1,207,49.81,,49.81,150.95

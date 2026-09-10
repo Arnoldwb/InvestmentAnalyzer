@@ -7,6 +7,7 @@ import pandas as pd
 from investment_analyzer.core.historical_security_mapping import (
     historical_security_to_symbol,
 )
+from investment_analyzer.core.fund_metadata import load_fund_metadata
 from investment_analyzer.models.fund import Fund
 
 
@@ -33,6 +34,7 @@ def calculate_historical_value_history(
 
     if share_history.empty:
         return pd.DataFrame(columns=["Date", "Symbol", "Shares", "Price", "Value"])
+    fund_metadata = load_fund_metadata()
 
     history = share_history.copy()
 
@@ -44,7 +46,12 @@ def calculate_historical_value_history(
         symbol = historical_security_to_symbol(security_name)
 
         if symbol is None:
-            continue
+            candidate = security_name.strip().upper()
+
+            if candidate in fund_metadata:
+                symbol = candidate
+            else:
+                continue
 
         share_history_for_security = security_history.sort_values("Date")[
             ["Date", "Shares"]
@@ -61,7 +68,6 @@ def calculate_historical_value_history(
                 .sort_values("Date")
                 .copy()
             )
-
         prices["Date"] = pd.to_datetime(prices["Date"]).astype("datetime64[ns]")
 
         assert prices["Date"].dtype == "datetime64[ns]"
