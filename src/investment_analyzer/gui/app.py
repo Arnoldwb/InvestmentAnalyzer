@@ -22,6 +22,7 @@ from PySide6.QtWidgets import (
     QTableWidgetItem,
     QVBoxLayout,
     QWidget,
+    QScrollArea,
 )
 
 from investment_analyzer import __version__
@@ -30,6 +31,9 @@ from investment_analyzer.analysis.monte_carlo_analyzer import (
 )
 from investment_analyzer.analysis.portfolio_analyzer import (
     PortfolioAnalyzer,
+)
+from investment_analyzer.analysis.distribution_analyzer import (
+    DistributionAnalyzer,
 )
 from investment_analyzer.models.transaction import Transaction, TransactionAction
 from investment_analyzer.core.fund_library import FundLibrary
@@ -62,11 +66,23 @@ class PortfolioWindow(QDialog):
         super().__init__(parent)
 
         self.setWindowTitle("Portfolio Analysis")
-        self.resize(700, 700)
-
+        self.resize(800, 800)
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(30, 25, 30, 25)
-        layout.setSpacing(15)
+        layout.setContentsMargins(15, 15, 15, 15)
+        layout.setSpacing(10)
+
+        scroll_area = QScrollArea()
+        scroll_area.setWidgetResizable(True)
+        scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+        scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+
+        content_widget = QWidget()
+        content_layout = QVBoxLayout(content_widget)
+        content_layout.setContentsMargins(15, 15, 15, 15)
+        content_layout.setSpacing(15)
+
+        scroll_area.setWidget(content_widget)
+        layout.addWidget(scroll_area)
 
         title = QLabel("Saved Portfolio")
         title.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -76,7 +92,7 @@ class PortfolioWindow(QDialog):
         title_font.setBold(True)
         title.setFont(title_font)
 
-        layout.addWidget(title)
+        content_layout.addWidget(title)
 
         selector_layout = QHBoxLayout()
 
@@ -86,7 +102,7 @@ class PortfolioWindow(QDialog):
         selector_layout.addWidget(selector_label)
         selector_layout.addWidget(self.portfolio_selector, 1)
 
-        layout.addLayout(selector_layout)
+        content_layout.addLayout(selector_layout)
 
         self.portfolio_name = QLabel("")
         self.portfolio_name.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -96,7 +112,7 @@ class PortfolioWindow(QDialog):
         name_font.setBold(True)
         self.portfolio_name.setFont(name_font)
 
-        layout.addWidget(self.portfolio_name)
+        content_layout.addWidget(self.portfolio_name)
 
         self.holdings_table = QTableWidget()
         self.holdings_table.setColumnCount(7)
@@ -115,26 +131,26 @@ class PortfolioWindow(QDialog):
         self.holdings_table.horizontalHeader().setStretchLastSection(True)
         self.holdings_table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
 
-        layout.addWidget(self.holdings_table)
+        content_layout.addWidget(self.holdings_table)
 
         self.total_label = QLabel("Total Allocation: --")
         self.total_label.setAlignment(Qt.AlignmentFlag.AlignRight)
-        layout.addWidget(self.total_label)
+        content_layout.addWidget(self.total_label)
 
         self.value_label = QLabel("Portfolio Current Value: --")
         self.value_label.setAlignment(Qt.AlignmentFlag.AlignRight)
-        layout.addWidget(self.value_label)
+        content_layout.addWidget(self.value_label)
         self.edit_shares_button = QPushButton("Edit Shares")
         self.edit_shares_button.clicked.connect(self.edit_shares)
-        layout.addWidget(self.edit_shares_button)
+        content_layout.addWidget(self.edit_shares_button)
 
         self.add_transaction_button = QPushButton("Add Transaction")
         self.add_transaction_button.clicked.connect(self.add_transaction)
-        layout.addWidget(self.add_transaction_button)
+        content_layout.addWidget(self.add_transaction_button)
 
         self.import_transactions_button = QPushButton("Import Schwab Transactions")
         self.import_transactions_button.clicked.connect(self.import_schwab_transactions)
-        layout.addWidget(self.import_transactions_button)
+        content_layout.addWidget(self.import_transactions_button)
 
         transaction_title = QLabel("Transaction History")
         transaction_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -144,7 +160,7 @@ class PortfolioWindow(QDialog):
         transaction_font.setBold(True)
         transaction_title.setFont(transaction_font)
 
-        layout.addWidget(transaction_title)
+        content_layout.addWidget(transaction_title)
 
         self.transaction_table = QTableWidget()
         self.transaction_table.setColumnCount(7)
@@ -164,7 +180,7 @@ class PortfolioWindow(QDialog):
 
         self.transaction_table.horizontalHeader().setStretchLastSection(True)
 
-        layout.addWidget(self.transaction_table)
+        content_layout.addWidget(self.transaction_table)
         transaction_button_layout = QHBoxLayout()
 
         self.edit_transaction_button = QPushButton("Edit Transaction")
@@ -176,7 +192,7 @@ class PortfolioWindow(QDialog):
         transaction_button_layout.addWidget(self.edit_transaction_button)
         transaction_button_layout.addWidget(self.delete_transaction_button)
 
-        layout.addLayout(transaction_button_layout)
+        content_layout.addLayout(transaction_button_layout)
         reconciliation_title = QLabel("Share Reconciliation")
         reconciliation_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
@@ -185,7 +201,7 @@ class PortfolioWindow(QDialog):
         reconciliation_font.setBold(True)
         reconciliation_title.setFont(reconciliation_font)
 
-        layout.addWidget(reconciliation_title)
+        content_layout.addWidget(reconciliation_title)
 
         self.reconciliation_table = QTableWidget()
         self.reconciliation_table.setColumnCount(4)
@@ -204,7 +220,7 @@ class PortfolioWindow(QDialog):
 
         self.reconciliation_table.horizontalHeader().setStretchLastSection(True)
 
-        layout.addWidget(self.reconciliation_table)
+        content_layout.addWidget(self.reconciliation_table)
         performance_title = QLabel("Portfolio Performance")
         performance_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
@@ -213,7 +229,7 @@ class PortfolioWindow(QDialog):
         performance_font.setBold(True)
         performance_title.setFont(performance_font)
 
-        layout.addWidget(performance_title)
+        content_layout.addWidget(performance_title)
 
         self.performance_table = QTableWidget()
         self.performance_table.setColumnCount(2)
@@ -245,7 +261,33 @@ class PortfolioWindow(QDialog):
         self.performance_table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
         self.performance_table.setMaximumHeight(235)
 
-        layout.addWidget(self.performance_table)
+        content_layout.addWidget(self.performance_table)
+        distribution_title = QLabel("Distribution Summary")
+        distribution_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+        distribution_font = distribution_title.font()
+        distribution_font.setPointSize(16)
+        distribution_font.setBold(True)
+        distribution_title.setFont(distribution_font)
+
+        content_layout.addWidget(distribution_title)
+
+        self.distribution_table = QTableWidget()
+        self.distribution_table.setColumnCount(4)
+        self.distribution_table.setHorizontalHeaderLabels(
+            [
+                "Fund",
+                "Dividends",
+                "Capital Gains",
+                "Total Distributions",
+            ]
+        )
+
+        self.distribution_table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
+
+        self.distribution_table.horizontalHeader().setStretchLastSection(True)
+
+        content_layout.addWidget(self.distribution_table)
         interpretation_title = QLabel("Portfolio Risk & Interpretation")
         interpretation_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
@@ -254,7 +296,7 @@ class PortfolioWindow(QDialog):
         interpretation_font.setBold(True)
         interpretation_title.setFont(interpretation_font)
 
-        layout.addWidget(interpretation_title)
+        content_layout.addWidget(interpretation_title)
 
         self.interpretation_table = QTableWidget()
         self.interpretation_table.setColumnCount(2)
@@ -289,7 +331,7 @@ class PortfolioWindow(QDialog):
         self.interpretation_table.setWordWrap(True)
         self.interpretation_table.setMaximumHeight(190)
 
-        layout.addWidget(self.interpretation_table)
+        content_layout.addWidget(self.interpretation_table)
         stress_title = QLabel("Historical Stress & Drawdowns")
         stress_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
@@ -298,7 +340,7 @@ class PortfolioWindow(QDialog):
         stress_font.setBold(True)
         stress_title.setFont(stress_font)
 
-        layout.addWidget(stress_title)
+        content_layout.addWidget(stress_title)
 
         self.stress_table = QTableWidget()
         self.stress_table.setColumnCount(2)
@@ -329,7 +371,7 @@ class PortfolioWindow(QDialog):
         self.stress_table.setWordWrap(True)
         self.stress_table.setMaximumHeight(190)
 
-        layout.addWidget(self.stress_table)
+        content_layout.addWidget(self.stress_table)
         close_button = QPushButton("Return to Investment Analyzer")
         close_button.setMinimumHeight(40)
         close_button.clicked.connect(self.accept)
@@ -464,6 +506,7 @@ class PortfolioWindow(QDialog):
         self.display_transaction_history(portfolio)
         self.display_share_reconciliation(portfolio)
         self.display_performance_results(portfolio)
+        self.display_distribution_results(portfolio)
         self.display_interpretation_results(portfolio)
         self.display_stress_results(portfolio)
 
@@ -1577,6 +1620,91 @@ class PortfolioWindow(QDialog):
             item.setText(value)
 
         self.interpretation_table.resizeColumnsToContents()
+
+    def display_distribution_results(self, portfolio):
+        """
+        Calculate and display portfolio distribution results.
+        """
+
+        self.distribution_table.clearContents()
+        self.distribution_table.setRowCount(0)
+
+        analyzer = DistributionAnalyzer(portfolio)
+        summary = analyzer.summary_by_fund()
+
+        if summary.empty:
+            self.distribution_table.setRowCount(1)
+
+            message_item = QTableWidgetItem(
+                "No dividend or capital-gain distributions recorded."
+            )
+
+            self.distribution_table.setItem(
+                0,
+                0,
+                message_item,
+            )
+
+            self.distribution_table.setSpan(0, 0, 1, 4)
+
+            self.distribution_table.resizeColumnsToContents()
+
+            return
+
+        self.distribution_table.setRowCount(len(summary) + 1)
+
+        for row, distribution in summary.iterrows():
+            self.distribution_table.setItem(
+                row,
+                0,
+                QTableWidgetItem(distribution["Symbol"]),
+            )
+
+            self.distribution_table.setItem(
+                row,
+                1,
+                QTableWidgetItem(f"${distribution['Dividends']:,.2f}"),
+            )
+
+            self.distribution_table.setItem(
+                row,
+                2,
+                QTableWidgetItem(f"${distribution['Capital Gains']:,.2f}"),
+            )
+
+            self.distribution_table.setItem(
+                row,
+                3,
+                QTableWidgetItem(f"${distribution['Total Distributions']:,.2f}"),
+            )
+
+        total_row = len(summary)
+
+        self.distribution_table.setItem(
+            total_row,
+            0,
+            QTableWidgetItem("Portfolio Total"),
+        )
+
+        self.distribution_table.setItem(
+            total_row,
+            1,
+            QTableWidgetItem(f"${summary['Dividends'].sum():,.2f}"),
+        )
+
+        self.distribution_table.setItem(
+            total_row,
+            2,
+            QTableWidgetItem(f"${summary['Capital Gains'].sum():,.2f}"),
+        )
+
+        self.distribution_table.setItem(
+            total_row,
+            3,
+            QTableWidgetItem(f"${summary['Total Distributions'].sum():,.2f}"),
+        )
+
+        self.distribution_table.resizeColumnsToContents()
 
 
 class MonteCarloWindow(QDialog):
